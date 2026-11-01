@@ -15,7 +15,7 @@ VARS = {
     "${platform:sqlstring}": "'IN','OUT'", "${platform:queryparam}": "var-platform=IN", "$platform": "'IN','OUT'",
     "$test_status": "'success','skipped','failed'",
     "$tests": "'03_oven_beef_wellington','10_oven_souffle','06_fryer_tempura','04_sous_vide_duck_breast'",
-    "${only_changed}": "0", "$only_changed": "0",
+    "'$change'": "'regression'",
     "${campaign}": "16", "$campaign": "16", "$test": "220", "'$base'": "'1.2.0'", "'$target'": "'1.3.0'",
 }
 

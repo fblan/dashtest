@@ -156,12 +156,17 @@ SELECT name, platform,
        count(*) AS runs
 FROM flips GROUP BY name, platform;
 
--- Differences with the previous run of the same test on the same platform: actions whose status
--- changed (matched by step and action position) and the number of steps containing them.
+-- Differences with the previous run of the same test on the same platform, action by action (matched by
+-- step and action position): actions whose status changed, regressed (success -> skipped/failed) or were
+-- fixed (skipped/failed -> success), and the number of steps containing them.
 CREATE VIEW v_test_diff AS
 SELECT r.test_id, r.prev_test_id,
        count(*) FILTER (WHERE a.status IS DISTINCT FROM pa.status) AS actions_changed,
-       count(DISTINCT s.position) FILTER (WHERE a.status IS DISTINCT FROM pa.status) AS steps_changed
+       count(DISTINCT s.position) FILTER (WHERE a.status IS DISTINCT FROM pa.status) AS steps_changed,
+       count(*) FILTER (WHERE pa.status = 'success' AND a.status <> 'success') AS actions_regressed,
+       count(DISTINCT s.position) FILTER (WHERE pa.status = 'success' AND a.status <> 'success') AS steps_regressed,
+       count(*) FILTER (WHERE pa.status <> 'success' AND a.status = 'success') AS actions_fixed,
+       count(DISTINCT s.position) FILTER (WHERE pa.status <> 'success' AND a.status = 'success') AS steps_fixed
 FROM v_test_result r
 JOIN step s ON s.test_id = r.test_id
 JOIN action a ON a.step_id = s.id
