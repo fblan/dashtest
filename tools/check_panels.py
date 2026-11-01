@@ -10,13 +10,12 @@ from pathlib import Path
 URL = (sys.argv[1] if len(sys.argv) > 1 else "http://localhost:3000").rstrip("/")
 DASHBOARDS = Path(__file__).resolve().parent.parent / "grafana" / "dashboards"
 
-# Replacements for the Grafana variables. Order matters: longer names first ($tests before $test).
+# Replacements for the Grafana variables. Order matters: longer names first ($test_status before $test).
 VARS = {
     "${platform:sqlstring}": "'IN','OUT'", "${platform:queryparam}": "var-platform=IN", "$platform": "'IN','OUT'",
     "$test_status": "'success','skipped','failed'", "$action_status": "'success','skipped','failed'",
-    "$tests": "'03_oven_beef_wellington','10_oven_souffle','06_fryer_tempura','04_sous_vide_duck_breast'",
     "'$change'": "'regression'", "$compare": "0",
-    "${campaign}": "16", "$campaign": "16", "$test": "220", "$step": "704", "'$base'": "'1.2.0'", "'$target'": "'1.3.0'",
+    "${campaign}": "16", "$campaign": "16", "$test": "220", "$step": "704",
 }
 
 

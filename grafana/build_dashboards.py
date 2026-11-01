@@ -10,8 +10,6 @@ DS = {"type": "grafana-postgresql-datasource", "uid": "kitchen-pg"}
 STATUS_COLORS = {"success": "green", "skipped": "orange", "failed": "red"}
 STATUS_MAPPING = [{"type": "value", "options": {
     s: {"color": c, "text": s, "index": i} for i, (s, c) in enumerate(STATUS_COLORS.items())}}]
-STATUS_NUM_MAPPING = [{"type": "value", "options": {
-    str(i): {"color": c, "text": s, "index": i} for i, (s, c) in enumerate(STATUS_COLORS.items())}}]
 TRANSITION_MAPPING = [{"type": "value", "options": {
     "regression": {"color": "red", "text": "▼ regression", "index": 0},
     "fixed": {"color": "green", "text": "▲ fixed", "index": 1},
@@ -92,15 +90,6 @@ def query_var(name, label, sql, multi=False, include_all=False, refresh=1):
     return {"type": "query", "name": name, "label": label, "datasource": DS,
             "query": sql, "definition": sql, "refresh": refresh, "multi": multi,
             "includeAll": include_all, "sort": 0, "current": {}, "options": []}
-
-
-PLATFORM_COLORS = {"IN": "purple", "OUT": "#2f9e8f"}
-
-
-def platform_cell(field="platform"):
-    return override(field, ("mappings", [{"type": "value", "options": {
-        code: {"color": c, "index": i} for i, (code, c) in enumerate(PLATFORM_COLORS.items())}}]),
-        ("custom.cellOptions", {"type": "color-background"}), ("custom.width", 80))
 
 
 def platform_var():
@@ -341,179 +330,47 @@ ORDER BY t.rank""" % DIFF_JOIN,
 
 # ---------------------------------------------------------------- 02 Trends
 def trends():
+    """One column per selected platform: test results per campaign, and under it the tests with regressions /
+    fixes compared with the previous campaign on the platform."""
     L = Layout()
-    sel = "name IN ($tests) AND {p}platform IN ($platform)"
-    platform_colors = [fixed_color(code, c) for code, c in PLATFORM_COLORS.items()]
-    L.row((panel(
-        "timeseries", "Pass rate per campaign, per platform",
-        f"""SELECT c.started_at AS time, c.platform AS metric,
-       round(100.0 * count(*) FILTER (WHERE t.status = 'success') / count(*), 1) AS value
-FROM campaign c JOIN test t ON t.campaign_id = c.id
-WHERE $__timeFilter(c.started_at) AND t.{sel.format(p="c.")}
+    line = {"drawStyle": "line", "lineWidth": 2, "showPoints": "always", "pointSize": 8, "fillOpacity": 0,
+            "spanNulls": True}
+    legend = {"legend": {"showLegend": True, "displayMode": "list", "placement": "bottom"},
+              "tooltip": {"mode": "multi", "sort": "none"}}
+    total = override("total", ("color", {"mode": "fixed", "fixedColor": "text"}),
+                     ("custom.lineStyle", {"fill": "dash", "dash": [10, 10]}))
+
+    def per_platform(p):
+        p.update({"repeat": "platform", "repeatDirection": "h", "maxPerRow": 2})
+        return p
+    L.row((per_platform(panel(
+        "timeseries", "Test results per campaign — $platform",
+        """SELECT started_at AS time, n_tests AS total, n_success AS success, n_skipped AS skipped,
+       n_failed AS failed
+FROM v_campaign_summary
+WHERE $__timeFilter(started_at) AND platform IN (${platform:sqlstring})
+ORDER BY 1""",
+        defaults={"unit": "none", "decimals": 0, "min": 0, "custom": line},
+        overrides=[total, *[fixed_color(st, c) for st, c in STATUS_COLORS.items()]],
+        options=legend,
+        desc="Number of tests of each campaign on the platform, by status.")), 24), h=10)
+    L.row((per_platform(panel(
+        "timeseries", "Tests with regressions / fixes per campaign — $platform",
+        """SELECT c.started_at AS time, count(*) AS total,
+       count(*) FILTER (WHERE d.actions_regressed > 0) AS "with regressions",
+       count(*) FILTER (WHERE d.actions_fixed > 0) AS "with fixes"
+FROM campaign c
+JOIN test t ON t.campaign_id = c.id
+LEFT JOIN v_test_diff d ON d.test_id = t.id
+WHERE $__timeFilter(c.started_at) AND c.platform IN (${platform:sqlstring})
 GROUP BY c.id ORDER BY 1""",
-        fmt="time_series",
-        defaults={"unit": "percent", "min": 0, "max": 100,
-                  "custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "always", "pointSize": 7,
-                             "fillOpacity": 0, "spanNulls": True, "thresholdsStyle": {"mode": "line+area"}},
-                  "thresholds": {"mode": "absolute", "steps": [
-                      {"color": "transparent", "value": None}, {"color": "green", "value": 90}]}},
-        overrides=platform_colors,
-        options={"legend": {"showLegend": True, "placement": "bottom"}, "tooltip": {"mode": "multi"}}), 24), h=8)
-    L.row((panel(
-        "barchart", "Test results per campaign",
-        f"""SELECT c.platform || ' ' || c.kms_version || ' ' || to_char(c.started_at, 'MM-DD') AS campaign,
-       count(*) FILTER (WHERE t.status = 'success') AS success,
-       count(*) FILTER (WHERE t.status = 'skipped') AS skipped,
-       count(*) FILTER (WHERE t.status = 'failed') AS failed
-FROM campaign c JOIN test t ON t.campaign_id = c.id
-WHERE $__timeFilter(c.started_at) AND t.{sel.format(p="c.")}
-GROUP BY c.id ORDER BY c.started_at""",
-        defaults={"custom": {"fillOpacity": 85, "lineWidth": 0}},
-        overrides=[fixed_color(s, c) for s, c in STATUS_COLORS.items()],
-        options={"xField": "campaign", "stacking": "normal", "orientation": "vertical",
-                 "xTickLabelRotation": -60, "xTickLabelSpacing": 0, "showValue": "never", "barWidth": 0.8,
-                 "legend": {"showLegend": True, "displayMode": "list", "placement": "bottom"}}), 24), h=11)
-    matrix = table(
-        "Pass rate per test, platform and KMS version",
-        f"""SELECT platform || ' · ' || name AS test, kms_version AS "KMS",
-       round(100.0 * count(*) FILTER (WHERE status = 'success') / count(*)) AS pass_rate
-FROM v_test_result
-WHERE $__timeFilter(campaign_started_at) AND {sel.format(p="")}
-GROUP BY platform, name, kms_version, kms_version_order
-ORDER BY kms_version_order, platform, name""",
-        desc="Share of successful runs of each test on each KMS version, per platform.",
-        overrides=[override("test\\KMS", ("custom.cellOptions", {"type": "auto"}),
-                            ("custom.width", 260), ("custom.align", "left"), ("unit", "string"))])
-    matrix["fieldConfig"]["defaults"].update({
-        "unit": "percent", "color": {"mode": "thresholds"},
-        "custom": {"align": "center", "cellOptions": {"type": "color-background"}, "filterable": False,
-                   "minWidth": 60},
-        "thresholds": {"mode": "absolute", "steps": [
-            {"color": "red", "value": None}, {"color": "orange", "value": 50}, {"color": "green", "value": 100}]}})
-    matrix["transformations"] = [{"id": "groupingToMatrix", "options": {
-        "columnField": "KMS", "rowField": "test", "valueField": "pass_rate", "emptyValue": "null"}}]
-    L.row((matrix, 24), h=24)
-    L.row(
-        (panel("timeseries", "Campaign duration",
-               """SELECT started_at AS time, platform AS metric, duration_s / 60.0 AS value
-FROM v_campaign_summary WHERE $__timeFilter(started_at) AND platform IN ($platform) ORDER BY 1""",
-               fmt="time_series",
-               defaults={"unit": "m", "custom": {"drawStyle": "line", "showPoints": "always", "pointSize": 6}},
-               overrides=platform_colors,
-               options={"legend": {"showLegend": True, "placement": "bottom"}}), 12),
-        (panel("timeseries", "Test duration",
-               f"""SELECT campaign_started_at AS time, platform || ' · ' || name AS metric, duration_s / 60.0 AS value
-FROM v_test_result WHERE $__timeFilter(campaign_started_at) AND {sel.format(p="")} ORDER BY 1""",
-               fmt="time_series",
-               defaults={"unit": "m", "custom": {"drawStyle": "line", "showPoints": "always", "pointSize": 4}},
-               options={"legend": {"showLegend": True, "displayMode": "table", "placement": "right",
-                                   "calcs": ["mean", "max"]},
-                        "tooltip": {"mode": "multi", "sort": "desc"}}), 12),
-        h=10)
-    tests_var = query_var("tests", "Tests", "SELECT DISTINCT name FROM test ORDER BY 1",
-                          multi=True, include_all=True)
-    tests_var["current"] = {"text": ["All"], "value": ["$__all"]}
-    return dashboard("kitchen-trends", "Trends over time", L, [platform_var(), tests_var],
-                     annotations=release_annotations())
-
-
-# ---------------------------------------------------------------- 03 Regressions
-def regressions():
-    L = Layout()
-    plat = "platform IN ($platform)"
-    L.row(
-        (panel("barchart", "Regressions & fixes per KMS version (vs previous campaign on the same platform)",
-               f"""SELECT kms_version AS "KMS",
-       count(*) FILTER (WHERE transition = 'regression') AS regressions,
-       count(*) FILTER (WHERE transition = 'fixed') AS fixes
-FROM v_test_result WHERE $__timeFilter(campaign_started_at) AND {plat}
-GROUP BY kms_version, kms_version_order ORDER BY kms_version_order""",
-               defaults={"custom": {"fillOpacity": 85, "lineWidth": 0}},
-               overrides=[fixed_color("regressions", "red"), fixed_color("fixes", "green")],
-               options={"xField": "KMS", "stacking": "none", "showValue": "auto", "barWidth": 0.8,
-                        "groupWidth": 0.8, "legend": {"showLegend": True, "placement": "bottom"}}), 14),
-        (panel("bargauge", "Flakiest tests (status flips, last 15 campaigns per platform)",
-               f"SELECT platform || ' · ' || name AS test, flips FROM v_flakiness WHERE flips > 0 AND {plat} "
-               "ORDER BY flips DESC, 1 LIMIT 10",
-               defaults={"min": 0, "color": {"mode": "continuous-YlRd"}},
-               options={"reduceOptions": {"values": True, "calcs": [], "fields": "/^flips$/"},
-                        "displayMode": "gradient", "orientation": "horizontal", "showUnfilled": True,
-                        "valueMode": "color", "namePlacement": "left", "sizing": "auto"}), 10),
-        h=9)
-    history = panel(
-        "status-history",
-        "Test status history on $platform: green = success, orange = skipped, red = failed (one column per campaign)",
-        f"""SELECT campaign_started_at AS time, name AS metric,
-       CASE status WHEN 'success' THEN 0 WHEN 'skipped' THEN 1 ELSE 2 END AS value
-FROM v_test_result WHERE $__timeFilter(campaign_started_at) AND platform IN (${{platform:sqlstring}})
-ORDER BY 1, 2""",
-        fmt="time_series",
-        defaults={"mappings": STATUS_NUM_MAPPING, "color": {"mode": "thresholds"},
-                  "custom": {"fillOpacity": 85, "lineWidth": 1}},
-        options={"showValue": "never", "rowHeight": 0.85, "colWidth": 0.95,
-                 "legend": {"showLegend": False}})
-    history.update({"repeat": "platform", "repeatDirection": "v"})   # one panel per selected platform
-    L.row((history, 24), h=12)
-    L.row((table(
-        "KMS version comparison: $base → $target (failure rate per test and platform)",
-        f"""WITH r AS (
-    SELECT name, platform, kms_version,
-           100.0 * count(*) FILTER (WHERE status = 'failed') / count(*) AS fail_rate,
-           count(*) AS runs
-    FROM v_test_result WHERE kms_version IN ('$base', '$target') AND {plat}
-    GROUP BY name, platform, kms_version
-)
-SELECT b.platform, b.name,
-       round(b.fail_rate) AS "base fail %", b.runs AS "base runs",
-       round(t.fail_rate) AS "target fail %", t.runs AS "target runs",
-       round(t.fail_rate - b.fail_rate) AS "delta %",
-       CASE WHEN t.fail_rate - b.fail_rate >= 50 THEN 'regression'
-            WHEN b.fail_rate - t.fail_rate >= 50 THEN 'fixed'
-            WHEN t.fail_rate > 0 THEN 'still_failing'
-            ELSE 'stable_ok' END AS verdict
-FROM r b JOIN r t ON t.name = b.name AND t.platform = b.platform
-WHERE b.kms_version = '$base' AND t.kms_version = '$target'
-ORDER BY "delta %" DESC, b.name, b.platform""",
-        desc="Compares the share of failed runs of each test between two KMS versions, per platform. "
-             "A delta >= 50 points is flagged as a regression.",
-        overrides=[color_cell("verdict", TRANSITION_MAPPING), platform_cell(),
-                   override("delta %", ("custom.cellOptions", {"type": "color-text"}),
-                            ("color", {"mode": "thresholds"}),
-                            ("thresholds", {"mode": "absolute", "steps": [
-                                {"color": "green", "value": None}, {"color": "text", "value": 0},
-                                {"color": "red", "value": 1}]}))]), 24), h=12)
-    L.row((table(
-        "Regressions (success → failed) with what changed and root cause",
-        f"""SELECT r.test_id AS id, r.campaign_started_at AS date, r.platform, r.name,
-       r.changes AS "changed since previous run",
-       f.step_position || '.' || f.action_position AS "at",
-       split_part(f.action_description, E'\\n', 1) AS action,
-       f.expected_result AS expected, f.actual_result AS actual
-FROM v_test_result r LEFT JOIN v_first_failure f ON f.test_id = r.test_id
-WHERE r.transition = 'regression' AND $__timeFilter(r.campaign_started_at) AND r.{plat}
-ORDER BY 2 DESC, r.rank""",
-        desc="'changed since previous run' lists the software versions that differ from the previous "
-             "campaign on the same platform: the suspects for the regression.",
-        overrides=[override("id", ("custom.hidden", True)), width("date", 160), platform_cell(),
-                   override("name", ("custom.width", 220)), width("at", 50), test_link("name"),
-                   wrap("changed since previous run", "action", "expected", "actual")]), 24), h=14)
-    L.row((table(
-        "Fixes (failed → success) with what changed",
-        f"""SELECT r.test_id AS id, r.campaign_started_at AS date, r.platform, r.name,
-       r.changes AS "changed since previous run"
-FROM v_test_result r
-WHERE r.transition = 'fixed' AND $__timeFilter(r.campaign_started_at) AND r.{plat}
-ORDER BY 2 DESC, r.rank""",
-        overrides=[override("id", ("custom.hidden", True)), width("date", 160), platform_cell(),
-                   override("name", ("custom.width", 220)), test_link("name"),
-                   wrap("changed since previous run")]), 24), h=10)
-
-    kms_versions = ("SELECT kms_version FROM campaign GROUP BY kms_version, kms_version_order "
-                    "ORDER BY kms_version_order DESC")
-    target_var = query_var("target", "Target KMS", kms_versions)
-    base_var = query_var("base", "Base KMS", kms_versions + " OFFSET 1")
-    return dashboard("kitchen-regressions", "Regressions", L, [platform_var(), base_var, target_var],
-                     annotations=release_annotations())
+        defaults={"unit": "none", "decimals": 0, "min": 0, "custom": line},
+        overrides=[total, fixed_color("with regressions", "red"), fixed_color("with fixes", "green")],
+        options=legend,
+        desc="Compared with the previous campaign on the platform, action by action (skipped and failed count as "
+             "not passing). With regressions: at least one action passed before and does not pass now. "
+             "With fixes: at least one action did not pass before and passes now.")), 24), h=10)
+    return dashboard("kitchen-trends", "Trends over time", L, [platform_var()], annotations=release_annotations())
 
 
 # ---------------------------------------------------------------- 04 Test details
@@ -814,7 +671,6 @@ def main():
     EXPORT.mkdir(exist_ok=True)
     for fname, build in [("01_campaign_overview.json", campaign_overview),
                          ("02_trends.json", trends),
-                         ("03_regressions.json", regressions),
                          ("04_test_details.json", test_details),
                          ("05_step_details.json", step_details)]:
         dash = build()
