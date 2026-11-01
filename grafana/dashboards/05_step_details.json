@@ -190,7 +190,65 @@
   "panels": [
     {
       "type": "stat",
-      "title": "Test, step and versions",
+      "title": "Test / step (click to open the test)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "kitchen-pg"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "kitchen-pg"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT t.name AS test, s.position AS step, t.id AS test_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Open test details",
+              "url": "/d/kitchen-test/test-details?var-test=${__data.fields.test_id}&var-compare=0&${platform:queryparam}&${__url_time_range}&var-step_status=%24__all&var-change=all"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^(?!.*_id$).*/"
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "text": {
+          "titleSize": 12,
+          "valueSize": 20
+        }
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 7,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Versions (click to open the campaign)",
       "description": "KMS = Kitchen Management System (system under test), KES = KitEquipmentSimulator, KTRS = Kitchen Test Runner System, Gateway, TestCampaign = test definitions. Orange ▲: version changed since the previous campaign on the platform.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -206,7 +264,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT t.name AS \"Test\", s.position AS \"Step\", t.id AS test_id,\n       c.platform || ' · ' || to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id,\n       c.kms_version || CASE WHEN c.kms_version <> prev.kms_version THEN ' ▲' ELSE '' END AS \"KMS (under test)\",\n       c.kes_version || CASE WHEN c.kes_version <> prev.kes_version THEN ' ▲' ELSE '' END AS \"KES\",\n       c.ktrs_version || CASE WHEN c.ktrs_version <> prev.ktrs_version THEN ' ▲' ELSE '' END AS \"KTRS\",\n       c.gateway_version || CASE WHEN c.gateway_version <> prev.gateway_version THEN ' ▲' ELSE '' END AS \"Gateway\",\n       c.testcampaign_version || CASE WHEN c.testcampaign_version <> prev.testcampaign_version THEN ' ▲' ELSE '' END AS \"TestCampaign\"\nFROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id\nJOIN step s ON s.id = $step JOIN test t ON t.id = s.test_id\nWHERE c.id = t.campaign_id"
+          "rawSql": "SELECT c.id AS campaign_id,\n       c.kms_version || CASE WHEN c.kms_version <> prev.kms_version THEN ' ▲' ELSE '' END AS \"KMS (under test)\",\n       c.kes_version || CASE WHEN c.kes_version <> prev.kes_version THEN ' ▲' ELSE '' END AS \"KES\",\n       c.ktrs_version || CASE WHEN c.ktrs_version <> prev.ktrs_version THEN ' ▲' ELSE '' END AS \"KTRS\",\n       c.gateway_version || CASE WHEN c.gateway_version <> prev.gateway_version THEN ' ▲' ELSE '' END AS \"Gateway\",\n       c.testcampaign_version || CASE WHEN c.testcampaign_version <> prev.testcampaign_version THEN ' ▲' ELSE '' END AS \"TestCampaign\"\nFROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id\nWHERE c.id = (SELECT t.campaign_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step)"
         }
       ],
       "fieldConfig": {
@@ -225,6 +283,12 @@
                 }
               }
             }
+          ],
+          "links": [
+            {
+              "title": "Open campaign overview",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&${__url_time_range}"
+            }
           ]
         },
         "overrides": [
@@ -240,40 +304,6 @@
                   "mode": "fixed",
                   "fixedColor": "blue"
                 }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Test"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "Open test details",
-                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.test_id}&var-compare=0&${platform:queryparam}&${__url_time_range}&var-step_status=%24__all&var-change=all"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "campaign"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "Open campaign overview",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}"
-                  }
-                ]
               }
             ]
           }
@@ -298,11 +328,11 @@
           "valueSize": 20
         }
       },
-      "id": 1,
+      "id": 2,
       "gridPos": {
-        "x": 0,
+        "x": 7,
         "y": 0,
-        "w": 17,
+        "w": 10,
         "h": 4
       }
     },
@@ -367,7 +397,7 @@
         "textMode": "value",
         "justifyMode": "center"
       },
-      "id": 2,
+      "id": 3,
       "gridPos": {
         "x": 17,
         "y": 0,
@@ -415,7 +445,7 @@
         "textMode": "value",
         "justifyMode": "center"
       },
-      "id": 3,
+      "id": 4,
       "gridPos": {
         "x": 20,
         "y": 0,
@@ -558,7 +588,7 @@
         "textMode": "value_and_name",
         "justifyMode": "center"
       },
-      "id": 4,
+      "id": 5,
       "gridPos": {
         "x": 0,
         "y": 4,
@@ -685,7 +715,7 @@
         "textMode": "value_and_name",
         "justifyMode": "center"
       },
-      "id": 5,
+      "id": 6,
       "gridPos": {
         "x": 14,
         "y": 4,
@@ -743,7 +773,7 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 6,
+      "id": 7,
       "gridPos": {
         "x": 0,
         "y": 8,
@@ -981,7 +1011,7 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 7,
+      "id": 8,
       "gridPos": {
         "x": 0,
         "y": 13,
@@ -1143,7 +1173,7 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 8,
+      "id": 9,
       "gridPos": {
         "x": 0,
         "y": 27,

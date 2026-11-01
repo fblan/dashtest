@@ -108,11 +108,10 @@ def platform_var(include_all=True):
     return v
 
 
-def info_stat(title, campaign, lead="", links=(), joins=""):
-    """First tile of the header: what is shown (lead fields, e.g. platform or test / step) and the 5 software
-    versions of the campaign. KMS (system under test) in blue; a version that changed since the previous campaign
-    on the platform is orange and marked ▲. `campaign` is the SQL expression of the campaign id,
-    `links` (field, title, url) open the item of a field, `joins` adds the tables used by `lead`."""
+def info_stat(title, campaign, lead="", link=None):
+    """Header tile: the 5 software versions of the campaign, after the `lead` fields (e.g. the platform).
+    KMS (system under test) in blue; a version that changed since the previous campaign on the platform is
+    orange and marked ▲. `campaign` is the SQL expression of the campaign id; `link` (title, url) opens on click."""
     def version(col, name):
         return (f"c.{col} || CASE WHEN c.{col} <> prev.{col} THEN ' ▲' ELSE '' END AS \"{name}\"")
     cols = ",\n       ".join([lead] * bool(lead) + [version(col, name) for col, name in (
@@ -120,17 +119,28 @@ def info_stat(title, campaign, lead="", links=(), joins=""):
         ("gateway_version", "Gateway"), ("testcampaign_version", "TestCampaign"))])
     changed = {"type": "regex", "options": {"pattern": ".* ▲$", "result": {"color": "orange"}}}
     p = stat(title, f"""SELECT {cols}
-FROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id{joins}
+FROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id
 WHERE c.id = {campaign}""",
              defaults={"color": {"mode": "fixed", "fixedColor": "transparent"}, "mappings": [changed]},
-             overrides=[override("KMS (under test)", ("color", {"mode": "fixed", "fixedColor": "blue"})),
-                        *[override(field, ("links", [{"title": t, "url": url}])) for field, t, url in links]])
-    p["options"]["reduceOptions"]["fields"] = "/^(?!.*_id$).*/"    # *_id: hidden fields used by the links
+             overrides=[override("KMS (under test)", ("color", {"mode": "fixed", "fixedColor": "blue"}))])
+    if link:
+        p["fieldConfig"]["defaults"]["links"] = [{"title": link[0], "url": link[1]}]
+    p["options"]["reduceOptions"]["fields"] = "/^(?!.*_id$).*/"    # *_id: hidden fields used by the link
     p["options"].update({"textMode": "value_and_name", "orientation": "vertical", "wideLayout": True,
                          "text": {"titleSize": 12, "valueSize": 20}})
     p["description"] = ("KMS = Kitchen Management System (system under test), KES = KitEquipmentSimulator, "
                         "KTRS = Kitchen Test Runner System, Gateway, TestCampaign = test definitions. "
                         "Orange ▲: version changed since the previous campaign on the platform.")
+    return p
+
+
+def name_stat(title, sql, link=None):
+    """Header tile with the name(s) of what is shown (test, step); `link` (title, url) opens on click."""
+    p = stat(title, sql, color_mode="none")
+    p["options"]["reduceOptions"]["fields"] = "/^(?!.*_id$).*/"    # *_id: hidden fields used by the link
+    p["options"].update({"textMode": "value_and_name", "wideLayout": True, "text": {"titleSize": 12, "valueSize": 20}})
+    if link:
+        p["fieldConfig"]["defaults"]["links"] = [{"title": link[0], "url": link[1]}]
     return p
 
 
@@ -403,8 +413,8 @@ STEP_URL += "&var-action_status=%%24__all&var-change=all"
 BASE_TEST = "coalesce(nullif($compare, 0), (SELECT prev_test_id FROM v_test_result WHERE test_id = $test))"
 
 
-CAMPAIGN_LINK = ("campaign", "Open campaign overview",
-                 "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}")
+CAMPAIGN_LINK = ("Open campaign overview",
+                 "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&${__url_time_range}")
 # the current test, for the filter tiles of Test details (they add the filter variables)
 TEST_SELF = ("/d/kitchen-test/test-details?var-test=${test}&var-compare=${compare}"
              "&${platform:queryparam}&${__url_time_range}")
@@ -413,10 +423,9 @@ TEST_SELF = ("/d/kitchen-test/test-details?var-test=${test}&var-compare=${compar
 def test_details():
     L = Layout()
     L.row(
-        (info_stat("Test and versions", "(SELECT campaign_id FROM test WHERE id = $test)",
-                   lead="""(SELECT name FROM test WHERE id = $test) AS "Test",
-       c.platform || ' · ' || to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id""",
-                   links=[CAMPAIGN_LINK]), 17),
+        (name_stat("Test", "SELECT name AS test FROM test WHERE id = $test"), 7),
+        (info_stat("Versions (click to open the campaign)", "(SELECT campaign_id FROM test WHERE id = $test)",
+                   lead="c.id AS campaign_id", link=CAMPAIGN_LINK), 10),
         (status_stat("SELECT status::text AS status FROM test WHERE id = $test"), 3),
         (duration_stat("SELECT extract(epoch FROM ended_at - started_at) AS duration FROM test WHERE id = $test"), 4),
         h=4)
@@ -509,14 +518,15 @@ BASE_STEP = """coalesce(nullif($compare, 0), (SELECT ps.id FROM step s JOIN v_te
 def step_details():
     L = Layout()
     L.row(
-        (info_stat("Test, step and versions", "t.campaign_id", joins="""
-JOIN step s ON s.id = $step JOIN test t ON t.id = s.test_id""",
-                   lead="""t.name AS "Test", s.position AS "Step", t.id AS test_id,
-       c.platform || ' · ' || to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id""",
-                   links=[("Test", "Open test details",
-                           "/d/kitchen-test/test-details?var-test=${__data.fields.test_id}&var-compare=0"
-                           "&${platform:queryparam}&${__url_time_range}&var-step_status=%24__all&var-change=all"),
-                          CAMPAIGN_LINK]), 17),
+        (name_stat("Test / step (click to open the test)",
+                   "SELECT t.name AS test, s.position AS step, t.id AS test_id "
+                   "FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step",
+                   link=("Open test details",
+                         "/d/kitchen-test/test-details?var-test=${__data.fields.test_id}&var-compare=0"
+                         "&${platform:queryparam}&${__url_time_range}&var-step_status=%24__all&var-change=all")), 7),
+        (info_stat("Versions (click to open the campaign)",
+                   "(SELECT t.campaign_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step)",
+                   lead="c.id AS campaign_id", link=CAMPAIGN_LINK), 10),
         (status_stat("SELECT status::text AS status FROM step WHERE id = $step"), 3),
         (duration_stat("SELECT sum(duration_ms) / 1000.0 AS duration FROM action WHERE step_id = $step"), 4),
         h=4)
