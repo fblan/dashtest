@@ -66,7 +66,7 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   Clicking a step (# or description) opens Step details with the step of the compared run (`STEP_URL`).
 - `kitchen-step` Step details: vars platform, test, step (steps of the test), `compare` (0 = same step in the
   previous run, else a step id at the same position in another run of the test; resolved by `BASE_STEP`).
-  Header rows, step text, comparison row, actions table (status, expected, actual | compared status, evolution = `status_change()`, compared expected, actual), step history.
+  Header rows, step text, comparison row, actions table (evolution = `status_change()`, status, expected, actual | compared status, expected, actual), step history.
 - `kitchen-trends`, `kitchen-regressions`.
 - Anonymous Viewer access must stay on (dashboards visible without login).
 

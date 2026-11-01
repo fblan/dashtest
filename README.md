@@ -88,7 +88,7 @@ default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
    actions, actions with regressions, actions with fixes; click a step to open it) and the history of the test.
 5. **Step details** – one step of a test run, built like Test details: header and versions, the step (description,
    expected, actual), **Compare with** (default: the same step in the previous run of the test on the platform),
-   actions with regressions / fixes, the actions (status, expected, actual, then for the compared run: status, evolution, expected, actual)
+   actions with regressions / fixes, the actions (evolution, status, expected, actual, then for the compared run: status, expected, actual)
    and the history of the step on the platform.
 
 Postgres (local only): `localhost:5432`, db `kitchen`, user `kitchen`/`kitchen` (Grafana uses the read-only role `grafana_ro`, password `GRAFANA_RO_PASSWORD`).
