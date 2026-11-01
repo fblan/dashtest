@@ -30,12 +30,15 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   at the top listing every view, `DROP FUNCTION IF EXISTS` for functions returning a table, `CREATE OR REPLACE FUNCTION`, `GRANT SELECT … TO grafana_ro` at the end):
   the `migrate` service re-applies it on every deploy. Add any new view to the DROP list.
 - `db/init/03_seed.sql` is generated (1.7 MB) by `generator/generate.py` from `generator/scenarios.py`.
-  Init scripts 00/01/03 only run on an empty volume: data/schema changes need the volume deleted in Dokploy.
-  Schema (table) changes on an existing DB need an explicit migration — none exists yet.
+  Init scripts 00/01/03 only run on an empty volume. On later deploys `db/migrate.sh` reloads 03 when its
+  sha256 differs from `seed_info` (TRUNCATE + load in one transaction), so data changes deploy by themselves.
+  Schema (table) changes on an existing DB need the volume deleted or an explicit migration — none exists yet.
+  History must stay reproducible: new campaigns go in `LATEST_CAMPAIGNS` (fixed dates, no random noise),
+  appended after the generated schedule so the earlier campaigns are unchanged.
 - `grafana/build_dashboards.py` generates `grafana/dashboards/*.json` (provisioned) and `grafana/export/*.json`
   (portable copies to paste in another Grafana 12). Never hand-edit the JSON; always commit both.
 - `docker-compose.yml` = production (no ports; Dokploy domain → service `grafana`, port 3000).
-  Services: postgres (built from `db/`), migrate (one-shot psql of 02 file), grafana (built from `grafana/`,
+  Services: postgres (built from `db/`), migrate (one-shot `db/migrate.sh`), grafana (built from `grafana/`,
   waits for migrate). `docker-compose.local.yml` only adds ports (used locally through `COMPOSE_FILE`).
 - `tools/check_panels.py` remote query checker (above).
 
