@@ -63,7 +63,7 @@ def test_link(field, id_field="id", compare="0"):
     return override(field, ("links", [{
         "title": "Open test details",
         "url": "/d/kitchen-test/test-details?var-test=${__data.fields.%s}&var-compare=%s&${__url_time_range}"
-               % (id_field, compare)}]))
+               "&var-step_status=%%24__all&var-change=all" % (id_field, compare)}]))
 
 
 def wrap(*fields):
@@ -108,33 +108,54 @@ def platform_var(include_all=True):
     return v
 
 
-def versions_stat(where):
-    """The 5 software versions of a campaign, KMS (system under test) highlighted."""
-    p = stat("Software versions",
-             f"""SELECT kms_version AS "KMS (under test)", kes_version AS "KES", ktrs_version AS "KTRS",
-       gateway_version AS "Gateway", testcampaign_version AS "TestCampaign"
-FROM campaign WHERE {where}""",
-             defaults={"color": {"mode": "fixed", "fixedColor": "transparent"}},
-             overrides=[override("KMS (under test)", ("color", {"mode": "fixed", "fixedColor": "blue"}))])
+def info_stat(title, campaign, lead="", links=()):
+    """First tile of the header: what is shown (lead fields, e.g. platform or test / step) and the 5 software
+    versions of the campaign. KMS (system under test) in blue; a version that changed since the previous campaign
+    on the platform is orange and marked ▲. `campaign` is the SQL expression of the campaign id,
+    `links` (field, title, url) open the item of a field."""
+    def version(col, name):
+        return (f"c.{col} || CASE WHEN c.{col} <> prev.{col} THEN ' ▲' ELSE '' END AS \"{name}\"")
+    cols = ",\n       ".join([lead] * bool(lead) + [version(col, name) for col, name in (
+        ("kms_version", "KMS (under test)"), ("kes_version", "KES"), ("ktrs_version", "KTRS"),
+        ("gateway_version", "Gateway"), ("testcampaign_version", "TestCampaign"))])
+    changed = {"type": "regex", "options": {"pattern": ".* ▲$", "result": {"color": "orange"}}}
+    p = stat(title, f"""SELECT {cols}
+FROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id
+WHERE c.id = {campaign}""",
+             defaults={"color": {"mode": "fixed", "fixedColor": "transparent"}, "mappings": [changed]},
+             overrides=[override("KMS (under test)", ("color", {"mode": "fixed", "fixedColor": "blue"})),
+                        *[override(field, ("links", [{"title": t, "url": url}])) for field, t, url in links]])
+    p["options"]["reduceOptions"]["fields"] = "/^(?!.*_id$).*/"    # *_id: hidden fields used by the links
     p["options"].update({"textMode": "value_and_name", "orientation": "vertical", "wideLayout": True,
-                         "text": {"titleSize": 13, "valueSize": 24}})
+                         "text": {"titleSize": 12, "valueSize": 20}})
     p["description"] = ("KMS = Kitchen Management System (system under test), KES = KitEquipmentSimulator, "
-                        "KTRS = Kitchen Test Runner System, Gateway, TestCampaign = test definitions")
+                        "KTRS = Kitchen Test Runner System, Gateway, TestCampaign = test definitions. "
+                        "Orange ▲: version changed since the previous campaign on the platform.")
     return p
 
 
-def changes_stat(where):
-    """Versions changed since the previous campaign on the platform; orange when something changed,
-    otherwise the date and content of the last change."""
-    p = stat("Versions changed since the previous campaign on this platform",
-             f"""SELECT CASE WHEN changes = 'no change'
-            THEN 'None — last change ' || to_char(last_change_at, 'YYYY-MM-DD') || ': ' || last_change
-            ELSE changes END AS changes
-FROM v_campaign WHERE {where}""",
-             defaults={"mappings": [
-                 {"type": "regex", "options": {"pattern": "^None.*", "result": {"color": "transparent"}}},
-                 {"type": "regex", "options": {"pattern": ".*", "result": {"color": "orange"}}}]})
+def status_stat(sql):
+    p = stat("Status", sql, defaults={"mappings": STATUS_MAPPING})
     p["options"]["textMode"] = "value"
+    return p
+
+
+def duration_stat(sql):
+    p = stat("Duration", sql, defaults={"unit": "s"}, color_mode="none")
+    p["options"]["textMode"] = "value"
+    return p
+
+
+def change_stat(title, sql, items, url, status_var, desc):
+    """Second line: number of <items> with regressions / fixes vs the compared run, click = list them."""
+    p = stat(title, sql, overrides=[
+        change_filter("regressions", "red", "regression", f"Show only the {items} with regressions", url, status_var),
+        change_filter("fixes", "green", "fix", f"Show only the {items} with fixes", url, status_var)],
+        color_mode="value")
+    p["fieldConfig"]["defaults"]["noValue"] = "nothing to compare with"
+    p["description"] = desc + (" Compared with the run selected in \"Compare with\", action by action (matched "
+                               "by step and action position); skipped and failed count as not passing. Regression: "
+                               "an action passed before and does not pass now. Fix: the reverse.")
     return p
 
 
@@ -201,77 +222,34 @@ def filter_vars(status_var, items):
     ]
 
 
-def comparison_row():
-    """Tiles comparing the campaign with the campaign picked in "Compare with" (default: previous on the platform)."""
-    previous = stat(
-        "Compared with (click to open it)",
-        """SELECT coalesce(p.label || '  (' || p.status || ')', 'none: first campaign on this platform') AS compared,
-       p.id AS base_id
-FROM (SELECT %s AS id) b LEFT JOIN v_campaign p ON p.id = b.id""" % BASE, color_mode="none")
-    previous["options"]["reduceOptions"]["fields"] = "/^compared$/"
-    previous["options"].update({"textMode": "value", "text": {"valueSize": 20}})
-    previous["fieldConfig"]["defaults"]["links"] = [{
-        "title": "Open the compared campaign",
-        "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.base_id}&var-compare=0"
-               "&${platform:queryparam}&${__url_time_range}"}]
-
-    pass_rate = stat(
-        "Pass rate: compared campaign / change",
-        """SELECT p.pass_rate AS compared,
-       CASE WHEN c.pass_rate = p.pass_rate THEN '±0.0 pts'
-            ELSE to_char(c.pass_rate - p.pass_rate, 'FMSG990.0') || ' pts' END AS change
-FROM v_campaign_summary c
-JOIN v_campaign_summary p ON p.campaign_id = %s
-WHERE c.campaign_id = $campaign""" % BASE,
-        overrides=[override("compared", ("unit", "percent"), ("color", {"mode": "fixed", "fixedColor": "text"})),
-                   override("change", ("mappings", [
-                       {"type": "regex", "options": {"pattern": "^\\+.*", "result": {"color": "green"}}},
-                       {"type": "regex", "options": {"pattern": "^-.*", "result": {"color": "red"}}},
-                       {"type": "regex", "options": {"pattern": ".*", "result": {"color": "text"}}}]))],
-        color_mode="value")
-
-    transitions = stat(
-        "Tests with regressions / fixes (click to list them)",
-        """SELECT count(*) FILTER (WHERE d.actions_regressed > 0) AS regressions,
-       count(*) FILTER (WHERE d.actions_fixed > 0) AS fixes
-FROM test t %s
-WHERE t.campaign_id = $campaign""" % DIFF_JOIN,
-        overrides=[change_filter("regressions", "red", "regression", "Show only the tests with regressions"),
-                   change_filter("fixes", "green", "fix", "Show only the tests with fixes")],
-        color_mode="value")
-    transitions["description"] = (
-        "Compared action by action with the same test in the compared campaign (matched by step and "
-        "action position); skipped and failed count as not passing. Regression: at least one action passed before "
-        "and does not pass now. Fix: at least one action did not pass before and passes now.")
-
-    return [(previous, 9), (pass_rate, 6), (transitions, 9)]
-
-
 def campaign_overview():
     L = Layout()
     L.row(
-        (stat("Campaign status", "SELECT status::text AS status FROM campaign WHERE id = $campaign",
-              defaults={"mappings": STATUS_MAPPING}), 4),
-        (stat("Platform", "SELECT p.code || ' · ' || p.name AS platform FROM campaign c "
-                          "JOIN platform p ON p.code = c.platform WHERE c.id = $campaign",
-              defaults={"mappings": [{"type": "regex", "options": {"pattern": "^(IN|OUT).*", "result": {
-                  "color": "purple"}}}]}, color_mode="none"), 4),
+        (info_stat("Platform and versions", "$campaign",
+                   lead="c.platform || ' · ' || (SELECT name FROM platform WHERE code = c.platform) AS \"Platform\""),
+         14),
+        (status_stat("SELECT status::text AS status FROM campaign WHERE id = $campaign"), 3),
         (stat("Pass rate", "SELECT pass_rate AS \"pass rate\" FROM v_campaign_summary WHERE campaign_id = $campaign",
               defaults={"unit": "percent", "min": 0, "max": 100, "color": {"mode": "thresholds"},
                         "thresholds": {"mode": "absolute", "steps": [
                             {"color": "red", "value": None}, {"color": "orange", "value": 80},
                             {"color": "green", "value": 100}]}}), 3),
+        (duration_stat("SELECT duration_s AS duration FROM v_campaign_summary WHERE campaign_id = $campaign"), 4),
+        h=4)
+    L.row(
         (stat("Tests (click to filter the list)",
               "SELECT n_tests AS all, n_success AS success, n_skipped AS skipped, n_failed AS failed "
               "FROM v_campaign_summary WHERE campaign_id = $campaign",
-              overrides=status_filters()), 10),
-        (stat("Duration", "SELECT duration_s AS duration FROM v_campaign_summary WHERE campaign_id = $campaign",
-              defaults={"unit": "s"}, color_mode="none"), 3),
+              overrides=status_filters()), 14),
+        (change_stat("Tests with regressions / fixes (click to list them)",
+                     """SELECT count(*) FILTER (WHERE d.actions_regressed > 0) AS regressions,
+       count(*) FILTER (WHERE d.actions_fixed > 0) AS fixes
+FROM test t %s
+WHERE t.campaign_id = $campaign
+HAVING %s IS NOT NULL""" % (DIFF_JOIN, BASE),
+                     "tests", OVERVIEW_URL, "test_status",
+                     "Tests with at least one action regressed / fixed; tests matched by name."), 10),
         h=4)
-    L.row((versions_stat("id = $campaign"), 15), (changes_stat("id = $campaign"), 9), h=4)
-    L.row(({"type": "row", "title": "Comparison with: ${compare:text}",
-            "collapsed": False, "panels": []}, 24), h=1)
-    L.row(*comparison_row(), h=4)
     L.row((table(
         "Tests: ${test_status:text}, ${change:text} (click a name to drill down)",
         """SELECT t.id, CASE WHEN $compare = 0 THEN 0 ELSE coalesce(bt.id, 0) END AS compare_test,
@@ -309,7 +287,7 @@ ORDER BY t.rank""" % DIFF_JOIN,
         query_var("compare", "Compare with", """SELECT __text, __value FROM (
     SELECT 0 AS ord, NULL::timestamptz AS started_at, 0 AS __value,
            'previous on this platform: ' || coalesce(p.label || '  (' || p.status || ')', 'none') AS __text
-    FROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id WHERE c.id = $campaign
+    FROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id WHERE c.id = $campaign
     UNION ALL
     SELECT 1, o.started_at, o.id, o.label || '  (' || o.status || ')'
     FROM v_campaign c JOIN v_campaign o ON o.platform = c.platform AND o.id <> c.id WHERE c.id = $campaign
@@ -425,64 +403,36 @@ STEP_URL += "&var-action_status=%%24__all&var-change=all"
 BASE_TEST = "coalesce(nullif($compare, 0), (SELECT prev_test_id FROM v_test_result WHERE test_id = $test))"
 
 
+CAMPAIGN_LINK = ("campaign", "Open campaign overview",
+                 "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}")
+# the current test, for the filter tiles of Test details (they add the filter variables)
+TEST_SELF = ("/d/kitchen-test/test-details?var-test=${test}&var-compare=${compare}"
+             "&${platform:queryparam}&${__url_time_range}")
+
+
 def test_details():
     L = Layout()
-    head = """SELECT t.name, t.status::text AS status, c.platform || ' · ' || p.name AS platform,
-       to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id,
-       extract(epoch FROM t.ended_at - t.started_at) AS duration
-FROM test t JOIN campaign c ON c.id = t.campaign_id JOIN platform p ON p.code = c.platform
-WHERE t.id = $test"""
-
-    def head_stat(title, field, **kw):
-        p = stat(title, head, **kw)
-        p["options"]["reduceOptions"]["fields"] = f"/^{field}$/"
-        p["options"]["textMode"] = "value"
-        return p
-
-    campaign_stat = head_stat("Campaign (click to open)", "campaign", color_mode="none")
-    campaign_stat["fieldConfig"]["defaults"]["links"] = [{
-        "title": "Open campaign overview",
-        "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}"}]
     L.row(
-        (head_stat("Test", "name", color_mode="none"), 7),
-        (head_stat("Status", "status", defaults={"mappings": STATUS_MAPPING}), 3),
-        (head_stat("Platform", "platform", color_mode="none"), 4),
-        (campaign_stat, 6),
-        (head_stat("Duration", "duration", defaults={"unit": "s"}, color_mode="none"), 4),
+        (info_stat("Test and versions", "(SELECT campaign_id FROM test WHERE id = $test)",
+                   lead="""(SELECT name FROM test WHERE id = $test) AS "Test",
+       c.platform || ' · ' || to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id""",
+                   links=[CAMPAIGN_LINK]), 17),
+        (status_stat("SELECT status::text AS status FROM test WHERE id = $test"), 3),
+        (duration_stat("SELECT extract(epoch FROM ended_at - started_at) AS duration FROM test WHERE id = $test"), 4),
         h=4)
-    in_campaign = "id = (SELECT campaign_id FROM test WHERE id = $test)"
-    L.row((versions_stat(in_campaign), 15), (changes_stat(in_campaign), 9), h=4)
-
-    compared = stat(
-        "Compared with (click to open it)",
-        """SELECT coalesce(c.label || '  (' || r.status || ')', 'none: first run of this test on this platform')
-           AS compared, r.test_id AS base_id
-FROM (SELECT %s AS id) b
-LEFT JOIN v_test_result r ON r.test_id = b.id LEFT JOIN v_campaign c ON c.id = r.campaign_id""" % BASE_TEST,
-        color_mode="none")
-    compared["options"]["reduceOptions"]["fields"] = "/^compared$/"
-    compared["options"].update({"textMode": "value", "text": {"valueSize": 20}})
-    compared["fieldConfig"]["defaults"]["links"] = [{
-        "title": "Open the compared run",
-        "url": "/d/kitchen-test/test-details?var-test=${__data.fields.base_id}&var-compare=0"
-               "&${platform:queryparam}&${__url_time_range}"}]
-    totals = stat(
-        "Actions with regressions / fixes",
-        """SELECT d.actions_regressed AS regressions, d.actions_fixed AS fixes
-FROM test_diff($test, %s) d""" % BASE_TEST,
-        overrides=[override(field, ("color", {"mode": "thresholds"}), ("thresholds", {"mode": "absolute", "steps": [
-            {"color": "text", "value": None}, {"color": color, "value": 1}]}))
-            for field, color in (("regressions", "red"), ("fixes", "green"))],
-        color_mode="value")
-    totals["fieldConfig"]["defaults"]["noValue"] = "no compared run"
-    totals["description"] = (
-        "Compared action by action with the compared run (matched by step and action position); skipped and "
-        "failed count as not passing. Regression: the action passed before and does not pass now. "
-        "Fix: it did not pass before and passes now.")
-    L.row(({"type": "row", "title": "Comparison with: ${compare:text}", "collapsed": False, "panels": []}, 24), h=1)
-    L.row((compared, 14), (totals, 10), h=4)
+    L.row(
+        (stat("Steps (click to filter the list)",
+              """SELECT count(*) AS all, count(*) FILTER (WHERE status = 'success') AS success,
+       count(*) FILTER (WHERE status = 'skipped') AS skipped, count(*) FILTER (WHERE status = 'failed') AS failed
+FROM step WHERE test_id = $test""",
+              overrides=status_filters(url=TEST_SELF, status_var="step_status", items="steps")), 14),
+        (change_stat("Steps with regressions / fixes (click to list them)",
+                     "SELECT d.steps_regressed AS regressions, d.steps_fixed AS fixes FROM test_diff($test, %s) d"
+                     % BASE_TEST, "steps", TEST_SELF, "step_status",
+                     "Steps with at least one action regressed / fixed."), 10),
+        h=4)
     L.row((table(
-        "Steps (click a step to open it)",
+        "Steps: ${step_status:text}, ${change:text} (click a step to open it)",
         """SELECT s.id AS step_id,
        CASE WHEN $compare = 0 THEN 0
             ELSE coalesce((SELECT id FROM step WHERE test_id = b.id AND position = s.position), 0) END AS compare_step,
@@ -493,6 +443,10 @@ FROM test_diff($test, %s) d""" % BASE_TEST,
 FROM (SELECT %s AS id) b
 CROSS JOIN step_diff($test, b.id) d
 JOIN step s ON s.id = d.step_id
+WHERE s.status::text IN ($step_status)
+  AND CASE '$change' WHEN 'regression' THEN d.actions_regressed > 0
+                     WHEN 'fix'        THEN d.actions_fixed > 0
+                     ELSE true END
 ORDER BY s.position""" % BASE_TEST,
         desc="actions with regressions / fixes: actions of the step that passed in the compared run and do not "
              "pass now / did not pass and pass now. Empty = no compared run.",
@@ -542,7 +496,8 @@ ORDER BY r.campaign_started_at DESC""",
     SELECT 1, o.campaign_started_at, o.test_id, oc.label || '  (' || o.status || ')'
     FROM v_test_result r JOIN v_test_result o ON o.name = r.name AND o.platform = r.platform AND o.test_id <> r.test_id
     JOIN v_campaign oc ON oc.id = o.campaign_id WHERE r.test_id = $test
-) x ORDER BY ord, started_at DESC""")]
+) x ORDER BY ord, started_at DESC"""),
+        *filter_vars("step_status", "steps")]
     return dashboard("kitchen-test", "Test details", L, variables)
 
 
@@ -553,81 +508,36 @@ BASE_STEP = """coalesce(nullif($compare, 0), (SELECT ps.id FROM step s JOIN v_te
 
 def step_details():
     L = Layout()
-    head = """SELECT t.name, t.id AS test_id, s.position AS step, s.status::text AS status,
-       c.platform || ' · ' || p.name AS platform,
-       to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id,
-       (SELECT sum(duration_ms) / 1000.0 FROM action WHERE step_id = s.id) AS duration
-FROM step s JOIN test t ON t.id = s.test_id JOIN campaign c ON c.id = t.campaign_id
-JOIN platform p ON p.code = c.platform
-WHERE s.id = $step"""
-
-    def head_stat(title, field, **kw):
-        p = stat(title, head, **kw)
-        p["options"]["reduceOptions"]["fields"] = f"/^{field}$/"
-        p["options"]["textMode"] = "value"
-        return p
-
-    test_stat = head_stat("Test (click to open)", "name", color_mode="none")
-    test_stat["fieldConfig"]["defaults"]["links"] = [{
-        "title": "Open test details",
-        "url": "/d/kitchen-test/test-details?var-test=${__data.fields.test_id}&var-compare=0"
-               "&${platform:queryparam}&${__url_time_range}"}]
-    campaign_stat = head_stat("Campaign (click to open)", "campaign", color_mode="none")
-    campaign_stat["fieldConfig"]["defaults"]["links"] = [{
-        "title": "Open campaign overview",
-        "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}"}]
     L.row(
-        (test_stat, 6),
-        (head_stat("Step", "step", color_mode="none"), 2),
-        (head_stat("Status", "status", defaults={"mappings": STATUS_MAPPING}), 3),
-        (head_stat("Platform", "platform", color_mode="none"), 4),
-        (campaign_stat, 5),
-        (head_stat("Duration", "duration", defaults={"unit": "s"}, color_mode="none"), 4),
+        (info_stat("Test, step and versions",
+                   "(SELECT t.campaign_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step)",
+                   lead="""t.name AS "Test", s.position AS "Step", t.id AS test_id,
+       c.platform || ' · ' || to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id""",
+                   links=[("Test", "Open test details",
+                           "/d/kitchen-test/test-details?var-test=${__data.fields.test_id}&var-compare=0"
+                           "&${platform:queryparam}&${__url_time_range}&var-step_status=%24__all&var-change=all"),
+                          CAMPAIGN_LINK]), 17),
+        (status_stat("SELECT status::text AS status FROM step WHERE id = $step"), 3),
+        (duration_stat("SELECT sum(duration_ms) / 1000.0 AS duration FROM action WHERE step_id = $step"), 4),
         h=4)
-    in_campaign = "id = (SELECT t.campaign_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step)"
-    L.row((versions_stat(in_campaign), 15), (changes_stat(in_campaign), 9), h=4)
-    L.row((table(
-        "Step",
-        """SELECT description, expected_result AS expected, actual_result AS actual FROM step WHERE id = $step""",
-        overrides=[wrap("description", "expected", "actual")]), 15),
+    L.row(
         (stat("Actions (click to filter the list)",
               """SELECT count(*) AS all, count(*) FILTER (WHERE status = 'success') AS success,
        count(*) FILTER (WHERE status = 'skipped') AS skipped, count(*) FILTER (WHERE status = 'failed') AS failed
 FROM action WHERE step_id = $step""",
-              overrides=status_filters(url=STEP_SELF, status_var="action_status", items="actions")), 9), h=6)
-
-    compared = stat(
-        "Compared with (click to open it)",
-        """SELECT coalesce(c.label || '  (step ' || ps.status || ')', 'none: first run of this test on this platform')
-           AS compared, ps.test_id AS base_test, ps.id AS base_step
-FROM (SELECT %s AS id) b
-LEFT JOIN step ps ON ps.id = b.id LEFT JOIN test pt ON pt.id = ps.test_id
-LEFT JOIN v_campaign c ON c.id = pt.campaign_id""" % BASE_STEP,
-        color_mode="none")
-    compared["options"]["reduceOptions"]["fields"] = "/^compared$/"
-    compared["options"].update({"textMode": "value", "text": {"valueSize": 20}})
-    compared["fieldConfig"]["defaults"]["links"] = [{
-        "title": "Open the compared step",
-        "url": STEP_URL % ("${__data.fields.base_test}", "${__data.fields.base_step}", "0")}]
-    totals = stat(
-        "Actions with regressions / fixes (click to list them)",
-        """SELECT d.actions_regressed AS regressions, d.actions_fixed AS fixes
+              overrides=status_filters(url=STEP_SELF, status_var="action_status", items="actions")), 14),
+        (change_stat("Actions with regressions / fixes (click to list them)",
+                     """SELECT d.actions_regressed AS regressions, d.actions_fixed AS fixes
 FROM (SELECT %s AS id) b
 JOIN step bs ON bs.id = b.id
 CROSS JOIN step_diff((SELECT test_id FROM step WHERE id = $step), bs.test_id) d
-WHERE d.step_id = $step""" % BASE_STEP,
-        overrides=[change_filter("regressions", "red", "regression", "Show only the actions with regressions",
-                                 url=STEP_SELF, status_var="action_status"),
-                   change_filter("fixes", "green", "fix", "Show only the actions with fixes",
-                                 url=STEP_SELF, status_var="action_status")],
-        color_mode="value")
-    totals["fieldConfig"]["defaults"]["noValue"] = "no compared run"
-    totals["description"] = (
-        "Compared action by action with the same step in the compared run (matched by action position); skipped "
-        "and failed count as not passing. Regression: the action passed before and does not pass now. "
-        "Fix: it did not pass before and passes now.")
-    L.row(({"type": "row", "title": "Comparison with: ${compare:text}", "collapsed": False, "panels": []}, 24), h=1)
-    L.row((compared, 14), (totals, 10), h=4)
+WHERE d.step_id = $step""" % BASE_STEP, "actions", STEP_SELF, "action_status",
+                     "Actions of the step regressed / fixed."), 10),
+        h=4)
+    L.row((table(
+        "Step",
+        """SELECT description, expected_result AS expected, actual_result AS actual FROM step WHERE id = $step""",
+        overrides=[wrap("description", "expected", "actual")]), 24), h=5)
     L.row((table(
         "Actions: ${action_status:text}, ${change:text}",
         """SELECT a.position AS "#", a.description, status_change(a.status, pa.status) AS evolution,

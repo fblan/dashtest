@@ -190,8 +190,8 @@
   "panels": [
     {
       "type": "stat",
-      "title": "Test (click to open)",
-      "description": "",
+      "title": "Test, step and versions",
+      "description": "KMS = Kitchen Management System (system under test), KES = KitEquipmentSimulator, KTRS = Kitchen Test Runner System, Gateway, TestCampaign = test definitions. Orange ▲: version changed since the previous campaign on the platform.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "kitchen-pg"
@@ -206,19 +206,78 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT t.name, t.id AS test_id, s.position AS step, s.status::text AS status,\n       c.platform || ' · ' || p.name AS platform,\n       to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id,\n       (SELECT sum(duration_ms) / 1000.0 FROM action WHERE step_id = s.id) AS duration\nFROM step s JOIN test t ON t.id = s.test_id JOIN campaign c ON c.id = t.campaign_id\nJOIN platform p ON p.code = c.platform\nWHERE s.id = $step"
+          "rawSql": "SELECT t.name AS \"Test\", s.position AS \"Step\", t.id AS test_id,\n       c.platform || ' · ' || to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id,\n       c.kms_version || CASE WHEN c.kms_version <> prev.kms_version THEN ' ▲' ELSE '' END AS \"KMS (under test)\",\n       c.kes_version || CASE WHEN c.kes_version <> prev.kes_version THEN ' ▲' ELSE '' END AS \"KES\",\n       c.ktrs_version || CASE WHEN c.ktrs_version <> prev.ktrs_version THEN ' ▲' ELSE '' END AS \"KTRS\",\n       c.gateway_version || CASE WHEN c.gateway_version <> prev.gateway_version THEN ' ▲' ELSE '' END AS \"Gateway\",\n       c.testcampaign_version || CASE WHEN c.testcampaign_version <> prev.testcampaign_version THEN ' ▲' ELSE '' END AS \"TestCampaign\"\nFROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id\nWHERE c.id = (SELECT t.campaign_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step)"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "links": [
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "transparent"
+          },
+          "mappings": [
             {
-              "title": "Open test details",
-              "url": "/d/kitchen-test/test-details?var-test=${__data.fields.test_id}&var-compare=0&${platform:queryparam}&${__url_time_range}"
+              "type": "regex",
+              "options": {
+                "pattern": ".* ▲$",
+                "result": {
+                  "color": "orange"
+                }
+              }
             }
           ]
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "KMS (under test)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Test"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open test details",
+                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.test_id}&var-compare=0&${platform:queryparam}&${__url_time_range}&var-step_status=%24__all&var-change=all"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "campaign"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open campaign overview",
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "reduceOptions": {
@@ -226,64 +285,24 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^name$/"
+          "fields": "/^(?!.*_id$).*/"
         },
-        "colorMode": "none",
+        "colorMode": "background",
         "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center"
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "vertical",
+        "wideLayout": true,
+        "text": {
+          "titleSize": 12,
+          "valueSize": 20
+        }
       },
       "id": 1,
       "gridPos": {
         "x": 0,
         "y": 0,
-        "w": 6,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Step",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT t.name, t.id AS test_id, s.position AS step, s.status::text AS status,\n       c.platform || ' · ' || p.name AS platform,\n       to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id,\n       (SELECT sum(duration_ms) / 1000.0 FROM action WHERE step_id = s.id) AS duration\nFROM step s JOIN test t ON t.id = s.test_id JOIN campaign c ON c.id = t.campaign_id\nJOIN platform p ON p.code = c.platform\nWHERE s.id = $step"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^step$/"
-        },
-        "colorMode": "none",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center"
-      },
-      "id": 2,
-      "gridPos": {
-        "x": 6,
-        "y": 0,
-        "w": 2,
+        "w": 17,
         "h": 4
       }
     },
@@ -305,7 +324,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT t.name, t.id AS test_id, s.position AS step, s.status::text AS status,\n       c.platform || ' · ' || p.name AS platform,\n       to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id,\n       (SELECT sum(duration_ms) / 1000.0 FROM action WHERE step_id = s.id) AS duration\nFROM step s JOIN test t ON t.id = s.test_id JOIN campaign c ON c.id = t.campaign_id\nJOIN platform p ON p.code = c.platform\nWHERE s.id = $step"
+          "rawSql": "SELECT status::text AS status FROM step WHERE id = $step"
         }
       ],
       "fieldConfig": {
@@ -341,117 +360,18 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^status$/"
+          "fields": "/.*/"
         },
         "colorMode": "background",
         "graphMode": "none",
         "textMode": "value",
         "justifyMode": "center"
       },
-      "id": 3,
+      "id": 2,
       "gridPos": {
-        "x": 8,
+        "x": 17,
         "y": 0,
         "w": 3,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Platform",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT t.name, t.id AS test_id, s.position AS step, s.status::text AS status,\n       c.platform || ' · ' || p.name AS platform,\n       to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id,\n       (SELECT sum(duration_ms) / 1000.0 FROM action WHERE step_id = s.id) AS duration\nFROM step s JOIN test t ON t.id = s.test_id JOIN campaign c ON c.id = t.campaign_id\nJOIN platform p ON p.code = c.platform\nWHERE s.id = $step"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^platform$/"
-        },
-        "colorMode": "none",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center"
-      },
-      "id": 4,
-      "gridPos": {
-        "x": 11,
-        "y": 0,
-        "w": 4,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Campaign (click to open)",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT t.name, t.id AS test_id, s.position AS step, s.status::text AS status,\n       c.platform || ' · ' || p.name AS platform,\n       to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id,\n       (SELECT sum(duration_ms) / 1000.0 FROM action WHERE step_id = s.id) AS duration\nFROM step s JOIN test t ON t.id = s.test_id JOIN campaign c ON c.id = t.campaign_id\nJOIN platform p ON p.code = c.platform\nWHERE s.id = $step"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "links": [
-            {
-              "title": "Open campaign overview",
-              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}"
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^campaign$/"
-        },
-        "colorMode": "none",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center"
-      },
-      "id": 5,
-      "gridPos": {
-        "x": 15,
-        "y": 0,
-        "w": 5,
         "h": 4
       }
     },
@@ -473,7 +393,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT t.name, t.id AS test_id, s.position AS step, s.status::text AS status,\n       c.platform || ' · ' || p.name AS platform,\n       to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id,\n       (SELECT sum(duration_ms) / 1000.0 FROM action WHERE step_id = s.id) AS duration\nFROM step s JOIN test t ON t.id = s.test_id JOIN campaign c ON c.id = t.campaign_id\nJOIN platform p ON p.code = c.platform\nWHERE s.id = $step"
+          "rawSql": "SELECT sum(duration_ms) / 1000.0 AS duration FROM action WHERE step_id = $step"
         }
       ],
       "fieldConfig": {
@@ -488,217 +408,19 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^duration$/"
+          "fields": "/.*/"
         },
         "colorMode": "none",
         "graphMode": "none",
         "textMode": "value",
         "justifyMode": "center"
       },
-      "id": 6,
+      "id": 3,
       "gridPos": {
         "x": 20,
         "y": 0,
         "w": 4,
         "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Software versions",
-      "description": "KMS = Kitchen Management System (system under test), KES = KitEquipmentSimulator, KTRS = Kitchen Test Runner System, Gateway, TestCampaign = test definitions",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT kms_version AS \"KMS (under test)\", kes_version AS \"KES\", ktrs_version AS \"KTRS\",\n       gateway_version AS \"Gateway\", testcampaign_version AS \"TestCampaign\"\nFROM campaign WHERE id = (SELECT t.campaign_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step)"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "transparent"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "KMS (under test)"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "blue"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/.*/"
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value_and_name",
-        "justifyMode": "center",
-        "orientation": "vertical",
-        "wideLayout": true,
-        "text": {
-          "titleSize": 13,
-          "valueSize": 24
-        }
-      },
-      "id": 7,
-      "gridPos": {
-        "x": 0,
-        "y": 4,
-        "w": 15,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Versions changed since the previous campaign on this platform",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT CASE WHEN changes = 'no change'\n            THEN 'None — last change ' || to_char(last_change_at, 'YYYY-MM-DD') || ': ' || last_change\n            ELSE changes END AS changes\nFROM v_campaign WHERE id = (SELECT t.campaign_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step)"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "^None.*",
-                "result": {
-                  "color": "transparent"
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": ".*",
-                "result": {
-                  "color": "orange"
-                }
-              }
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/.*/"
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center"
-      },
-      "id": 8,
-      "gridPos": {
-        "x": 15,
-        "y": 4,
-        "w": 9,
-        "h": 4
-      }
-    },
-    {
-      "type": "table",
-      "title": "Step",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT description, expected_result AS expected, actual_result AS actual FROM step WHERE id = $step"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "^(description|expected|actual)$"
-            },
-            "properties": [
-              {
-                "id": "custom.wrapText",
-                "value": true
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm"
-      },
-      "id": 9,
-      "gridPos": {
-        "x": 0,
-        "y": 8,
-        "w": 15,
-        "h": 6
       }
     },
     {
@@ -836,79 +558,10 @@
         "textMode": "value_and_name",
         "justifyMode": "center"
       },
-      "id": 10,
-      "gridPos": {
-        "x": 15,
-        "y": 8,
-        "w": 9,
-        "h": 6
-      }
-    },
-    {
-      "type": "row",
-      "title": "Comparison with: ${compare:text}",
-      "collapsed": false,
-      "panels": [],
-      "id": 11,
+      "id": 4,
       "gridPos": {
         "x": 0,
-        "y": 14,
-        "w": 24,
-        "h": 1
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Compared with (click to open it)",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT coalesce(c.label || '  (step ' || ps.status || ')', 'none: first run of this test on this platform')\n           AS compared, ps.test_id AS base_test, ps.id AS base_step\nFROM (SELECT coalesce(nullif($compare, 0), (SELECT ps.id FROM step s JOIN v_test_result r ON r.test_id = s.test_id\n    JOIN step ps ON ps.test_id = r.prev_test_id AND ps.position = s.position WHERE s.id = $step)) AS id) b\nLEFT JOIN step ps ON ps.id = b.id LEFT JOIN test pt ON pt.id = ps.test_id\nLEFT JOIN v_campaign c ON c.id = pt.campaign_id"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "links": [
-            {
-              "title": "Open the compared step",
-              "url": "/d/kitchen-step/step-details?var-test=${__data.fields.base_test}&var-step=${__data.fields.base_step}&var-compare=0&${platform:queryparam}&${__url_time_range}&var-action_status=%24__all&var-change=all"
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^compared$/"
-        },
-        "colorMode": "none",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center",
-        "text": {
-          "valueSize": 20
-        }
-      },
-      "id": 12,
-      "gridPos": {
-        "x": 0,
-        "y": 15,
+        "y": 4,
         "w": 14,
         "h": 4
       }
@@ -916,7 +569,7 @@
     {
       "type": "stat",
       "title": "Actions with regressions / fixes (click to list them)",
-      "description": "Compared action by action with the same step in the compared run (matched by action position); skipped and failed count as not passing. Regression: the action passed before and does not pass now. Fix: it did not pass before and passes now.",
+      "description": "Actions of the step regressed / fixed. Compared with the run selected in \"Compare with\", action by action (matched by step and action position); skipped and failed count as not passing. Regression: an action passed before and does not pass now. Fix: the reverse.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "kitchen-pg"
@@ -936,7 +589,7 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "noValue": "no compared run"
+          "noValue": "nothing to compare with"
         },
         "overrides": [
           {
@@ -1032,12 +685,70 @@
         "textMode": "value_and_name",
         "justifyMode": "center"
       },
-      "id": 13,
+      "id": 5,
       "gridPos": {
         "x": 14,
-        "y": 15,
+        "y": 4,
         "w": 10,
         "h": 4
+      }
+    },
+    {
+      "type": "table",
+      "title": "Step",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "kitchen-pg"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "kitchen-pg"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT description, expected_result AS expected, actual_result AS actual FROM step WHERE id = $step"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(description|expected|actual)$"
+            },
+            "properties": [
+              {
+                "id": "custom.wrapText",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 5
       }
     },
     {
@@ -1270,10 +981,10 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 14,
+      "id": 7,
       "gridPos": {
         "x": 0,
-        "y": 19,
+        "y": 13,
         "w": 24,
         "h": 14
       }
@@ -1432,10 +1143,10 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 15,
+      "id": 8,
       "gridPos": {
         "x": 0,
-        "y": 33,
+        "y": 27,
         "w": 24,
         "h": 16
       }
