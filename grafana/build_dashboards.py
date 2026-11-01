@@ -108,11 +108,11 @@ def platform_var(include_all=True):
     return v
 
 
-def info_stat(title, campaign, lead="", links=()):
+def info_stat(title, campaign, lead="", links=(), joins=""):
     """First tile of the header: what is shown (lead fields, e.g. platform or test / step) and the 5 software
     versions of the campaign. KMS (system under test) in blue; a version that changed since the previous campaign
     on the platform is orange and marked ▲. `campaign` is the SQL expression of the campaign id,
-    `links` (field, title, url) open the item of a field."""
+    `links` (field, title, url) open the item of a field, `joins` adds the tables used by `lead`."""
     def version(col, name):
         return (f"c.{col} || CASE WHEN c.{col} <> prev.{col} THEN ' ▲' ELSE '' END AS \"{name}\"")
     cols = ",\n       ".join([lead] * bool(lead) + [version(col, name) for col, name in (
@@ -120,7 +120,7 @@ def info_stat(title, campaign, lead="", links=()):
         ("gateway_version", "Gateway"), ("testcampaign_version", "TestCampaign"))])
     changed = {"type": "regex", "options": {"pattern": ".* ▲$", "result": {"color": "orange"}}}
     p = stat(title, f"""SELECT {cols}
-FROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id
+FROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id{joins}
 WHERE c.id = {campaign}""",
              defaults={"color": {"mode": "fixed", "fixedColor": "transparent"}, "mappings": [changed]},
              overrides=[override("KMS (under test)", ("color", {"mode": "fixed", "fixedColor": "blue"})),
@@ -287,7 +287,7 @@ ORDER BY t.rank""" % DIFF_JOIN,
         query_var("compare", "Compare with", """SELECT __text, __value FROM (
     SELECT 0 AS ord, NULL::timestamptz AS started_at, 0 AS __value,
            'previous on this platform: ' || coalesce(p.label || '  (' || p.status || ')', 'none') AS __text
-    FROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id WHERE c.id = $campaign
+    FROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id WHERE c.id = $campaign
     UNION ALL
     SELECT 1, o.started_at, o.id, o.label || '  (' || o.status || ')'
     FROM v_campaign c JOIN v_campaign o ON o.platform = c.platform AND o.id <> c.id WHERE c.id = $campaign
@@ -509,8 +509,8 @@ BASE_STEP = """coalesce(nullif($compare, 0), (SELECT ps.id FROM step s JOIN v_te
 def step_details():
     L = Layout()
     L.row(
-        (info_stat("Test, step and versions",
-                   "(SELECT t.campaign_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step)",
+        (info_stat("Test, step and versions", "t.campaign_id", joins="""
+JOIN step s ON s.id = $step JOIN test t ON t.id = s.test_id""",
                    lead="""t.name AS "Test", s.position AS "Step", t.id AS test_id,
        c.platform || ' · ' || to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS campaign, c.id AS campaign_id""",
                    links=[("Test", "Open test details",
