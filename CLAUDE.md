@@ -27,7 +27,7 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
 ## Layout
 - `db/init/01_schema.sql` tables (platform, campaign, test, step, action), enum `exec_status`.
 - `db/init/02_functions_views.sql` functions + views. **Must stay idempotent** (`DROP VIEW IF EXISTS … CASCADE`
-  at the top listing every view, `CREATE OR REPLACE FUNCTION`, `GRANT SELECT … TO grafana_ro` at the end):
+  at the top listing every view, `DROP FUNCTION IF EXISTS` for functions returning a table, `CREATE OR REPLACE FUNCTION`, `GRANT SELECT … TO grafana_ro` at the end):
   the `migrate` service re-applies it on every deploy. Add any new view to the DROP list.
 - `db/init/03_seed.sql` is generated (1.7 MB) by `generator/generate.py` from `generator/scenarios.py`.
   Init scripts 00/01/03 only run on an empty volume: data/schema changes need the volume deleted in Dokploy.
@@ -48,10 +48,11 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
 - Test names `NN_<scenario>`; no subsystem concept (removed on request).
 
 ## Dashboards (uids are used by links, keep them)
-- `kitchen-overview` Campaign overview: vars platform, campaign, hidden `test_status` and `change`
-  (all / regression / fix). Status tiles and the regressions / fixes tile filter the
+- `kitchen-overview` Campaign overview: vars platform, campaign, `compare` (0 = previous campaign on the platform,
+  else a campaign id of the same platform; SQL resolves it with `BASE` in build_dashboards.py and matches tests by
+  name, then `test_diff()`), hidden `test_status` and `change` (all / regression / fix). Status tiles and the regressions / fixes tile filter the
   tests table; each click sets one filter and clears the other (combined filters confused the user).
-  Comparison row vs previous campaign on the platform (`v_campaign.prev_campaign_id`, `v_test_diff`).
+  Comparison row vs the `compare` campaign. Links keep `${compare:queryparam}`.
   User's definitions (action level, not test status): regression = an action passed before and does not pass
   now (skipped/failed = not passing), fix = the reverse; tiles count tests. Table columns (user's choice):
   name, status, steps, steps with regressions, steps with fixes, duration.

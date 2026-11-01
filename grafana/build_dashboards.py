@@ -173,7 +173,13 @@ def dashboard(uid, title, layout, variables, time=("now-7M", "now"), annotations
 # ---------------------------------------------------------------- 01 Campaign overview
 # values of the hidden "change" variable of the overview: (value, text shown in the table title)
 CHANGE_FILTERS = [("all", "all tests"), ("regression", "with regressions"), ("fix", "with fixes")]
-OVERVIEW_URL = "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}"
+OVERVIEW_URL = ("/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}"
+                "&${platform:queryparam}&${__url_time_range}")
+# campaign compared with: the one picked in "Compare with", or (0) the previous campaign on the platform
+BASE = "coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign))"
+# per test of the campaign: d = test_diff with the same test (by name) in the compared campaign
+DIFF_JOIN = f"""LEFT JOIN test bt ON bt.campaign_id = {BASE} AND bt.name = t.name
+LEFT JOIN LATERAL test_diff(t.id, bt.id) d ON true"""
 
 
 def status_filter(field, color, value):
@@ -192,30 +198,28 @@ def change_filter(field, color, value, title):
 
 
 def comparison_row():
-    """Tiles comparing the campaign with the previous campaign on the same platform."""
+    """Tiles comparing the campaign with the campaign picked in "Compare with" (default: previous on the platform)."""
     previous = stat(
-        "Previous campaign on this platform (click to open)",
-        """SELECT coalesce(p.label || '  (' || p.status || ')', 'none: first campaign on this platform') AS previous,
-       p.id AS prev_id
-FROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id
-WHERE c.id = $campaign""", color_mode="none")
-    previous["options"]["reduceOptions"]["fields"] = "/^previous$/"
+        "Compared with (click to open it)",
+        """SELECT coalesce(p.label || '  (' || p.status || ')', 'none: first campaign on this platform') AS compared,
+       p.id AS base_id
+FROM (SELECT %s AS id) b LEFT JOIN v_campaign p ON p.id = b.id""" % BASE, color_mode="none")
+    previous["options"]["reduceOptions"]["fields"] = "/^compared$/"
     previous["options"].update({"textMode": "value", "text": {"valueSize": 20}})
     previous["fieldConfig"]["defaults"]["links"] = [{
-        "title": "Open the previous campaign",
-        "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.prev_id}"
+        "title": "Open the compared campaign",
+        "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.base_id}&var-compare=0"
                "&${platform:queryparam}&${__url_time_range}"}]
 
     pass_rate = stat(
-        "Pass rate: previous / change",
-        """SELECT p.pass_rate AS previous,
+        "Pass rate: compared campaign / change",
+        """SELECT p.pass_rate AS compared,
        CASE WHEN c.pass_rate = p.pass_rate THEN '±0.0 pts'
             ELSE to_char(c.pass_rate - p.pass_rate, 'FMSG990.0') || ' pts' END AS change
 FROM v_campaign_summary c
-JOIN v_campaign v ON v.id = c.campaign_id
-JOIN v_campaign_summary p ON p.campaign_id = v.prev_campaign_id
-WHERE c.campaign_id = $campaign""",
-        overrides=[override("previous", ("unit", "percent"), ("color", {"mode": "fixed", "fixedColor": "text"})),
+JOIN v_campaign_summary p ON p.campaign_id = %s
+WHERE c.campaign_id = $campaign""" % BASE,
+        overrides=[override("compared", ("unit", "percent"), ("color", {"mode": "fixed", "fixedColor": "text"})),
                    override("change", ("mappings", [
                        {"type": "regex", "options": {"pattern": "^\\+.*", "result": {"color": "green"}}},
                        {"type": "regex", "options": {"pattern": "^-.*", "result": {"color": "red"}}},
@@ -226,13 +230,13 @@ WHERE c.campaign_id = $campaign""",
         "Tests with regressions / fixes (click to list them)",
         """SELECT count(*) FILTER (WHERE d.actions_regressed > 0) AS regressions,
        count(*) FILTER (WHERE d.actions_fixed > 0) AS fixes
-FROM test t LEFT JOIN v_test_diff d ON d.test_id = t.id
-WHERE t.campaign_id = $campaign""",
+FROM test t %s
+WHERE t.campaign_id = $campaign""" % DIFF_JOIN,
         overrides=[change_filter("regressions", "red", "regression", "Show only the tests with regressions"),
                    change_filter("fixes", "green", "fix", "Show only the tests with fixes")],
         color_mode="value")
     transitions["description"] = (
-        "Compared action by action with the previous run of the same test on this platform (matched by step and "
+        "Compared action by action with the same test in the compared campaign (matched by step and "
         "action position); skipped and failed count as not passing. Regression: at least one action passed before "
         "and does not pass now. Fix: at least one action did not pass before and passes now.")
 
@@ -262,7 +266,7 @@ def campaign_overview():
               defaults={"unit": "s"}, color_mode="none"), 3),
         h=4)
     L.row((versions_stat("id = $campaign"), 15), (changes_stat("id = $campaign"), 9), h=4)
-    L.row(({"type": "row", "title": "Comparison with the previous campaign on this platform",
+    L.row(({"type": "row", "title": "Comparison with: ${compare:text}",
             "collapsed": False, "panels": []}, 24), h=1)
     L.row(*comparison_row(), h=4)
     L.row((table(
@@ -271,16 +275,15 @@ def campaign_overview():
        (SELECT count(*) FROM step WHERE test_id = t.id) AS steps,
        d.steps_regressed AS "steps with regressions", d.steps_fixed AS "steps with fixes",
        extract(epoch FROM t.ended_at - t.started_at) / 60 AS duration
-FROM test t
-LEFT JOIN v_test_diff d ON d.test_id = t.id
+FROM test t %s
 WHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)
   AND CASE '$change' WHEN 'regression' THEN d.actions_regressed > 0
                      WHEN 'fix'        THEN d.actions_fixed > 0
                      ELSE true END
-ORDER BY t.rank""",
-        desc="steps with regressions / fixes: steps containing at least one action that passed in the previous "
-             "run of the test on this platform and does not pass now / did not pass and passes now. "
-             "Empty = first run of the test on this platform.",
+ORDER BY t.rank""" % DIFF_JOIN,
+        desc="steps with regressions / fixes: steps containing at least one action that passed in the compared "
+             "campaign and does not pass now / did not pass and passes now. "
+             "Empty = no compared campaign, or the test is not in it.",
         overrides=[color_cell("status"), override("id", ("custom.hidden", True)), test_link("name"),
                    width("status", 100), override("steps", ("custom.width", 80), ("custom.align", "center")),
                    override("duration", ("unit", "m"), ("decimals", 1), ("custom.width", 100)), *[
@@ -297,6 +300,15 @@ ORDER BY t.rank""",
         query_var("campaign", "Campaign",
                   "SELECT label || '  (' || status || ')' AS __text, id AS __value FROM v_campaign "
                   "WHERE platform IN ($platform) ORDER BY started_at DESC"),
+        # 0 = previous campaign on the platform (follows the selected campaign), else a campaign id
+        query_var("compare", "Compare with", """SELECT __text, __value FROM (
+    SELECT 0 AS ord, NULL::timestamptz AS started_at, 0 AS __value,
+           'previous on this platform: ' || coalesce(p.label || '  (' || p.status || ')', 'none') AS __text
+    FROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id WHERE c.id = $campaign
+    UNION ALL
+    SELECT 1, o.started_at, o.id, o.label || '  (' || o.status || ')'
+    FROM v_campaign c JOIN v_campaign o ON o.platform = c.platform AND o.id <> c.id WHERE c.id = $campaign
+) x ORDER BY ord, started_at DESC"""),
         # set by clicking the "Tests" tiles; hidden because the tiles act as the filter buttons
         {"type": "custom", "name": "test_status", "label": "Test status", "hide": 2,
          "query": "success,skipped,failed", "multi": True, "includeAll": True,

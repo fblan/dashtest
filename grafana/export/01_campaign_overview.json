@@ -81,6 +81,23 @@
         "options": []
       },
       {
+        "type": "query",
+        "name": "compare",
+        "label": "Compare with",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "${DS_KITCHEN}"
+        },
+        "query": "SELECT __text, __value FROM (\n    SELECT 0 AS ord, NULL::timestamptz AS started_at, 0 AS __value,\n           'previous on this platform: ' || coalesce(p.label || '  (' || p.status || ')', 'none') AS __text\n    FROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id WHERE c.id = $campaign\n    UNION ALL\n    SELECT 1, o.started_at, o.id, o.label || '  (' || o.status || ')'\n    FROM v_campaign c JOIN v_campaign o ON o.platform = c.platform AND o.id <> c.id WHERE c.id = $campaign\n) x ORDER BY ord, started_at DESC",
+        "definition": "SELECT __text, __value FROM (\n    SELECT 0 AS ord, NULL::timestamptz AS started_at, 0 AS __value,\n           'previous on this platform: ' || coalesce(p.label || '  (' || p.status || ')', 'none') AS __text\n    FROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id WHERE c.id = $campaign\n    UNION ALL\n    SELECT 1, o.started_at, o.id, o.label || '  (' || o.status || ')'\n    FROM v_campaign c JOIN v_campaign o ON o.platform = c.platform AND o.id <> c.id WHERE c.id = $campaign\n) x ORDER BY ord, started_at DESC",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 0,
+        "current": {},
+        "options": []
+      },
+      {
         "type": "custom",
         "name": "test_status",
         "label": "Test status",
@@ -417,7 +434,7 @@
                 "value": [
                   {
                     "title": "Show all tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-change=all"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-change=all"
                   }
                 ]
               }
@@ -441,7 +458,7 @@
                 "value": [
                   {
                     "title": "Show success tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=success&var-change=all"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=success&var-change=all"
                   }
                 ]
               }
@@ -465,7 +482,7 @@
                 "value": [
                   {
                     "title": "Show skipped tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=skipped&var-change=all"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=skipped&var-change=all"
                   }
                 ]
               }
@@ -489,7 +506,7 @@
                 "value": [
                   {
                     "title": "Show failed tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=failed&var-change=all"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=failed&var-change=all"
                   }
                 ]
               }
@@ -708,7 +725,7 @@
     },
     {
       "type": "row",
-      "title": "Comparison with the previous campaign on this platform",
+      "title": "Comparison with: ${compare:text}",
       "collapsed": false,
       "panels": [],
       "id": 8,
@@ -721,7 +738,7 @@
     },
     {
       "type": "stat",
-      "title": "Previous campaign on this platform (click to open)",
+      "title": "Compared with (click to open it)",
       "description": "",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -737,15 +754,15 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT coalesce(p.label || '  (' || p.status || ')', 'none: first campaign on this platform') AS previous,\n       p.id AS prev_id\nFROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id\nWHERE c.id = $campaign"
+          "rawSql": "SELECT coalesce(p.label || '  (' || p.status || ')', 'none: first campaign on this platform') AS compared,\n       p.id AS base_id\nFROM (SELECT coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AS id) b LEFT JOIN v_campaign p ON p.id = b.id"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "links": [
             {
-              "title": "Open the previous campaign",
-              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.prev_id}&${platform:queryparam}&${__url_time_range}"
+              "title": "Open the compared campaign",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.base_id}&var-compare=0&${platform:queryparam}&${__url_time_range}"
             }
           ]
         },
@@ -757,7 +774,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^previous$/"
+          "fields": "/^compared$/"
         },
         "colorMode": "none",
         "graphMode": "none",
@@ -777,7 +794,7 @@
     },
     {
       "type": "stat",
-      "title": "Pass rate: previous / change",
+      "title": "Pass rate: compared campaign / change",
       "description": "",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -793,7 +810,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT p.pass_rate AS previous,\n       CASE WHEN c.pass_rate = p.pass_rate THEN '±0.0 pts'\n            ELSE to_char(c.pass_rate - p.pass_rate, 'FMSG990.0') || ' pts' END AS change\nFROM v_campaign_summary c\nJOIN v_campaign v ON v.id = c.campaign_id\nJOIN v_campaign_summary p ON p.campaign_id = v.prev_campaign_id\nWHERE c.campaign_id = $campaign"
+          "rawSql": "SELECT p.pass_rate AS compared,\n       CASE WHEN c.pass_rate = p.pass_rate THEN '±0.0 pts'\n            ELSE to_char(c.pass_rate - p.pass_rate, 'FMSG990.0') || ' pts' END AS change\nFROM v_campaign_summary c\nJOIN v_campaign_summary p ON p.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign))\nWHERE c.campaign_id = $campaign"
         }
       ],
       "fieldConfig": {
@@ -802,7 +819,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "previous"
+              "options": "compared"
             },
             "properties": [
               {
@@ -884,7 +901,7 @@
     {
       "type": "stat",
       "title": "Tests with regressions / fixes (click to list them)",
-      "description": "Compared action by action with the previous run of the same test on this platform (matched by step and action position); skipped and failed count as not passing. Regression: at least one action passed before and does not pass now. Fix: at least one action did not pass before and passes now.",
+      "description": "Compared action by action with the same test in the compared campaign (matched by step and action position); skipped and failed count as not passing. Regression: at least one action passed before and does not pass now. Fix: at least one action did not pass before and passes now.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "${DS_KITCHEN}"
@@ -899,7 +916,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT count(*) FILTER (WHERE d.actions_regressed > 0) AS regressions,\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS fixes\nFROM test t LEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE t.campaign_id = $campaign"
+          "rawSql": "SELECT count(*) FILTER (WHERE d.actions_regressed > 0) AS regressions,\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS fixes\nFROM test t LEFT JOIN test bt ON bt.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AND bt.name = t.name\nLEFT JOIN LATERAL test_diff(t.id, bt.id) d ON true\nWHERE t.campaign_id = $campaign"
         }
       ],
       "fieldConfig": {
@@ -938,7 +955,7 @@
                 "value": [
                   {
                     "title": "Show only the tests with regressions",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-change=regression"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-change=regression"
                   }
                 ]
               }
@@ -977,7 +994,7 @@
                 "value": [
                   {
                     "title": "Show only the tests with fixes",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-change=fix"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-change=fix"
                   }
                 ]
               }
@@ -1009,7 +1026,7 @@
     {
       "type": "table",
       "title": "Tests: ${test_status:text}, ${change:text} (click a name to drill down)",
-      "description": "steps with regressions / fixes: steps containing at least one action that passed in the previous run of the test on this platform and does not pass now / did not pass and passes now. Empty = first run of the test on this platform.",
+      "description": "steps with regressions / fixes: steps containing at least one action that passed in the compared campaign and does not pass now / did not pass and passes now. Empty = no compared campaign, or the test is not in it.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "${DS_KITCHEN}"
@@ -1024,7 +1041,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT t.id, t.name, t.status::text AS status,\n       (SELECT count(*) FROM step WHERE test_id = t.id) AS steps,\n       d.steps_regressed AS \"steps with regressions\", d.steps_fixed AS \"steps with fixes\",\n       extract(epoch FROM t.ended_at - t.started_at) / 60 AS duration\nFROM test t\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)\n  AND CASE '$change' WHEN 'regression' THEN d.actions_regressed > 0\n                     WHEN 'fix'        THEN d.actions_fixed > 0\n                     ELSE true END\nORDER BY t.rank"
+          "rawSql": "SELECT t.id, t.name, t.status::text AS status,\n       (SELECT count(*) FROM step WHERE test_id = t.id) AS steps,\n       d.steps_regressed AS \"steps with regressions\", d.steps_fixed AS \"steps with fixes\",\n       extract(epoch FROM t.ended_at - t.started_at) / 60 AS duration\nFROM test t LEFT JOIN test bt ON bt.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AND bt.name = t.name\nLEFT JOIN LATERAL test_diff(t.id, bt.id) d ON true\nWHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)\n  AND CASE '$change' WHEN 'regression' THEN d.actions_regressed > 0\n                     WHEN 'fix'        THEN d.actions_fixed > 0\n                     ELSE true END\nORDER BY t.rank"
         }
       ],
       "fieldConfig": {

@@ -2,6 +2,7 @@
 -- by the "migrate" service, so changes here reach an existing database. Data is not touched.
 DROP VIEW IF EXISTS v_test_diff, v_flakiness, v_campaign_summary, v_test_result, v_campaign,
     v_first_failure, check_cascade, v_action_ordered CASCADE;
+DROP FUNCTION IF EXISTS test_diff(int, int) CASCADE;
 
 -- Status derivation: any failed -> failed, else any skipped -> skipped, else success
 CREATE OR REPLACE FUNCTION agg_status(failed bool, skipped bool) RETURNS exec_status
@@ -156,23 +157,29 @@ SELECT name, platform,
        count(*) AS runs
 FROM flips GROUP BY name, platform;
 
--- Differences with the previous run of the same test on the same platform, action by action (matched by
--- step and action position): actions whose status changed, regressed (success -> skipped/failed) or were
--- fixed (skipped/failed -> success), and the number of steps containing them.
-CREATE VIEW v_test_diff AS
-SELECT r.test_id, r.prev_test_id,
-       count(*) FILTER (WHERE a.status IS DISTINCT FROM pa.status) AS actions_changed,
-       count(DISTINCT s.position) FILTER (WHERE a.status IS DISTINCT FROM pa.status) AS steps_changed,
-       count(*) FILTER (WHERE pa.status = 'success' AND a.status <> 'success') AS actions_regressed,
-       count(DISTINCT s.position) FILTER (WHERE pa.status = 'success' AND a.status <> 'success') AS steps_regressed,
-       count(*) FILTER (WHERE pa.status <> 'success' AND a.status = 'success') AS actions_fixed,
-       count(DISTINCT s.position) FILTER (WHERE pa.status <> 'success' AND a.status = 'success') AS steps_fixed
-FROM v_test_result r
-JOIN step s ON s.test_id = r.test_id
+-- Differences between a test run and a base run of the same test, action by action (matched by step and
+-- action position): actions whose status changed, regressed (success -> skipped/failed) or were fixed
+-- (skipped/failed -> success), and the number of steps containing them. No row when base_test is NULL.
+CREATE FUNCTION test_diff(cur_test int, base_test int)
+RETURNS TABLE (actions_changed bigint, steps_changed bigint, actions_regressed bigint, steps_regressed bigint,
+               actions_fixed bigint, steps_fixed bigint)
+LANGUAGE sql STABLE STRICT AS $$
+SELECT count(*) FILTER (WHERE a.status IS DISTINCT FROM pa.status),
+       count(DISTINCT s.position) FILTER (WHERE a.status IS DISTINCT FROM pa.status),
+       count(*) FILTER (WHERE pa.status = 'success' AND a.status <> 'success'),
+       count(DISTINCT s.position) FILTER (WHERE pa.status = 'success' AND a.status <> 'success'),
+       count(*) FILTER (WHERE pa.status <> 'success' AND a.status = 'success'),
+       count(DISTINCT s.position) FILTER (WHERE pa.status <> 'success' AND a.status = 'success')
+FROM step s
 JOIN action a ON a.step_id = s.id
-LEFT JOIN step ps ON ps.test_id = r.prev_test_id AND ps.position = s.position
+LEFT JOIN step ps ON ps.test_id = base_test AND ps.position = s.position
 LEFT JOIN action pa ON pa.step_id = ps.id AND pa.position = a.position
-WHERE r.prev_test_id IS NOT NULL
-GROUP BY r.test_id, r.prev_test_id;
+WHERE s.test_id = cur_test
+$$;
+
+-- test_diff with the previous run of the same test on the same platform
+CREATE VIEW v_test_diff AS
+SELECT r.test_id, r.prev_test_id, d.*
+FROM v_test_result r CROSS JOIN LATERAL test_diff(r.test_id, r.prev_test_id) d;
 
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana_ro;
