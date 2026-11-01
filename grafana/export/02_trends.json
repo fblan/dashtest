@@ -114,7 +114,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT s.started_at AS time, s.n_tests AS total, s.n_success AS success, s.n_skipped AS skipped,\n       s.n_failed AS failed, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT s.started_at AS time, s.n_tests AS total, s.n_success AS success, s.n_skipped AS skipped,\n       s.n_failed AS failed, c.id AS campaign_id, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
         }
       ],
       "fieldConfig": {
@@ -129,7 +129,13 @@
             "pointSize": 8,
             "fillOpacity": 0,
             "spanNulls": true
-          }
+          },
+          "links": [
+            {
+              "title": "Open campaign overview",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": [
           {
@@ -196,6 +202,22 @@
                 "value": {
                   "mode": "fixed",
                   "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "campaign_id"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": true,
+                  "tooltip": true
                 }
               }
             ]
@@ -401,7 +423,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT c.started_at AS time, count(*) AS total,\n       count(*) FILTER (WHERE d.actions_regressed > 0) AS \"with regressions\",\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS \"with fixes\", c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign c\nJOIN test t ON t.campaign_id = c.id\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE $__timeFilter(c.started_at) AND c.platform IN (${platform:sqlstring})\nGROUP BY c.id, c.started_at, c.kms_version, c.kes_version, c.ktrs_version, c.gateway_version,\n         c.testcampaign_version, c.changes\nORDER BY 1"
+          "rawSql": "SELECT c.started_at AS time, count(*) AS total,\n       count(*) FILTER (WHERE d.actions_regressed > 0) AS \"with regressions\",\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS \"with fixes\", c.id AS campaign_id, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign c\nJOIN test t ON t.campaign_id = c.id\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE $__timeFilter(c.started_at) AND c.platform IN (${platform:sqlstring})\nGROUP BY c.id, c.started_at, c.kms_version, c.kes_version, c.ktrs_version, c.gateway_version,\n         c.testcampaign_version, c.changes\nORDER BY 1"
         }
       ],
       "fieldConfig": {
@@ -416,7 +438,13 @@
             "pointSize": 8,
             "fillOpacity": 0,
             "spanNulls": true
-          }
+          },
+          "links": [
+            {
+              "title": "Open campaign overview",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": [
           {
@@ -468,6 +496,22 @@
                 "value": {
                   "mode": "fixed",
                   "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "campaign_id"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": true,
+                  "tooltip": true
                 }
               }
             ]
@@ -673,7 +717,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT s.started_at AS time, s.duration_s / 3600.0 AS duration, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT s.started_at AS time, s.duration_s / 3600.0 AS duration, c.id AS campaign_id, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
         }
       ],
       "fieldConfig": {
@@ -692,9 +736,31 @@
           "color": {
             "mode": "fixed",
             "fixedColor": "blue"
-          }
+          },
+          "links": [
+            {
+              "title": "Open campaign overview",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "campaign_id"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": true,
+                  "tooltip": true
+                }
+              }
+            ]
+          },
           {
             "matcher": {
               "id": "byRegexp",
