@@ -412,7 +412,7 @@
                 "value": [
                   {
                     "title": "Show success tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=success&var-only_changed=${only_changed}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=success&var-only_changed=0"
                   }
                 ]
               }
@@ -436,7 +436,7 @@
                 "value": [
                   {
                     "title": "Show skipped tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=skipped&var-only_changed=${only_changed}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=skipped&var-only_changed=0"
                   }
                 ]
               }
@@ -460,7 +460,7 @@
                 "value": [
                   {
                     "title": "Show failed tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=failed&var-only_changed=${only_changed}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=failed&var-only_changed=0"
                   }
                 ]
               }
@@ -1001,7 +1001,7 @@
           "links": [
             {
               "title": "Show only the tests with action changes",
-              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&${test_status:queryparam}&var-only_changed=1"
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-only_changed=1"
             }
           ]
         },

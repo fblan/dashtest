@@ -188,11 +188,10 @@ OVERVIEW_URL = "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&$
 
 def status_filter(field, color, value):
     """Tile of the "Tests" stat: fixed color, click = filter the tests list on that status.
-    "all" also clears the "with action changes" filter."""
-    changed = "0" if field == "all" else "${only_changed}"
+    Clears the "with action changes" filter, so the list matches the number on the tile."""
     return override(field, ("color", {"mode": "fixed", "fixedColor": color}), ("links", [{
         "title": f"Show {field} tests",
-        "url": OVERVIEW_URL + "&var-test_status=" + value + "&var-only_changed=" + changed}]))
+        "url": OVERVIEW_URL + "&var-test_status=" + value + "&var-only_changed=0"}]))
 
 
 def comparison_row():
@@ -245,7 +244,7 @@ WHERE t.campaign_id = $campaign""",
         defaults={"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [
             {"color": "transparent", "value": None}, {"color": "orange", "value": 1}]},
                   "links": [{"title": "Show only the tests with action changes",
-                             "url": OVERVIEW_URL + "&${test_status:queryparam}&var-only_changed=1"}]})
+                             "url": OVERVIEW_URL + "&var-test_status=%24__all&var-only_changed=1"}]})
     changed["description"] = ("Tests where at least one action has a different status than in the previous run "
                               "of the same test on this platform (actions matched by step and action position).")
     changed["options"]["textMode"] = "value"
