@@ -198,7 +198,7 @@ SCENARIOS = [
           A("Place 12 g of shrimp filling on each wrapper.", N("Filling", 12, 1, "g", 16)),
           A("Pleat 7 folds and seal.", Q("Seal", "closed", "open seams on 5"), N("Pleats", 7, 1, "", 4))),
         S("Steam the dumplings.", "Translucent wrappers.\nCore 75°C.",
-          A("Bring the steamer to full steam.", N("Steam temperature", 100, 1, "°C", 88)),
+          A("Bring the steamer to full steam.", N("Steam temperature", 100, 1, "°C", 88), tag="steamer_steam"),
           A("Steam for 6 minutes.", N("Core temperature", 76, 3, "°C", 61))),
     ]),
     (8, "blender_gazpacho", [
@@ -223,7 +223,7 @@ SCENARIOS = [
           A("Rest the steak 45 minutes at room temperature.", N("Core temperature", 18, 2, "°C", 9)),
           A("Season with salt and pepper.", N("Salt", 3.5, 0.3, "g", 8.0))),
         S("Grill to medium rare.", "Crosshatch marks.\nCore 54°C ±1.",
-          A("Preheat the grill to 260°C.", N("Grate temperature", 260, 10, "°C", 215)),
+          A("Preheat the grill to 260°C.", N("Grate temperature", 260, 10, "°C", 215), tag="grill_preheat"),
           A("Grill 4 min per side, rotating 90° after 2 min.",
             Q("Grill marks", "crosshatch", "no marks"), N("Rotations", 4, 0, "", 2)),
           A("Probe the core.", N("Core temperature", 54, 1, "°C", 63))),
@@ -345,7 +345,7 @@ KMS_VERSIONS = [
 
 # Other components: release date -> version (the version in use is the last one released before the campaign)
 COMPONENT_RELEASES = {
-    "kes":          [("2026-01-01", "3.0.0"), ("2026-05-25", "3.1.0"), ("2026-08-25", "3.2.0")],
+    "kes":          [("2026-01-01", "3.0.0"), ("2026-05-25", "3.1.0"), ("2026-08-25", "3.2.0"), ("2026-10-26", "3.2.1")],
     "ktrs":         [("2026-01-01", "5.4.2"), ("2026-06-15", "5.5.0"), ("2026-09-20", "5.5.1")],
     "gateway":      [("2026-01-01", "1.8.3"), ("2026-07-01", "2.0.0"), ("2026-07-20", "2.0.1")],
     "testcampaign": [("2026-01-01", "TC-2026.1"), ("2026-06-01", "TC-2026.2"), ("2026-09-01", "TC-2026.3")],
@@ -358,11 +358,23 @@ REGRESSIONS = {
     "oven_temp":         ("kms", "1.3.0", "1.4.1", 0.85, None),      # oven temperature regulation broken
     "sous_vide_timer":   ("kms", "2.0.0", "2.1.0", 0.9, None),       # timer unit bug (minutes vs hours)
     "stove_induction":   ("kms", "2.1.0", "2.1.1", 0.5, None),       # induction power curve
-    "fryer_oil_temp":    ("kms", "2.2.0", None, 0.35, {"OUT"}),      # oil regulation unstable outdoors, still open
-    "dishwasher_heater": ("kms", "2.4.0", None, 0.6, {"IN"}),        # new heater firmware, InHouse only
+    "fryer_oil_temp":    ("kms", "2.2.0", "2.4.1", 0.35, {"OUT"}),   # oil regulation unstable outdoors
+    "dishwasher_heater": ("kms", "2.4.0", "2.4.1", 0.6, {"IN"}),     # new heater firmware, InHouse only
     "gateway_push":      ("gateway", "2.0.0", "2.0.1", 0.9, None),   # Gateway drops push notifications
-    "grill_rotisserie":  ("kes", "3.2.0", None, 0.7, {"OUT"}),       # simulator bug: rotisserie motor on OUT
+    "grill_rotisserie":  ("kes", "3.2.0", "3.2.1", 0.7, {"OUT"}),    # simulator bug: rotisserie motor on OUT
+    # KMS 2.5.0: three new bugs, always failing, in the latest campaigns
+    "steamer_steam":     ("kms", "2.5.0", None, 1.0, None),          # steam generator stays below 100°C
+    "blender_motor":     ("kms", "2.5.0", None, 1.0, {"IN"}),        # blender speed limit, InHouse only
+    "grill_preheat":     ("kms", "2.5.0", None, 1.0, {"OUT"}),       # grill preheat setpoint, Outdoor only
 }
+
+# Latest campaigns, at fixed dates after the generated history, without random failures or skips so that
+# their results come only from the scripted regressions: KMS 2.4.1 (+ KES 3.2.1) fixes the open bugs and gives
+# a clean baseline, then KMS 2.5.0 brings 3 regressions (IN: steamer + blender, OUT: steamer + grill).
+LATEST_CAMPAIGNS = [
+    ("2026-10-27T22:10", "IN", "2.4.1"), ("2026-10-28T10:05", "OUT", "2.4.1"),
+    ("2026-10-30T21:50", "IN", "2.5.0"), ("2026-10-31T09:55", "OUT", "2.5.0"),
+]
 
 # Baseline random failure / environmental skip probability per action
 BASE_FAIL_P = 0.004

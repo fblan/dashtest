@@ -19,8 +19,8 @@ services:
       retries: 20
     networks: [default]
 
-  # One-shot job on every deploy: re-applies functions and views (02_functions_views.sql) so that
-  # view changes reach an existing database. Data is not modified.
+  # One-shot job on every deploy (db/migrate.sh): re-applies functions and views, and reloads the
+  # simulated data when db/init/03_seed.sql has changed since the last load.
   migrate:
     build: ./db
     restart: "no"
@@ -32,8 +32,7 @@ services:
       PGDATABASE: kitchen
       PGUSER: ${PG_USER:-kitchen}
       PGPASSWORD: ${PG_PASSWORD:?set PG_PASSWORD}
-    entrypoint: ["psql", "-v", "ON_ERROR_STOP=1", "--single-transaction",
-                 "-f", "/docker-entrypoint-initdb.d/02_functions_views.sql"]
+    entrypoint: ["sh", "/usr/local/bin/migrate.sh"]
     networks: [default]
 
   grafana:
