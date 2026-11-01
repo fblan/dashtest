@@ -64,10 +64,10 @@ make reset     # regenerate data + dashboards, wipe volumes, restart
 ```
 Grafana 12.4.14 (pinned): http://localhost:3000 — anonymous read-only access (role set by `GRAFANA_ANONYMOUS_ROLE`,
 default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
-1. **Campaign overview** – pick a campaign; per test: status, number of steps with regressions and with fixes.
-   Click a test name to open its details. A comparison row shows the previous campaign on the same platform
-   (click to open it), the pass-rate change, and the number of tests with regressions, with fixes and with
-   action changes (click a number to list only those tests). Regression = at least one action passed in the
+1. **Campaign overview** – pick a campaign; per test: status, number of steps, steps with regressions and with
+   fixes, duration. Click a test name to open its details. A comparison row shows the previous campaign on the
+   same platform (click to open it), the pass-rate change, and the number of tests with regressions and with
+   fixes (click a number to list only those tests). Regression = at least one action passed in the
    previous run of the test on the platform and does not pass now (skipped and failed both count as not
    passing); fix = the reverse.
 2. **Trends over time** – pass rate, results per campaign, pass rate per test and version, durations; release annotations.

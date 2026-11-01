@@ -172,14 +172,13 @@ def dashboard(uid, title, layout, variables, time=("now-7M", "now"), annotations
 
 # ---------------------------------------------------------------- 01 Campaign overview
 # values of the hidden "change" variable of the overview: (value, text shown in the table title)
-CHANGE_FILTERS = [("all", "all tests"), ("regression", "with regressions"), ("fix", "with fixes"),
-                  ("changed", "with action changes")]
+CHANGE_FILTERS = [("all", "all tests"), ("regression", "with regressions"), ("fix", "with fixes")]
 OVERVIEW_URL = "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}"
 
 
 def status_filter(field, color, value):
     """Tile of the "Tests" stat: fixed color, click = filter the tests list on that status.
-    Clears the regression / fix / change filter, so the list matches the number on the tile."""
+    Clears the regression / fix filter, so the list matches the number on the tile."""
     return override(field, ("color", {"mode": "fixed", "fixedColor": color}), ("links", [{
         "title": f"Show {field} tests",
         "url": OVERVIEW_URL + "&var-test_status=" + value + "&var-change=all"}]))
@@ -237,19 +236,7 @@ WHERE t.campaign_id = $campaign""",
         "action position); skipped and failed count as not passing. Regression: at least one action passed before "
         "and does not pass now. Fix: at least one action did not pass before and passes now.")
 
-    changed = stat(
-        "Tests with action changes (click to list them)",
-        """SELECT count(*) FILTER (WHERE d.actions_changed > 0) AS "tests with action changes"
-FROM test t LEFT JOIN v_test_diff d ON d.test_id = t.id
-WHERE t.campaign_id = $campaign""",
-        defaults={"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [
-            {"color": "transparent", "value": None}, {"color": "orange", "value": 1}]},
-                  "links": [{"title": "Show only the tests with action changes",
-                             "url": OVERVIEW_URL + "&var-test_status=%24__all&var-change=changed"}]})
-    changed["description"] = ("Tests where at least one action has a different status than in the previous run "
-                              "of the same test on this platform (actions matched by step and action position).")
-    changed["options"]["textMode"] = "value"
-    return [(previous, 8), (pass_rate, 5), (transitions, 6), (changed, 5)]
+    return [(previous, 9), (pass_rate, 6), (transitions, 9)]
 
 
 def campaign_overview():
@@ -281,20 +268,22 @@ def campaign_overview():
     L.row((table(
         "Tests: ${test_status:text}, ${change:text} (click a name to drill down)",
         """SELECT t.id, t.name, t.status::text AS status,
-       d.steps_regressed AS "steps with regressions", d.steps_fixed AS "steps with fixes"
+       (SELECT count(*) FROM step WHERE test_id = t.id) AS steps,
+       d.steps_regressed AS "steps with regressions", d.steps_fixed AS "steps with fixes",
+       extract(epoch FROM t.ended_at - t.started_at) / 60 AS duration
 FROM test t
 LEFT JOIN v_test_diff d ON d.test_id = t.id
 WHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)
   AND CASE '$change' WHEN 'regression' THEN d.actions_regressed > 0
                      WHEN 'fix'        THEN d.actions_fixed > 0
-                     WHEN 'changed'    THEN d.actions_changed > 0
                      ELSE true END
 ORDER BY t.rank""",
         desc="steps with regressions / fixes: steps containing at least one action that passed in the previous "
              "run of the test on this platform and does not pass now / did not pass and passes now. "
              "Empty = first run of the test on this platform.",
         overrides=[color_cell("status"), override("id", ("custom.hidden", True)), test_link("name"),
-                   width("status", 100), *[
+                   width("status", 100), override("steps", ("custom.width", 80), ("custom.align", "center")),
+                   override("duration", ("unit", "m"), ("decimals", 1), ("custom.width", 100)), *[
                        override(f"steps with {kind}", ("custom.width", 170), ("custom.align", "center"),
                                 ("custom.filterable", False), ("custom.cellOptions", {"type": "color-background"}),
                                 ("color", {"mode": "thresholds"}),
@@ -314,7 +303,7 @@ ORDER BY t.rank""",
          "current": {"text": ["All"], "value": ["$__all"]},
          "options": [{"text": "All", "value": "$__all", "selected": True}]
                     + [{"text": v, "value": v, "selected": False} for v in STATUS_COLORS]},
-        # set by clicking the regressions / fixes / action changes tiles; the "Tests" tiles reset it to all
+        # set by clicking the regressions / fixes tile; the "Tests" tiles reset it to all
         {"type": "custom", "name": "change", "label": "Change vs previous run", "hide": 2,
          "query": ", ".join(f"{text} : {value}" for value, text in CHANGE_FILTERS),
          "current": {"text": CHANGE_FILTERS[0][1], "value": CHANGE_FILTERS[0][0]},

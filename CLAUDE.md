@@ -49,12 +49,12 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
 
 ## Dashboards (uids are used by links, keep them)
 - `kitchen-overview` Campaign overview: vars platform, campaign, hidden `test_status` and `change`
-  (all / regression / fix / changed). Status tiles and the regressions / fixes / action changes tiles filter the
+  (all / regression / fix). Status tiles and the regressions / fixes tile filter the
   tests table; each click sets one filter and clears the other (combined filters confused the user).
   Comparison row vs previous campaign on the platform (`v_campaign.prev_campaign_id`, `v_test_diff`).
   User's definitions (action level, not test status): regression = an action passed before and does not pass
-  now (skipped/failed = not passing), fix = the reverse; tiles count tests, the table shows test status +
-  number of steps with regressions / fixes only.
+  now (skipped/failed = not passing), fix = the reverse; tiles count tests. Table columns (user's choice):
+  name, status, steps, steps with regressions, steps with fixes, duration.
 - `kitchen-trends`, `kitchen-regressions`, `kitchen-test` (Test details, history on the same platform;
   steps / actions tables show the previous-run status where it changed, same position matching as `v_test_diff`).
 - Anonymous Viewer access must stay on (dashboards visible without login).
