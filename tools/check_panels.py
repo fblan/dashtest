@@ -13,7 +13,8 @@ DASHBOARDS = Path(__file__).resolve().parent.parent / "grafana" / "dashboards"
 # Replacements for the Grafana variables. Order matters: longer names first ($test_status before $test).
 VARS = {
     "${platform:sqlstring}": "'IN','OUT'", "${platform:queryparam}": "var-platform=IN", "$platform": "'IN','OUT'",
-    "$test_status": "'success','skipped','failed'", "$action_status": "'success','skipped','failed'",
+    "$test_status": "'success','skipped','failed'",
+    "$step_status": "'success','skipped','failed'", "$action_status": "'success','skipped','failed'",
     "'$change'": "'regression'", "$compare": "0",
     "${campaign}": "16", "$campaign": "16", "$test": "220", "$step": "704",
 }
