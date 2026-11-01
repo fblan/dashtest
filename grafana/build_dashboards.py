@@ -325,16 +325,21 @@ def trends():
             "spanNulls": True}
     legend = {"legend": {"showLegend": True, "displayMode": "list", "placement": "bottom"},
               "tooltip": {"mode": "multi", "sort": "none"}}
-    total = override("total", ("color", {"mode": "fixed", "fixedColor": "text"}),
-                     ("custom.lineStyle", {"fill": "dash", "dash": [10, 10]}))
+    # total: reference line, thin and continuous, neutral gray
+    total = override("total", ("color", {"mode": "fixed", "fixedColor": "#8e8e8e"}),
+                     ("custom.lineWidth", 1), ("custom.pointSize", 4))
 
     # versions of the campaign, shown in the tooltip only: text fields converted to enum (a time series panel
-    # only keeps graphable fields) and hidden from the plot and the legend
+    # only keeps graphable fields), drawn invisible (no line, no point, no axis) and hidden from the legend.
+    # hideFrom.viz is not used: Grafana then also drops them from the tooltip.
     versions = """c.kms_version AS "KMS", c.kes_version AS "KES", c.ktrs_version AS "KTRS",
        c.gateway_version AS "Gateway", c.testcampaign_version AS "TestCampaign", c.changes AS changed"""
     version_fields = ["KMS", "KES", "KTRS", "Gateway", "TestCampaign", "changed"]
     tooltip_only = override("^(" + "|".join(version_fields) + ")$",
-                            ("custom.hideFrom", {"viz": True, "legend": True, "tooltip": False}), regex=True)
+                            ("custom.hideFrom", {"viz": False, "legend": True, "tooltip": False}),
+                            ("custom.lineWidth", 0), ("custom.showPoints", "never"), ("custom.pointSize", 0),
+                            ("custom.axisPlacement", "hidden"), ("color", {"mode": "fixed", "fixedColor": "transparent"}),
+                            regex=True)
 
     def per_platform(p):
         p.update({"repeat": "platform", "repeatDirection": "h", "maxPerRow": 2})
