@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """Build the Grafana dashboard JSON files in grafana/dashboards/."""
 import json
+import sys
+from itertools import combinations
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "generator"))
+from scenarios import COMPONENT_RELEASES, KMS_VERSIONS, LATEST_CAMPAIGNS, PLATFORMS  # noqa: E402
 
 OUT = Path(__file__).resolve().parent / "dashboards"      # provisioned into the local Grafana
 EXPORT = Path(__file__).resolve().parent / "export"      # portable copies to paste elsewhere
 DS = {"type": "grafana-postgresql-datasource", "uid": "kitchen-pg"}
 
 STATUS_COLORS = {"success": "green", "skipped": "orange", "failed": "red"}
-# platforms, as in db/init/01_schema.sql (default selection of the Trends platform filter)
-PLATFORMS = {"IN": "InHouse kitchen", "OUT": "Outdoor kitchen"}
 STATUS_MAPPING = [{"type": "value", "options": {
     s: {"color": c, "text": s, "index": i} for i, (s, c) in enumerate(STATUS_COLORS.items())}}]
 TRANSITION_MAPPING = [{"type": "value", "options": {
@@ -332,9 +335,21 @@ def trends():
     # versions of the campaign, shown in the tooltip only: text fields converted to enum (a time series panel
     # only keeps graphable fields), drawn invisible (no line, no point, no axis) and hidden from the legend.
     # hideFrom.viz is not used: Grafana then also drops them from the tooltip.
+    # An enum conversion needs the list of possible values (Grafana leaves the field as text otherwise): the
+    # versions come from the generator's release lists, "changed" lists the components that changed.
+    # Regenerate the dashboards when the releases in generator/scenarios.py change.
+    components = ["KMS", "KES", "KTRS", "Gateway", "TestCampaign"]
+    enum_values = {
+        "KMS": list(dict.fromkeys([v for v, *_ in KMS_VERSIONS] + [v for _, _, v in LATEST_CAMPAIGNS])),
+        **{name: [v for _, v in COMPONENT_RELEASES[name.lower()]] for name in components[1:]},
+        "changed": ["no change"] + [f"first campaign on {code}" for code in PLATFORMS]
+                   + [", ".join(c) for n in range(1, 6) for c in combinations(components, n)],
+    }
+    # "KMS 2.4.1 → 2.5.0, KES 3.2.0 → 3.2.1" -> "KMS, KES"
     versions = """c.kms_version AS "KMS", c.kes_version AS "KES", c.ktrs_version AS "KTRS",
-       c.gateway_version AS "Gateway", c.testcampaign_version AS "TestCampaign", c.changes AS changed"""
-    version_fields = ["KMS", "KES", "KTRS", "Gateway", "TestCampaign", "changed"]
+       c.gateway_version AS "Gateway", c.testcampaign_version AS "TestCampaign",
+       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed"""
+    version_fields = list(enum_values)
     tooltip_only = override("^(" + "|".join(version_fields) + ")$",
                             ("custom.hideFrom", {"viz": False, "legend": True, "tooltip": False}),
                             ("custom.lineWidth", 0), ("custom.showPoints", "never"), ("custom.pointSize", 0),
@@ -344,7 +359,8 @@ def trends():
     def per_platform(p):
         p.update({"repeat": "platform", "repeatDirection": "h", "maxPerRow": 2})
         p["transformations"] = [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [
-            {"targetField": f, "destinationType": "enum"} for f in version_fields]}}]
+            {"targetField": f, "destinationType": "enum", "enumConfig": {"text": values}}
+            for f, values in enum_values.items()]}}]
         p["fieldConfig"]["overrides"].append(tooltip_only)
         return p
     L.row((per_platform(panel(

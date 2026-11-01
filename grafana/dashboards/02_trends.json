@@ -90,7 +90,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT s.started_at AS time, s.n_tests AS total, s.n_success AS success, s.n_skipped AS skipped,\n       s.n_failed AS failed, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\", c.changes AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT s.started_at AS time, s.n_tests AS total, s.n_success AS success, s.n_skipped AS skipped,\n       s.n_failed AS failed, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
         }
       ],
       "fieldConfig": {
@@ -239,27 +239,113 @@
             "conversions": [
               {
                 "targetField": "KMS",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.0.0",
+                    "1.1.0",
+                    "1.2.0",
+                    "1.3.0",
+                    "1.4.0",
+                    "1.4.1",
+                    "1.5.0",
+                    "2.0.0",
+                    "2.1.0",
+                    "2.1.1",
+                    "2.2.0",
+                    "2.3.0",
+                    "2.4.0",
+                    "2.4.1",
+                    "2.5.0"
+                  ]
+                }
               },
               {
                 "targetField": "KES",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "3.0.0",
+                    "3.1.0",
+                    "3.2.0",
+                    "3.2.1"
+                  ]
+                }
               },
               {
                 "targetField": "KTRS",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "5.4.2",
+                    "5.5.0",
+                    "5.5.1"
+                  ]
+                }
               },
               {
                 "targetField": "Gateway",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.8.3",
+                    "2.0.0",
+                    "2.0.1"
+                  ]
+                }
               },
               {
                 "targetField": "TestCampaign",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "TC-2026.1",
+                    "TC-2026.2",
+                    "TC-2026.3"
+                  ]
+                }
               },
               {
                 "targetField": "changed",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "no change",
+                    "first campaign on IN",
+                    "first campaign on OUT",
+                    "KMS",
+                    "KES",
+                    "KTRS",
+                    "Gateway",
+                    "TestCampaign",
+                    "KMS, KES",
+                    "KMS, KTRS",
+                    "KMS, Gateway",
+                    "KMS, TestCampaign",
+                    "KES, KTRS",
+                    "KES, Gateway",
+                    "KES, TestCampaign",
+                    "KTRS, Gateway",
+                    "KTRS, TestCampaign",
+                    "Gateway, TestCampaign",
+                    "KMS, KES, KTRS",
+                    "KMS, KES, Gateway",
+                    "KMS, KES, TestCampaign",
+                    "KMS, KTRS, Gateway",
+                    "KMS, KTRS, TestCampaign",
+                    "KMS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway",
+                    "KES, KTRS, TestCampaign",
+                    "KES, Gateway, TestCampaign",
+                    "KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway",
+                    "KMS, KES, KTRS, TestCampaign",
+                    "KMS, KES, Gateway, TestCampaign",
+                    "KMS, KTRS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway, TestCampaign"
+                  ]
+                }
               }
             ]
           }
@@ -291,7 +377,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT c.started_at AS time, count(*) AS total,\n       count(*) FILTER (WHERE d.actions_regressed > 0) AS \"with regressions\",\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS \"with fixes\", c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\", c.changes AS changed\nFROM v_campaign c\nJOIN test t ON t.campaign_id = c.id\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE $__timeFilter(c.started_at) AND c.platform IN (${platform:sqlstring})\nGROUP BY c.id, c.started_at, c.kms_version, c.kes_version, c.ktrs_version, c.gateway_version,\n         c.testcampaign_version, c.changes\nORDER BY 1"
+          "rawSql": "SELECT c.started_at AS time, count(*) AS total,\n       count(*) FILTER (WHERE d.actions_regressed > 0) AS \"with regressions\",\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS \"with fixes\", c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign c\nJOIN test t ON t.campaign_id = c.id\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE $__timeFilter(c.started_at) AND c.platform IN (${platform:sqlstring})\nGROUP BY c.id, c.started_at, c.kms_version, c.kes_version, c.ktrs_version, c.gateway_version,\n         c.testcampaign_version, c.changes\nORDER BY 1"
         }
       ],
       "fieldConfig": {
@@ -425,27 +511,113 @@
             "conversions": [
               {
                 "targetField": "KMS",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.0.0",
+                    "1.1.0",
+                    "1.2.0",
+                    "1.3.0",
+                    "1.4.0",
+                    "1.4.1",
+                    "1.5.0",
+                    "2.0.0",
+                    "2.1.0",
+                    "2.1.1",
+                    "2.2.0",
+                    "2.3.0",
+                    "2.4.0",
+                    "2.4.1",
+                    "2.5.0"
+                  ]
+                }
               },
               {
                 "targetField": "KES",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "3.0.0",
+                    "3.1.0",
+                    "3.2.0",
+                    "3.2.1"
+                  ]
+                }
               },
               {
                 "targetField": "KTRS",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "5.4.2",
+                    "5.5.0",
+                    "5.5.1"
+                  ]
+                }
               },
               {
                 "targetField": "Gateway",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.8.3",
+                    "2.0.0",
+                    "2.0.1"
+                  ]
+                }
               },
               {
                 "targetField": "TestCampaign",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "TC-2026.1",
+                    "TC-2026.2",
+                    "TC-2026.3"
+                  ]
+                }
               },
               {
                 "targetField": "changed",
-                "destinationType": "enum"
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "no change",
+                    "first campaign on IN",
+                    "first campaign on OUT",
+                    "KMS",
+                    "KES",
+                    "KTRS",
+                    "Gateway",
+                    "TestCampaign",
+                    "KMS, KES",
+                    "KMS, KTRS",
+                    "KMS, Gateway",
+                    "KMS, TestCampaign",
+                    "KES, KTRS",
+                    "KES, Gateway",
+                    "KES, TestCampaign",
+                    "KTRS, Gateway",
+                    "KTRS, TestCampaign",
+                    "Gateway, TestCampaign",
+                    "KMS, KES, KTRS",
+                    "KMS, KES, Gateway",
+                    "KMS, KES, TestCampaign",
+                    "KMS, KTRS, Gateway",
+                    "KMS, KTRS, TestCampaign",
+                    "KMS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway",
+                    "KES, KTRS, TestCampaign",
+                    "KES, Gateway, TestCampaign",
+                    "KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway",
+                    "KMS, KES, KTRS, TestCampaign",
+                    "KMS, KES, Gateway, TestCampaign",
+                    "KMS, KTRS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway, TestCampaign"
+                  ]
+                }
               }
             ]
           }
