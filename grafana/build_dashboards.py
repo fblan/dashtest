@@ -712,15 +712,14 @@ WHERE d.step_id = $step""" % BASE_STEP,
     L.row((compared, 14), (totals, 10), h=4)
     L.row((table(
         "Actions",
-        """SELECT a.position AS "#", a.description,
+        """SELECT a.position AS "#", a.description, status_change(a.status, pa.status) AS evolution,
        a.status::text AS status, a.expected_result AS expected, a.actual_result AS actual,
-       pa.status::text AS "compared status", status_change(a.status, pa.status) AS evolution,
-       pa.expected_result AS "compared expected", pa.actual_result AS "compared actual"
+       pa.status::text AS "compared status", pa.expected_result AS "compared expected", pa.actual_result AS "compared actual"
 FROM action a
 LEFT JOIN action pa ON pa.step_id = %s AND pa.position = a.position
 WHERE a.step_id = $step ORDER BY a.position""" % BASE_STEP,
-        desc="Current run: status, expected, actual. Compared run (same action): status, evolution, expected, "
-             "actual. evolution: regression = passed in the compared run and does not pass now (skipped / failed), "
+        desc="evolution, then current run: status, expected, actual, then compared run (same action): status, "
+             "expected, actual. evolution: regression = passed in the compared run and does not pass now (skipped / failed), "
              "fixed = the reverse.",
         overrides=[color_cell("status"), color_cell("compared status"), color_cell("evolution", TRANSITION_MAPPING),
                    width("#", 50), width("status", 90), width("compared status", 140), width("evolution", 115),
