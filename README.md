@@ -25,8 +25,9 @@ Rules:
 
 Useful views: `v_campaign` (label + versions changed since the previous campaign on the platform),
 `v_test_result` (with `transition`: regression/fixed/… and `changes`), `v_first_failure` (root cause),
-`v_campaign_summary`, `v_flakiness`, `v_test_diff` (actions whose status changed since the previous run of
-the test on the platform, and the steps containing them), `check_cascade` (must be empty).
+`v_campaign_summary`, `v_flakiness`, `v_test_diff` (action by action vs the previous run of the test on the
+platform: actions changed, regressed = passed before and not now, fixed = the reverse, and the steps containing
+them), `check_cascade` (must be empty).
 
 ## Simulated story
 Apr → Oct 2026: 40 campaigns on IN (around 22:00) and 28 on OUT (around 10:00), KMS 1.0.0 → 2.4.0.
@@ -63,11 +64,12 @@ make reset     # regenerate data + dashboards, wipe volumes, restart
 ```
 Grafana 12.4.14 (pinned): http://localhost:3000 — anonymous read-only access (role set by `GRAFANA_ANONYMOUS_ROLE`,
 default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
-1. **Campaign overview** – pick a campaign; per test: status, regression marker, step and action
-   counts (ok / skip / fail) and root cause. Click a test name to open its details.
-   A comparison row shows the previous campaign on the same platform (click to open it), the pass-rate
-   change, regressions / fixes, and the number of tests with action changes (click to list only those;
-   the table shows steps / actions changed per test).
+1. **Campaign overview** – pick a campaign; per test: status, number of steps with regressions and with fixes.
+   Click a test name to open its details. A comparison row shows the previous campaign on the same platform
+   (click to open it), the pass-rate change, and the number of tests with regressions, with fixes and with
+   action changes (click a number to list only those tests). Regression = at least one action passed in the
+   previous run of the test on the platform and does not pass now (skipped and failed both count as not
+   passing); fix = the reverse.
 2. **Trends over time** – pass rate, results per campaign, pass rate per test and version, durations; release annotations.
 3. **Regressions** – regressions/fixes per version, status history of each test, version-to-version comparison, flaky tests.
 4. **Test details** – one test run: steps, actions (expected vs actual) and the history of that test across campaigns.
