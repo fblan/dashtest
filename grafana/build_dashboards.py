@@ -359,7 +359,9 @@ def trends():
     def per_platform(p):
         p.update({"repeat": "platform", "repeatDirection": "h", "maxPerRow": 2})
         p["transformations"] = [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [
-            {"targetField": f, "destinationType": "enum", "enumConfig": {"text": values}}
+            # transparent enum colors: no colored marker next to the versions in the tooltip
+            {"targetField": f, "destinationType": "enum",
+             "enumConfig": {"text": values, "color": ["transparent"] * len(values)}}
             for f, values in enum_values.items()]}}]
         p["fieldConfig"]["overrides"].append(tooltip_only)
         return p
