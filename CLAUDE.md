@@ -55,12 +55,13 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   else a campaign id of the same platform; SQL resolves it with `BASE` in build_dashboards.py and matches tests by
   name, then `test_diff()`), hidden `test_status` and `change` (all / regression / fix). Status tiles and the regressions / fixes tile filter the
   tests table; each click sets one filter and clears the other (combined filters confused the user).
-  Comparison row vs the `compare` campaign. Links keep `${compare:queryparam}`.
+  Links keep `${compare:queryparam}`.
   User's definitions (action level, not test status): regression = an action passed before and does not pass
   now (skipped/failed = not passing), fix = the reverse; tiles count tests. Table columns (user's choice):
   name, status, steps, steps with regressions, steps with fixes, duration.
 - `kitchen-test` Test details: vars platform, test, `compare` (0 = previous run of the test on the platform, else
-  a test id of another run of the same test; resolved by `BASE_TEST`). Header rows, comparison row, steps table
+  a test id of another run of the same test; resolved by `BASE_TEST`). Hidden filters `step_status` / `change`
+  (steps tiles, `TEST_SELF`; links opening a test reset them). Header, steps table
   (description, expected, actual, status, actions, actions with regressions / fixes from `step_diff()`), history.
   `test_link(..., compare=)` passes the compared run (the overview passes the test of its compared campaign).
   Clicking a step (# or description) opens Step details with the step of the compared run (`STEP_URL`).
@@ -68,7 +69,7 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   previous run, else a step id at the same position in another run of the test; resolved by `BASE_STEP`).
   Hidden filters `action_status` / `change` set by the actions count tile and the regressions / fixes tile
   (helpers `status_filters`, `change_filter`, `filter_vars`, shared with the overview).
-  Header rows, step text + actions count tile, comparison row, actions table (evolution = `status_change()`, status, expected, actual | compared status, expected, actual), step history.
+  Header, step text, actions table (evolution = `status_change()`, status, expected, actual | compared status, expected, actual), step history.
 - `kitchen-trends` Trends over time: var platform without "All" (user's choice; IN and OUT selected by default); 3 panels repeated per platform (horizontal): tests per campaign
   (total, success, skipped, failed), tests with regressions / fixes vs previous campaign (`v_test_diff`), campaign duration.
   Versions + changed components in the tooltip only: string fields → enum (convertFieldType needs
@@ -76,6 +77,10 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   (lineWidth 0, no points, axis hidden, transparent) and hidden from legend. hideFrom.viz drops them from the tooltip.
   No release annotations (removed on request). Click on a point: data link to the overview with
   `${__data.fields.campaign_id}` (hidden field).
+- Header of the 3 overviews (user's layout): line 1 = name tile (test / test · step; platform for the campaign is
+  a field of the versions tile) + versions (`info_stat`, changed ones orange ▲) + status + pass rate (campaign only)
+  + duration; line 2 = counts of the child items (clickable filters) + items with regressions / fixes (`change_stat`).
+  No "Compared with" / pass-rate-change tiles (removed on request; the Compare with dropdown shows it).
 - The Regressions dashboard (`kitchen-regressions`, 03) was removed on request (too complex); don't bring it back.
 - Anonymous Viewer access must stay on (dashboards visible without login).
 

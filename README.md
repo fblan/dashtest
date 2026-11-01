@@ -73,27 +73,30 @@ make reset     # regenerate data + dashboards, wipe volumes, restart
 ```
 Grafana 12.4.14 (pinned): http://localhost:3000 — anonymous read-only access (role set by `GRAFANA_ANONYMOUS_ROLE`,
 default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
-1. **Campaign overview** – pick a campaign; per test: status, number of steps, steps with regressions and with
-   fixes, duration. Click a test name to open its details. **Compare with** (top of the page) picks the campaign
-   to compare with: by default the previous campaign on the same platform, or any other campaign of the platform.
-   The comparison row shows that campaign (click to open it), the pass-rate change, and the number of tests with
-   regressions and with fixes (click a number to list only those tests). Regression = at least one action passed
-   in the compared campaign and does not pass now (skipped and failed both count as not passing); fix = the
-   reverse.
+The three overviews (campaign, test, step) share the same header: a first line with what is shown and the
+5 versions of the campaign (a version changed since the previous campaign on the platform is orange ▲), the status,
+the pass rate (campaign only) and the duration; a second line with the counts of the items one level down (all /
+success / skipped / failed) and the number of those with regressions / fixes. Click a number to filter the list
+under it. **Compare with** (top of the page) picks what to compare with. Regression = at least one action passed
+in the compared run and does not pass now (skipped and failed both count as not passing); fix = the reverse.
+1. **Campaign overview** – header: platform and versions; tests and tests with regressions / fixes. Compared by
+   default with the previous campaign on the same platform, or any other campaign of the platform. Per test:
+   status, number of steps, steps with regressions and with fixes, duration. Click a test name to open its details.
 2. **Trends over time** – one column per platform: tests per campaign over time (total, success, skipped, failed),
    under it the tests with regressions / with fixes compared with the previous campaign on the platform,
    then the campaign duration.
    Hovering a campaign shows its numbers, its 5 versions and the components changed since the previous campaign;
    clicking it offers to open it in the Campaign overview.
-4. **Test details** – one test run: header and versions, then **Compare with** (default: previous run of the test
-   on the platform, or any other run of the test there; opening a test from the overview keeps the overview's choice),
-   the number of actions with regressions / fixes, the steps (description, expected, actual, status, number of
-   actions, actions with regressions, actions with fixes; click a step to open it) and the history of the test.
-5. **Step details** – one step of a test run, built like Test details: header and versions, the step (description,
-   expected, actual), **Compare with** (default: the same step in the previous run of the test on the platform),
-   an actions count tile (all / success / skipped / failed) and actions with regressions / fixes (click a number
-   to filter the actions), the actions (evolution, status, expected, actual, then for the compared run: status, expected, actual)
-   and the history of the step on the platform.
+4. **Test details** – one test run. Header: test and versions (click to open the campaign); steps and steps with
+   regressions / fixes. Compared by default with the previous run of the test on the platform, or any other run
+   of the test there (opening a test from the overview keeps the overview's choice). Then the steps (description,
+   expected, actual, status, number of actions, actions with regressions, actions with fixes; click a step to open
+   it) and the history of the test.
+5. **Step details** – one step of a test run, built like Test details. Header: test · step (click to open the test)
+   and versions; actions and actions with regressions / fixes. Compared by default with the same step in the
+   previous run of the test on the platform. Then the step (description, expected, actual), the actions
+   (evolution, status, expected, actual, then for the compared run: status, expected, actual) and the history of
+   the step on the platform.
 
 Postgres (local only): `localhost:5432`, db `kitchen`, user `kitchen`/`kitchen` (Grafana uses the read-only role `grafana_ro`, password `GRAFANA_RO_PASSWORD`).
 

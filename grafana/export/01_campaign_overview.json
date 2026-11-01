@@ -197,7 +197,91 @@
   "panels": [
     {
       "type": "stat",
-      "title": "Campaign status",
+      "title": "Platform and versions",
+      "description": "KMS = Kitchen Management System (system under test), KES = KitEquipmentSimulator, KTRS = Kitchen Test Runner System, Gateway, TestCampaign = test definitions. Orange ▲: version changed since the previous campaign on the platform.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_KITCHEN}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_KITCHEN}"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT c.platform || ' · ' || (SELECT name FROM platform WHERE code = c.platform) AS \"Platform\",\n       c.kms_version || CASE WHEN c.kms_version <> prev.kms_version THEN ' ▲' ELSE '' END AS \"KMS (under test)\",\n       c.kes_version || CASE WHEN c.kes_version <> prev.kes_version THEN ' ▲' ELSE '' END AS \"KES\",\n       c.ktrs_version || CASE WHEN c.ktrs_version <> prev.ktrs_version THEN ' ▲' ELSE '' END AS \"KTRS\",\n       c.gateway_version || CASE WHEN c.gateway_version <> prev.gateway_version THEN ' ▲' ELSE '' END AS \"Gateway\",\n       c.testcampaign_version || CASE WHEN c.testcampaign_version <> prev.testcampaign_version THEN ' ▲' ELSE '' END AS \"TestCampaign\"\nFROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id\nWHERE c.id = $campaign"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "transparent"
+          },
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": ".* ▲$",
+                "result": {
+                  "color": "orange"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "KMS (under test)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^(?!.*_id$).*/"
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "vertical",
+        "wideLayout": true,
+        "text": {
+          "titleSize": 12,
+          "valueSize": 20
+        }
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 14,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Status",
       "description": "",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -253,72 +337,14 @@
         },
         "colorMode": "background",
         "graphMode": "none",
-        "textMode": "value_and_name",
-        "justifyMode": "center"
-      },
-      "id": 1,
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 4,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Platform",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_KITCHEN}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT p.code || ' · ' || p.name AS platform FROM campaign c JOIN platform p ON p.code = c.platform WHERE c.id = $campaign"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "^(IN|OUT).*",
-                "result": {
-                  "color": "purple"
-                }
-              }
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/.*/"
-        },
-        "colorMode": "none",
-        "graphMode": "none",
-        "textMode": "value_and_name",
+        "textMode": "value",
         "justifyMode": "center"
       },
       "id": 2,
       "gridPos": {
-        "x": 4,
+        "x": 14,
         "y": 0,
-        "w": 4,
+        "w": 3,
         "h": 4
       }
     },
@@ -386,9 +412,57 @@
       },
       "id": 3,
       "gridPos": {
-        "x": 8,
+        "x": 17,
         "y": 0,
         "w": 3,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Duration",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_KITCHEN}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_KITCHEN}"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT duration_s AS duration FROM v_campaign_summary WHERE campaign_id = $campaign"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
         "h": 4
       }
     },
@@ -527,381 +601,18 @@
         "textMode": "value_and_name",
         "justifyMode": "center"
       },
-      "id": 4,
-      "gridPos": {
-        "x": 11,
-        "y": 0,
-        "w": 10,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Duration",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_KITCHEN}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT duration_s AS duration FROM v_campaign_summary WHERE campaign_id = $campaign"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/.*/"
-        },
-        "colorMode": "none",
-        "graphMode": "none",
-        "textMode": "value_and_name",
-        "justifyMode": "center"
-      },
       "id": 5,
       "gridPos": {
-        "x": 21,
-        "y": 0,
-        "w": 3,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Software versions",
-      "description": "KMS = Kitchen Management System (system under test), KES = KitEquipmentSimulator, KTRS = Kitchen Test Runner System, Gateway, TestCampaign = test definitions",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_KITCHEN}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT kms_version AS \"KMS (under test)\", kes_version AS \"KES\", ktrs_version AS \"KTRS\",\n       gateway_version AS \"Gateway\", testcampaign_version AS \"TestCampaign\"\nFROM campaign WHERE id = $campaign"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "transparent"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "KMS (under test)"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "blue"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/.*/"
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value_and_name",
-        "justifyMode": "center",
-        "orientation": "vertical",
-        "wideLayout": true,
-        "text": {
-          "titleSize": 13,
-          "valueSize": 24
-        }
-      },
-      "id": 6,
-      "gridPos": {
         "x": 0,
         "y": 4,
-        "w": 15,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Versions changed since the previous campaign on this platform",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_KITCHEN}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT CASE WHEN changes = 'no change'\n            THEN 'None — last change ' || to_char(last_change_at, 'YYYY-MM-DD') || ': ' || last_change\n            ELSE changes END AS changes\nFROM v_campaign WHERE id = $campaign"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "^None.*",
-                "result": {
-                  "color": "transparent"
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": ".*",
-                "result": {
-                  "color": "orange"
-                }
-              }
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/.*/"
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center"
-      },
-      "id": 7,
-      "gridPos": {
-        "x": 15,
-        "y": 4,
-        "w": 9,
-        "h": 4
-      }
-    },
-    {
-      "type": "row",
-      "title": "Comparison with: ${compare:text}",
-      "collapsed": false,
-      "panels": [],
-      "id": 8,
-      "gridPos": {
-        "x": 0,
-        "y": 8,
-        "w": 24,
-        "h": 1
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Compared with (click to open it)",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_KITCHEN}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT coalesce(p.label || '  (' || p.status || ')', 'none: first campaign on this platform') AS compared,\n       p.id AS base_id\nFROM (SELECT coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AS id) b LEFT JOIN v_campaign p ON p.id = b.id"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "links": [
-            {
-              "title": "Open the compared campaign",
-              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.base_id}&var-compare=0&${platform:queryparam}&${__url_time_range}"
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^compared$/"
-        },
-        "colorMode": "none",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center",
-        "text": {
-          "valueSize": 20
-        }
-      },
-      "id": 9,
-      "gridPos": {
-        "x": 0,
-        "y": 9,
-        "w": 9,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Pass rate: compared campaign / change",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_KITCHEN}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT p.pass_rate AS compared,\n       CASE WHEN c.pass_rate = p.pass_rate THEN '±0.0 pts'\n            ELSE to_char(c.pass_rate - p.pass_rate, 'FMSG990.0') || ' pts' END AS change\nFROM v_campaign_summary c\nJOIN v_campaign_summary p ON p.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign))\nWHERE c.campaign_id = $campaign"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "compared"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "text"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "change"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "regex",
-                    "options": {
-                      "pattern": "^\\+.*",
-                      "result": {
-                        "color": "green"
-                      }
-                    }
-                  },
-                  {
-                    "type": "regex",
-                    "options": {
-                      "pattern": "^-.*",
-                      "result": {
-                        "color": "red"
-                      }
-                    }
-                  },
-                  {
-                    "type": "regex",
-                    "options": {
-                      "pattern": ".*",
-                      "result": {
-                        "color": "text"
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/.*/"
-        },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "value_and_name",
-        "justifyMode": "center"
-      },
-      "id": 10,
-      "gridPos": {
-        "x": 9,
-        "y": 9,
-        "w": 6,
+        "w": 14,
         "h": 4
       }
     },
     {
       "type": "stat",
       "title": "Tests with regressions / fixes (click to list them)",
-      "description": "Compared action by action with the same test in the compared campaign (matched by step and action position); skipped and failed count as not passing. Regression: at least one action passed before and does not pass now. Fix: at least one action did not pass before and passes now.",
+      "description": "Tests with at least one action regressed / fixed; tests matched by name. Compared with the run selected in \"Compare with\", action by action (matched by step and action position); skipped and failed count as not passing. Regression: an action passed before and does not pass now. Fix: the reverse.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "${DS_KITCHEN}"
@@ -916,11 +627,13 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT count(*) FILTER (WHERE d.actions_regressed > 0) AS regressions,\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS fixes\nFROM test t LEFT JOIN test bt ON bt.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AND bt.name = t.name\nLEFT JOIN LATERAL test_diff(t.id, bt.id) d ON true\nWHERE t.campaign_id = $campaign"
+          "rawSql": "SELECT count(*) FILTER (WHERE d.actions_regressed > 0) AS regressions,\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS fixes\nFROM test t LEFT JOIN test bt ON bt.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AND bt.name = t.name\nLEFT JOIN LATERAL test_diff(t.id, bt.id) d ON true\nWHERE t.campaign_id = $campaign\nHAVING coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) IS NOT NULL"
         }
       ],
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "noValue": "nothing to compare with"
+        },
         "overrides": [
           {
             "matcher": {
@@ -1015,11 +728,11 @@
         "textMode": "value_and_name",
         "justifyMode": "center"
       },
-      "id": 11,
+      "id": 6,
       "gridPos": {
-        "x": 15,
-        "y": 9,
-        "w": 9,
+        "x": 14,
+        "y": 4,
+        "w": 10,
         "h": 4
       }
     },
@@ -1117,7 +830,7 @@
                 "value": [
                   {
                     "title": "Open test details",
-                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.id}&var-compare=${__data.fields.compare_test}&${__url_time_range}"
+                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.id}&var-compare=${__data.fields.compare_test}&${__url_time_range}&var-step_status=%24__all&var-change=all"
                   }
                 ]
               }
@@ -1273,10 +986,10 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 12,
+      "id": 7,
       "gridPos": {
         "x": 0,
-        "y": 13,
+        "y": 8,
         "w": 24,
         "h": 17
       }
