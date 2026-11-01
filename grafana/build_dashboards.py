@@ -138,7 +138,7 @@ def name_stat(title, sql, link=None):
     """Header tile with the name(s) of what is shown (test, step); `link` (title, url) opens on click."""
     p = stat(title, sql, color_mode="none")
     p["options"]["reduceOptions"]["fields"] = "/^(?!.*_id$).*/"    # *_id: hidden fields used by the link
-    p["options"].update({"textMode": "value_and_name", "wideLayout": True, "text": {"titleSize": 12, "valueSize": 20}})
+    p["options"].update({"textMode": "value", "text": {"valueSize": 22}})
     if link:
         p["fieldConfig"]["defaults"]["links"] = [{"title": link[0], "url": link[1]}]
     return p
@@ -471,7 +471,7 @@ ORDER BY s.position""" % BASE_TEST,
                                 ("color", {"mode": "thresholds"}),
                                 ("thresholds", {"mode": "absolute", "steps": [
                                     {"color": "transparent", "value": None}, {"color": color, "value": 1}]}))
-                       for kind, color in (("regressions", "red"), ("fixes", "green"))]]), 24), h=14)
+                       for kind, color in (("regressions", "red"), ("fixes", "green"))]]), 24), h=11)
     L.row((table(
         "History of this test on the same platform (click a date to open that run)",
         """SELECT r.test_id AS id, to_char(r.campaign_started_at, 'YYYY-MM-DD HH24:MI') AS date,
@@ -519,7 +519,7 @@ def step_details():
     L = Layout()
     L.row(
         (name_stat("Test / step (click to open the test)",
-                   "SELECT t.name AS test, s.position AS step, t.id AS test_id "
+                   "SELECT t.name || '  ·  step ' || s.position AS step, t.id AS test_id "
                    "FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step",
                    link=("Open test details",
                          "/d/kitchen-test/test-details?var-test=${__data.fields.test_id}&var-compare=0"
@@ -565,7 +565,7 @@ ORDER BY a.position""" % BASE_STEP,
              "fixed = the reverse.",
         overrides=[color_cell("status"), color_cell("compared status"), color_cell("evolution", TRANSITION_MAPPING),
                    width("#", 50), width("status", 90), width("compared status", 140), width("evolution", 115),
-                   wrap("description", "expected", "actual", "compared expected", "compared actual")]), 24), h=14)
+                   wrap("description", "expected", "actual", "compared expected", "compared actual")]), 24), h=10)
     L.row((table(
         "History of this step on the same platform (click a date to open that run)",
         """SELECT r.test_id, s.id AS step_id, to_char(r.campaign_started_at, 'YYYY-MM-DD HH24:MI') AS date,
