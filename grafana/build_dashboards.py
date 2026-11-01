@@ -394,6 +394,16 @@ ORDER BY 1""" % versions,
         desc="Compared with the previous campaign on the platform, action by action (skipped and failed count as "
              "not passing). With regressions: at least one action passed before and does not pass now. "
              "With fixes: at least one action did not pass before and passes now.")), 24), h=10)
+    L.row((per_platform(panel(
+        "timeseries", "Campaign duration — $platform",
+        """SELECT s.started_at AS time, s.duration_s AS duration, %s
+FROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id
+WHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})
+ORDER BY 1""" % versions,
+        defaults={"unit": "s", "decimals": 1, "min": 0, "custom": line,
+                  "color": {"mode": "fixed", "fixedColor": "blue"}},
+        options={**legend, "legend": {"showLegend": False}},
+        desc="Duration of each campaign on the platform (first test start to last test end).")), 24), h=8)
     return dashboard("kitchen-trends", "Trends over time", L, [platform_var(include_all=False)])
 
 
