@@ -59,8 +59,17 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   User's definitions (action level, not test status): regression = an action passed before and does not pass
   now (skipped/failed = not passing), fix = the reverse; tiles count tests. Table columns (user's choice):
   name, status, steps, steps with regressions, steps with fixes, duration.
-- `kitchen-trends`, `kitchen-regressions`, `kitchen-test` (Test details, history on the same platform;
-  steps / actions tables show the previous-run status where it changed, same position matching as `v_test_diff`).
+- `kitchen-test` Test details: vars platform, test, `compare` (0 = previous run of the test on the platform, else
+  a test id of another run of the same test; resolved by `BASE_TEST`). Header rows, comparison row, steps table
+  (description, expected, actual, status, actions, actions with regressions / fixes from `step_diff()`), history.
+  `test_link(..., compare=)` passes the compared run (the overview passes the test of its compared campaign).
+  Clicking a step (# or description) opens Step details with the step of the compared run (`STEP_URL`).
+- `kitchen-step` Step details: vars platform, test, step (steps of the test), `compare` (0 = same step in the
+  previous run, else a step id at the same position in another run of the test; resolved by `BASE_STEP`).
+  Hidden filters `action_status` / `change` set by the actions count tile and the regressions / fixes tile
+  (helpers `status_filters`, `change_filter`, `filter_vars`, shared with the overview).
+  Header rows, step text + actions count tile, comparison row, actions table (evolution = `status_change()`, status, expected, actual | compared status, expected, actual), step history.
+- `kitchen-trends`, `kitchen-regressions`.
 - Anonymous Viewer access must stay on (dashboards visible without login).
 
 ## Grafana gotchas (Grafana 12.4.14, pinned — target is 12.x)

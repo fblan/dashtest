@@ -55,6 +55,23 @@
         "sort": 0,
         "current": {},
         "options": []
+      },
+      {
+        "type": "query",
+        "name": "compare",
+        "label": "Compare with",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "kitchen-pg"
+        },
+        "query": "SELECT __text, __value FROM (\n    SELECT 0 AS ord, NULL::timestamptz AS started_at, 0 AS __value,\n           'previous run on this platform: ' || coalesce(pc.label || '  (' || p.status || ')', 'none') AS __text\n    FROM v_test_result r LEFT JOIN v_test_result p ON p.test_id = r.prev_test_id\n    LEFT JOIN v_campaign pc ON pc.id = p.campaign_id WHERE r.test_id = $test\n    UNION ALL\n    SELECT 1, o.campaign_started_at, o.test_id, oc.label || '  (' || o.status || ')'\n    FROM v_test_result r JOIN v_test_result o ON o.name = r.name AND o.platform = r.platform AND o.test_id <> r.test_id\n    JOIN v_campaign oc ON oc.id = o.campaign_id WHERE r.test_id = $test\n) x ORDER BY ord, started_at DESC",
+        "definition": "SELECT __text, __value FROM (\n    SELECT 0 AS ord, NULL::timestamptz AS started_at, 0 AS __value,\n           'previous run on this platform: ' || coalesce(pc.label || '  (' || p.status || ')', 'none') AS __text\n    FROM v_test_result r LEFT JOIN v_test_result p ON p.test_id = r.prev_test_id\n    LEFT JOIN v_campaign pc ON pc.id = p.campaign_id WHERE r.test_id = $test\n    UNION ALL\n    SELECT 1, o.campaign_started_at, o.test_id, oc.label || '  (' || o.status || ')'\n    FROM v_test_result r JOIN v_test_result o ON o.name = r.name AND o.platform = r.platform AND o.test_id <> r.test_id\n    JOIN v_campaign oc ON oc.id = o.campaign_id WHERE r.test_id = $test\n) x ORDER BY ord, started_at DESC",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 0,
+        "current": {},
+        "options": []
       }
     ]
   },
@@ -490,9 +507,22 @@
       }
     },
     {
-      "type": "table",
-      "title": "Steps",
-      "description": "previous run = status in the previous run of this test on the same platform, shown only when it differs (matched by step / action position). Empty everywhere = no change, or first run.",
+      "type": "row",
+      "title": "Comparison with: ${compare:text}",
+      "collapsed": false,
+      "panels": [],
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Compared with (click to open it)",
+      "description": "",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "kitchen-pg"
@@ -507,7 +537,172 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT s.position AS \"#\", s.description, s.expected_result AS expected, s.actual_result AS actual,\n       s.status::text AS status,\n       CASE WHEN ps.status IS DISTINCT FROM s.status THEN ps.status::text END AS \"previous run\"\nFROM step s\nLEFT JOIN step ps ON ps.test_id = (SELECT prev_test_id FROM v_test_result WHERE test_id = $test) AND ps.position = s.position\nWHERE s.test_id = $test ORDER BY s.position"
+          "rawSql": "SELECT coalesce(c.label || '  (' || r.status || ')', 'none: first run of this test on this platform')\n           AS compared, r.test_id AS base_id\nFROM (SELECT coalesce(nullif($compare, 0), (SELECT prev_test_id FROM v_test_result WHERE test_id = $test)) AS id) b\nLEFT JOIN v_test_result r ON r.test_id = b.id LEFT JOIN v_campaign c ON c.id = r.campaign_id"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Open the compared run",
+              "url": "/d/kitchen-test/test-details?var-test=${__data.fields.base_id}&var-compare=0&${platform:queryparam}&${__url_time_range}"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^compared$/"
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "text": {
+          "valueSize": 20
+        }
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 14,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Actions with regressions / fixes",
+      "description": "Compared action by action with the compared run (matched by step and action position); skipped and failed count as not passing. Regression: the action passed before and does not pass now. Fix: it did not pass before and passes now.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "kitchen-pg"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "kitchen-pg"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT d.actions_regressed AS regressions, d.actions_fixed AS fixes\nFROM test_diff($test, coalesce(nullif($compare, 0), (SELECT prev_test_id FROM v_test_result WHERE test_id = $test))) d"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "no compared run"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "regressions"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fixes"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center"
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 14,
+        "y": 9,
+        "w": 10,
+        "h": 4
+      }
+    },
+    {
+      "type": "table",
+      "title": "Steps (click a step to open it)",
+      "description": "actions with regressions / fixes: actions of the step that passed in the compared run and do not pass now / did not pass and pass now. Empty = no compared run.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "kitchen-pg"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "kitchen-pg"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT s.id AS step_id,\n       CASE WHEN $compare = 0 THEN 0\n            ELSE coalesce((SELECT id FROM step WHERE test_id = b.id AND position = s.position), 0) END AS compare_step,\n       s.position AS \"#\", s.description, s.expected_result AS expected, s.actual_result AS actual,\n       s.status::text AS status, d.actions,\n       CASE WHEN b.id IS NOT NULL THEN d.actions_regressed END AS \"actions with regressions\",\n       CASE WHEN b.id IS NOT NULL THEN d.actions_fixed END AS \"actions with fixes\"\nFROM (SELECT coalesce(nullif($compare, 0), (SELECT prev_test_id FROM v_test_result WHERE test_id = $test)) AS id) b\nCROSS JOIN step_diff($test, b.id) d\nJOIN step s ON s.id = d.step_id\nORDER BY s.position"
         }
       ],
       "fieldConfig": {
@@ -525,45 +720,6 @@
             "matcher": {
               "id": "byName",
               "options": "status"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "success": {
-                        "color": "green",
-                        "text": "success",
-                        "index": 0
-                      },
-                      "skipped": {
-                        "color": "orange",
-                        "text": "skipped",
-                        "index": 1
-                      },
-                      "failed": {
-                        "color": "red",
-                        "text": "failed",
-                        "index": 2
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "previous run"
             },
             "properties": [
               {
@@ -620,18 +776,6 @@
               {
                 "id": "custom.width",
                 "value": 90
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "previous run"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 110
               }
             ]
           },
@@ -646,200 +790,145 @@
                 "value": true
               }
             ]
-          }
-        ]
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm"
-      },
-      "id": 8,
-      "gridPos": {
-        "x": 0,
-        "y": 8,
-        "w": 24,
-        "h": 12
-      }
-    },
-    {
-      "type": "table",
-      "title": "Actions",
-      "description": "previous run = status in the previous run of this test on the same platform, shown only when it differs (matched by step / action position). Empty everywhere = no change, or first run.",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT s.position || '.' || a.position AS \"#\", split_part(s.description, E'\\n', 1) AS step, a.description AS action,\n       a.expected_result AS expected, a.actual_result AS actual, a.status::text AS status,\n       CASE WHEN pa.status IS DISTINCT FROM a.status THEN pa.status::text END AS \"previous run\",\n       a.duration_ms / 1000.0 AS \"duration (s)\"\nFROM action a JOIN step s ON s.id = a.step_id\nLEFT JOIN step ps ON ps.test_id = (SELECT prev_test_id FROM v_test_result WHERE test_id = $test) AND ps.position = s.position\nLEFT JOIN action pa ON pa.step_id = ps.id AND pa.position = a.position\nWHERE s.test_id = $test ORDER BY s.position, a.position"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "status"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "success": {
-                        "color": "green",
-                        "text": "success",
-                        "index": 0
-                      },
-                      "skipped": {
-                        "color": "orange",
-                        "text": "skipped",
-                        "index": 1
-                      },
-                      "failed": {
-                        "color": "red",
-                        "text": "failed",
-                        "index": 2
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              }
-            ]
           },
           {
             "matcher": {
-              "id": "byName",
-              "options": "previous run"
+              "id": "byRegexp",
+              "options": "^(step_id|compare_step)$"
             },
             "properties": [
               {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "success": {
-                        "color": "green",
-                        "text": "success",
-                        "index": 0
-                      },
-                      "skipped": {
-                        "color": "orange",
-                        "text": "skipped",
-                        "index": 1
-                      },
-                      "failed": {
-                        "color": "red",
-                        "text": "failed",
-                        "index": 2
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "#"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 50
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "step"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 200
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "status"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 90
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "previous run"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 110
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "duration (s)"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 120
+                "id": "custom.hidden",
+                "value": true
               }
             ]
           },
           {
             "matcher": {
               "id": "byRegexp",
-              "options": "^(step|action|expected|actual)$"
+              "options": "^(#|description)$"
             },
             "properties": [
               {
-                "id": "custom.wrapText",
-                "value": true
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open step details",
+                    "url": "/d/kitchen-step/step-details?var-test=${test}&var-step=${__data.fields.step_id}&var-compare=${__data.fields.compare_step}&${platform:queryparam}&${__url_time_range}&var-action_status=%24__all&var-change=all"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "actions"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "actions with regressions"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "custom.filterable",
+                "value": false
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "actions with fixes"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "custom.filterable",
+                "value": false
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
               }
             ]
           }
@@ -849,12 +938,12 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 9,
+      "id": 11,
       "gridPos": {
         "x": 0,
-        "y": 20,
+        "y": 13,
         "w": 24,
-        "h": 20
+        "h": 14
       }
     },
     {
@@ -1085,7 +1174,7 @@
                 "value": [
                   {
                     "title": "Open test details",
-                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.id}&${__url_time_range}"
+                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.id}&var-compare=0&${__url_time_range}"
                   }
                 ]
               }
@@ -1109,10 +1198,10 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 10,
+      "id": 12,
       "gridPos": {
         "x": 0,
-        "y": 40,
+        "y": 27,
         "w": 24,
         "h": 16
       }
