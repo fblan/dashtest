@@ -200,4 +200,9 @@ CREATE VIEW v_test_diff AS
 SELECT r.test_id, r.prev_test_id, d.*
 FROM v_test_result r CROSS JOIN LATERAL test_diff(r.test_id, r.prev_test_id) d;
 
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana_ro;
+-- read access for Grafana's role, when it exists (lets this file run on another database too)
+DO $$ BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'grafana_ro') THEN
+        GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana_ro;
+    END IF;
+END $$;
