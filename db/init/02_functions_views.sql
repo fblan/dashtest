@@ -2,7 +2,7 @@
 -- by the "migrate" service, so changes here reach an existing database. Data is not touched.
 DROP VIEW IF EXISTS v_test_diff, v_flakiness, v_campaign_summary, v_test_result, v_campaign,
     v_first_failure, check_cascade, v_action_ordered CASCADE;
-DROP FUNCTION IF EXISTS test_diff(int, int) CASCADE;
+DROP FUNCTION IF EXISTS test_diff(int, int), step_diff(int, int) CASCADE;
 
 -- Status derivation: any failed -> failed, else any skipped -> skipped, else success
 CREATE OR REPLACE FUNCTION agg_status(failed bool, skipped bool) RETURNS exec_status
@@ -157,24 +157,34 @@ SELECT name, platform,
        count(*) AS runs
 FROM flips GROUP BY name, platform;
 
--- Differences between a test run and a base run of the same test, action by action (matched by step and
--- action position): actions whose status changed, regressed (success -> skipped/failed) or were fixed
--- (skipped/failed -> success), and the number of steps containing them. No row when base_test is NULL.
-CREATE FUNCTION test_diff(cur_test int, base_test int)
-RETURNS TABLE (actions_changed bigint, steps_changed bigint, actions_regressed bigint, steps_regressed bigint,
-               actions_fixed bigint, steps_fixed bigint)
-LANGUAGE sql STABLE STRICT AS $$
-SELECT count(*) FILTER (WHERE a.status IS DISTINCT FROM pa.status),
-       count(DISTINCT s.position) FILTER (WHERE a.status IS DISTINCT FROM pa.status),
+-- Differences between a test run and a base run of the same test, step by step, action by action (actions
+-- matched by step and action position): number of actions, actions whose status changed, regressed
+-- (success -> skipped/failed) or were fixed (skipped/failed -> success). base_test NULL: no regression / fix.
+CREATE FUNCTION step_diff(cur_test int, base_test int)
+RETURNS TABLE (step_id int, step_position int, actions bigint, actions_changed bigint, actions_regressed bigint,
+               actions_fixed bigint)
+LANGUAGE sql STABLE AS $$
+SELECT s.id, s.position, count(*),
+       count(*) FILTER (WHERE a.status IS DISTINCT FROM pa.status),
        count(*) FILTER (WHERE pa.status = 'success' AND a.status <> 'success'),
-       count(DISTINCT s.position) FILTER (WHERE pa.status = 'success' AND a.status <> 'success'),
-       count(*) FILTER (WHERE pa.status <> 'success' AND a.status = 'success'),
-       count(DISTINCT s.position) FILTER (WHERE pa.status <> 'success' AND a.status = 'success')
+       count(*) FILTER (WHERE pa.status <> 'success' AND a.status = 'success')
 FROM step s
 JOIN action a ON a.step_id = s.id
 LEFT JOIN step ps ON ps.test_id = base_test AND ps.position = s.position
 LEFT JOIN action pa ON pa.step_id = ps.id AND pa.position = a.position
 WHERE s.test_id = cur_test
+GROUP BY s.id, s.position
+$$;
+
+-- step_diff summed over the test, with the number of steps concerned. No row when base_test is NULL.
+CREATE FUNCTION test_diff(cur_test int, base_test int)
+RETURNS TABLE (actions_changed bigint, steps_changed bigint, actions_regressed bigint, steps_regressed bigint,
+               actions_fixed bigint, steps_fixed bigint)
+LANGUAGE sql STABLE STRICT AS $$
+SELECT sum(d.actions_changed)::bigint, count(*) FILTER (WHERE d.actions_changed > 0),
+       sum(d.actions_regressed)::bigint, count(*) FILTER (WHERE d.actions_regressed > 0),
+       sum(d.actions_fixed)::bigint, count(*) FILTER (WHERE d.actions_fixed > 0)
+FROM step_diff(cur_test, base_test) d
 $$;
 
 -- test_diff with the previous run of the same test on the same platform

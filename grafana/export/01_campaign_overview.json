@@ -1041,7 +1041,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT t.id, t.name, t.status::text AS status,\n       (SELECT count(*) FROM step WHERE test_id = t.id) AS steps,\n       d.steps_regressed AS \"steps with regressions\", d.steps_fixed AS \"steps with fixes\",\n       extract(epoch FROM t.ended_at - t.started_at) / 60 AS duration\nFROM test t LEFT JOIN test bt ON bt.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AND bt.name = t.name\nLEFT JOIN LATERAL test_diff(t.id, bt.id) d ON true\nWHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)\n  AND CASE '$change' WHEN 'regression' THEN d.actions_regressed > 0\n                     WHEN 'fix'        THEN d.actions_fixed > 0\n                     ELSE true END\nORDER BY t.rank"
+          "rawSql": "SELECT t.id, CASE WHEN $compare = 0 THEN 0 ELSE coalesce(bt.id, 0) END AS compare_test,\n       t.name, t.status::text AS status,\n       (SELECT count(*) FROM step WHERE test_id = t.id) AS steps,\n       d.steps_regressed AS \"steps with regressions\", d.steps_fixed AS \"steps with fixes\",\n       extract(epoch FROM t.ended_at - t.started_at) / 60 AS duration\nFROM test t LEFT JOIN test bt ON bt.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AND bt.name = t.name\nLEFT JOIN LATERAL test_diff(t.id, bt.id) d ON true\nWHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)\n  AND CASE '$change' WHEN 'regression' THEN d.actions_regressed > 0\n                     WHEN 'fix'        THEN d.actions_fixed > 0\n                     ELSE true END\nORDER BY t.rank"
         }
       ],
       "fieldConfig": {
@@ -1096,8 +1096,8 @@
           },
           {
             "matcher": {
-              "id": "byName",
-              "options": "id"
+              "id": "byRegexp",
+              "options": "^(id|compare_test)$"
             },
             "properties": [
               {
@@ -1117,7 +1117,7 @@
                 "value": [
                   {
                     "title": "Open test details",
-                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.id}&${__url_time_range}"
+                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.id}&var-compare=${__data.fields.compare_test}&${__url_time_range}"
                   }
                 ]
               }

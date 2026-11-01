@@ -25,8 +25,9 @@ Rules:
 
 Useful views: `v_campaign` (label + versions changed since the previous campaign on the platform),
 `v_test_result` (with `transition`: regression/fixed/… and `changes`), `v_first_failure` (root cause),
-`v_campaign_summary`, `v_flakiness`, `test_diff(test, base_test)` (action by action vs a base run of the test:
-actions changed, regressed = passed before and not now, fixed = the reverse, and the steps containing them),
+`v_campaign_summary`, `v_flakiness`, `step_diff(test, base_test)` (per step, action by action vs a base run of
+the test: actions, actions changed, regressed = passed before and not now, fixed = the reverse), `test_diff(test,
+base_test)` (the same summed over the test, with the number of steps concerned),
 `v_test_diff` (`test_diff` vs the previous run of the test on the platform), `check_cascade` (must be empty).
 
 ## Simulated story
@@ -80,9 +81,10 @@ default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
    reverse.
 2. **Trends over time** – pass rate, results per campaign, pass rate per test and version, durations; release annotations.
 3. **Regressions** – regressions/fixes per version, status history of each test, version-to-version comparison, flaky tests.
-4. **Test details** – one test run: steps, actions (expected vs actual) and the history of that test across campaigns.
-   The "previous run" column shows the status of each step / action in the previous run on the platform
-   when it changed.
+4. **Test details** – one test run: header and versions, then **Compare with** (default: previous run of the test
+   on the platform, or any other run of the test there; opening a test from the overview keeps the overview's choice),
+   the number of actions with regressions / fixes, the steps (description, expected, actual, status, number of
+   actions, actions with regressions, actions with fixes) and the history of the test on the platform.
 
 Postgres (local only): `localhost:5432`, db `kitchen`, user `kitchen`/`kitchen` (Grafana uses the read-only role `grafana_ro`, password `GRAFANA_RO_PASSWORD`).
 
