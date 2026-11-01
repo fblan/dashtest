@@ -124,7 +124,7 @@
         "name": "change",
         "label": "Change vs previous run",
         "hide": 2,
-        "query": "all tests : all, with regressions : regression, with fixes : fix, with action changes : changed",
+        "query": "all tests : all, with regressions : regression, with fixes : fix",
         "current": {
           "text": "all tests",
           "value": "all"
@@ -143,11 +143,6 @@
           {
             "text": "with fixes",
             "value": "fix",
-            "selected": false
-          },
-          {
-            "text": "with action changes",
-            "value": "changed",
             "selected": false
           }
         ]
@@ -776,7 +771,7 @@
       "gridPos": {
         "x": 0,
         "y": 9,
-        "w": 8,
+        "w": 9,
         "h": 4
       }
     },
@@ -880,9 +875,9 @@
       },
       "id": 10,
       "gridPos": {
-        "x": 8,
+        "x": 9,
         "y": 9,
-        "w": 5,
+        "w": 6,
         "h": 4
       }
     },
@@ -1005,78 +1000,9 @@
       },
       "id": 11,
       "gridPos": {
-        "x": 13,
+        "x": 15,
         "y": 9,
-        "w": 6,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Tests with action changes (click to list them)",
-      "description": "Tests where at least one action has a different status than in the previous run of the same test on this platform (actions matched by step and action position).",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_KITCHEN}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT count(*) FILTER (WHERE d.actions_changed > 0) AS \"tests with action changes\"\nFROM test t LEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE t.campaign_id = $campaign"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "transparent",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1
-              }
-            ]
-          },
-          "links": [
-            {
-              "title": "Show only the tests with action changes",
-              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-change=changed"
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/.*/"
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center"
-      },
-      "id": 12,
-      "gridPos": {
-        "x": 19,
-        "y": 9,
-        "w": 5,
+        "w": 9,
         "h": 4
       }
     },
@@ -1098,7 +1024,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT t.id, t.name, t.status::text AS status,\n       d.steps_regressed AS \"steps with regressions\", d.steps_fixed AS \"steps with fixes\"\nFROM test t\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)\n  AND CASE '$change' WHEN 'regression' THEN d.actions_regressed > 0\n                     WHEN 'fix'        THEN d.actions_fixed > 0\n                     WHEN 'changed'    THEN d.actions_changed > 0\n                     ELSE true END\nORDER BY t.rank"
+          "rawSql": "SELECT t.id, t.name, t.status::text AS status,\n       (SELECT count(*) FROM step WHERE test_id = t.id) AS steps,\n       d.steps_regressed AS \"steps with regressions\", d.steps_fixed AS \"steps with fixes\",\n       extract(epoch FROM t.ended_at - t.started_at) / 60 AS duration\nFROM test t\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)\n  AND CASE '$change' WHEN 'regression' THEN d.actions_regressed > 0\n                     WHEN 'fix'        THEN d.actions_fixed > 0\n                     ELSE true END\nORDER BY t.rank"
         }
       ],
       "fieldConfig": {
@@ -1186,6 +1112,42 @@
               "options": "status"
             },
             "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "steps"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "duration"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "m"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
               {
                 "id": "custom.width",
                 "value": 100
@@ -1294,7 +1256,7 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 13,
+      "id": 12,
       "gridPos": {
         "x": 0,
         "y": 13,
