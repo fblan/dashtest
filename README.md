@@ -80,8 +80,9 @@ default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
    regressions and with fixes (click a number to list only those tests). Regression = at least one action passed
    in the compared campaign and does not pass now (skipped and failed both count as not passing); fix = the
    reverse.
-2. **Trends over time** – pass rate, results per campaign, pass rate per test and version, durations; release annotations.
-3. **Regressions** – regressions/fixes per version, status history of each test, version-to-version comparison, flaky tests.
+2. **Trends over time** – one column per platform: tests per campaign over time (total, success, skipped, failed),
+   and under it the tests with regressions / with fixes compared with the previous campaign on the platform;
+   release annotations.
 4. **Test details** – one test run: header and versions, then **Compare with** (default: previous run of the test
    on the platform, or any other run of the test there; opening a test from the overview keeps the overview's choice),
    the number of actions with regressions / fixes, the steps (description, expected, actual, status, number of
@@ -107,7 +108,7 @@ them into a Grafana 12.4.14 that only had a PostgreSQL data source.
 Prerequisites on the target: a PostgreSQL data source pointing at a database that contains the
 tables **and the views** from `db/init/01_schema.sql` + `02_functions_views.sql`.
 
-For each file (01 → 05):
+For each file (01, 02, 04, 05):
 1. Open the file, select all, copy.
 2. Grafana → Dashboards → New → Import → paste into the text box → **Load**.
 3. In `DS_KITCHEN`, pick your PostgreSQL data source → **Import**.

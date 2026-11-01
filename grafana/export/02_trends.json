@@ -62,30 +62,6 @@
           ]
         },
         "options": []
-      },
-      {
-        "type": "query",
-        "name": "tests",
-        "label": "Tests",
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "${DS_KITCHEN}"
-        },
-        "query": "SELECT DISTINCT name FROM test ORDER BY 1",
-        "definition": "SELECT DISTINCT name FROM test ORDER BY 1",
-        "refresh": 1,
-        "multi": true,
-        "includeAll": true,
-        "sort": 0,
-        "current": {
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        },
-        "options": []
       }
     ]
   },
@@ -160,109 +136,8 @@
   "panels": [
     {
       "type": "timeseries",
-      "title": "Pass rate per campaign, per platform",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_KITCHEN}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "time_series",
-          "rawSql": "SELECT c.started_at AS time, c.platform AS metric,\n       round(100.0 * count(*) FILTER (WHERE t.status = 'success') / count(*), 1) AS value\nFROM campaign c JOIN test t ON t.campaign_id = c.id\nWHERE $__timeFilter(c.started_at) AND t.name IN ($tests) AND c.platform IN ($platform)\nGROUP BY c.id ORDER BY 1"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "showPoints": "always",
-            "pointSize": 7,
-            "fillOpacity": 0,
-            "spanNulls": true,
-            "thresholdsStyle": {
-              "mode": "line+area"
-            }
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "transparent",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 90
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "IN"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "purple"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "OUT"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#2f9e8f"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "id": 1,
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 24,
-        "h": 8
-      }
-    },
-    {
-      "type": "barchart",
-      "title": "Test results per campaign",
-      "description": "",
+      "title": "Test results per campaign — $platform",
+      "description": "Number of tests of each campaign on the platform, by status.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "${DS_KITCHEN}"
@@ -277,17 +152,49 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT c.platform || ' ' || c.kms_version || ' ' || to_char(c.started_at, 'MM-DD') AS campaign,\n       count(*) FILTER (WHERE t.status = 'success') AS success,\n       count(*) FILTER (WHERE t.status = 'skipped') AS skipped,\n       count(*) FILTER (WHERE t.status = 'failed') AS failed\nFROM campaign c JOIN test t ON t.campaign_id = c.id\nWHERE $__timeFilter(c.started_at) AND t.name IN ($tests) AND c.platform IN ($platform)\nGROUP BY c.id ORDER BY c.started_at"
+          "rawSql": "SELECT started_at AS time, n_tests AS total, n_success AS success, n_skipped AS skipped,\n       n_failed AS failed\nFROM v_campaign_summary\nWHERE $__timeFilter(started_at) AND platform IN (${platform:sqlstring})\nORDER BY 1"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "min": 0,
           "custom": {
-            "fillOpacity": 85,
-            "lineWidth": 0
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "always",
+            "pointSize": 8,
+            "fillOpacity": 0,
+            "spanNulls": true
           }
         },
         "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              }
+            ]
+          },
           {
             "matcher": {
               "id": "byName",
@@ -336,31 +243,31 @@
         ]
       },
       "options": {
-        "xField": "campaign",
-        "stacking": "normal",
-        "orientation": "vertical",
-        "xTickLabelRotation": -60,
-        "xTickLabelSpacing": 0,
-        "showValue": "never",
-        "barWidth": 0.8,
         "legend": {
           "showLegend": true,
           "displayMode": "list",
           "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
         }
       },
-      "id": 2,
+      "repeat": "platform",
+      "repeatDirection": "h",
+      "maxPerRow": 2,
+      "id": 1,
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 0,
         "w": 24,
-        "h": 11
+        "h": 10
       }
     },
     {
-      "type": "table",
-      "title": "Pass rate per test, platform and KMS version",
-      "description": "Share of successful runs of each test on each KMS version, per platform.",
+      "type": "timeseries",
+      "title": "Tests with regressions / fixes per campaign — $platform",
+      "description": "Compared with the previous campaign on the platform, action by action (skipped and failed count as not passing). With regressions: at least one action passed before and does not pass now. With fixes: at least one action did not pass before and passes now.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "${DS_KITCHEN}"
@@ -375,135 +282,45 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT platform || ' · ' || name AS test, kms_version AS \"KMS\",\n       round(100.0 * count(*) FILTER (WHERE status = 'success') / count(*)) AS pass_rate\nFROM v_test_result\nWHERE $__timeFilter(campaign_started_at) AND name IN ($tests) AND platform IN ($platform)\nGROUP BY platform, name, kms_version, kms_version_order\nORDER BY kms_version_order, platform, name"
+          "rawSql": "SELECT c.started_at AS time, count(*) AS total,\n       count(*) FILTER (WHERE d.actions_regressed > 0) AS \"with regressions\",\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS \"with fixes\"\nFROM campaign c\nJOIN test t ON t.campaign_id = c.id\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE $__timeFilter(c.started_at) AND c.platform IN (${platform:sqlstring})\nGROUP BY c.id ORDER BY 1"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "align": "center",
-            "cellOptions": {
-              "type": "color-background"
-            },
-            "filterable": false,
-            "minWidth": 60
-          },
-          "unit": "percent",
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 50
-              },
-              {
-                "color": "green",
-                "value": 100
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "test\\KMS"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "auto"
-                }
-              },
-              {
-                "id": "custom.width",
-                "value": 260
-              },
-              {
-                "id": "custom.align",
-                "value": "left"
-              },
-              {
-                "id": "unit",
-                "value": "string"
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm"
-      },
-      "transformations": [
-        {
-          "id": "groupingToMatrix",
-          "options": {
-            "columnField": "KMS",
-            "rowField": "test",
-            "valueField": "pass_rate",
-            "emptyValue": "null"
-          }
-        }
-      ],
-      "id": 3,
-      "gridPos": {
-        "x": 0,
-        "y": 19,
-        "w": 24,
-        "h": 24
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Campaign duration",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_KITCHEN}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "time_series",
-          "rawSql": "SELECT started_at AS time, platform AS metric, duration_s / 60.0 AS value\nFROM v_campaign_summary WHERE $__timeFilter(started_at) AND platform IN ($platform) ORDER BY 1"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "m",
+          "unit": "none",
+          "decimals": 0,
+          "min": 0,
           "custom": {
             "drawStyle": "line",
+            "lineWidth": 2,
             "showPoints": "always",
-            "pointSize": 6
+            "pointSize": 8,
+            "fillOpacity": 0,
+            "spanNulls": true
           }
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "IN"
+              "options": "total"
             },
             "properties": [
               {
                 "id": "color",
                 "value": {
                   "mode": "fixed",
-                  "fixedColor": "purple"
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
                 }
               }
             ]
@@ -511,14 +328,29 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "OUT"
+              "options": "with regressions"
             },
             "properties": [
               {
                 "id": "color",
                 "value": {
                   "mode": "fixed",
-                  "fixedColor": "#2f9e8f"
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "with fixes"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
                 }
               }
             ]
@@ -528,69 +360,22 @@
       "options": {
         "legend": {
           "showLegend": true,
+          "displayMode": "list",
           "placement": "bottom"
-        }
-      },
-      "id": 4,
-      "gridPos": {
-        "x": 0,
-        "y": 43,
-        "w": 12,
-        "h": 10
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Test duration",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_KITCHEN}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "time_series",
-          "rawSql": "SELECT campaign_started_at AS time, platform || ' · ' || name AS metric, duration_s / 60.0 AS value\nFROM v_test_result WHERE $__timeFilter(campaign_started_at) AND name IN ($tests) AND platform IN ($platform) ORDER BY 1"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "m",
-          "custom": {
-            "drawStyle": "line",
-            "showPoints": "always",
-            "pointSize": 4
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "table",
-          "placement": "right",
-          "calcs": [
-            "mean",
-            "max"
-          ]
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "desc"
+          "sort": "none"
         }
       },
-      "id": 5,
+      "repeat": "platform",
+      "repeatDirection": "h",
+      "maxPerRow": 2,
+      "id": 2,
       "gridPos": {
-        "x": 12,
-        "y": 43,
-        "w": 12,
+        "x": 0,
+        "y": 10,
+        "w": 24,
         "h": 10
       }
     }
