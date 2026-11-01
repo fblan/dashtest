@@ -69,8 +69,4 @@ CREATE TABLE action (
 );
 CREATE INDEX action_step_idx ON action (step_id);
 
--- Read-only role for Grafana
-CREATE ROLE grafana_ro LOGIN PASSWORD 'grafana_ro';
-GRANT CONNECT ON DATABASE kitchen TO grafana_ro;
-GRANT USAGE ON SCHEMA public TO grafana_ro;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO grafana_ro;
+-- Read-only role for Grafana: created by 00_grafana_role.sh (password from GRAFANA_RO_PASSWORD)

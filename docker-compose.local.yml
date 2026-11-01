@@ -1,0 +1,8 @@
+# Local development only: publish Grafana and Postgres on localhost.
+services:
+  postgres:
+    ports:
+      - "${PG_PORT:-5432}:5432"
+  grafana:
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"

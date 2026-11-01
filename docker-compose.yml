@@ -1,37 +1,42 @@
+# Production / Dokploy: no published ports. Grafana is reached through the Dokploy domain (port 3000),
+# Postgres only from Grafana inside the compose network.
+# Local use adds the ports with docker-compose.local.yml (see COMPOSE_FILE in .env.example).
 services:
   postgres:
-    image: postgres:17
+    build: ./db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: kitchen
-      POSTGRES_USER: ${PG_USER}
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
-    ports:
-      - "${PG_PORT:-5432}:5432"
+      POSTGRES_USER: ${PG_USER:-kitchen}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?set PG_PASSWORD}
+      GRAFANA_RO_PASSWORD: ${GRAFANA_RO_PASSWORD:?set GRAFANA_RO_PASSWORD}
     volumes:
-      - ./db/init:/docker-entrypoint-initdb.d:ro
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d kitchen"]
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-kitchen} -d kitchen"]
       interval: 5s
       retries: 20
+    networks: [default]
 
   grafana:
-    image: grafana/grafana:12.4.14
+    build: ./grafana
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD}
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: ${GRAFANA_ANONYMOUS_ROLE:-Viewer}
-      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/01_campaign_overview.json
-    ports:
-      - "${GRAFANA_PORT:-3000}:3000"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3000}
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/dashboards/01_campaign_overview.json
+      GRAFANA_RO_PASSWORD: ${GRAFANA_RO_PASSWORD:?set GRAFANA_RO_PASSWORD}
+    expose:
+      - "3000"
     volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafanadata:/var/lib/grafana
+    networks: [default]
 
 volumes:
   pgdata:

@@ -12,4 +12,4 @@ datasources:
       postgresVersion: 1500
       timescaledb: false
     secureJsonData:
-      password: grafana_ro
+      password: ${GRAFANA_RO_PASSWORD}

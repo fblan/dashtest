@@ -7,14 +7,14 @@ dashboards:  ## regenerate Grafana dashboard JSON
 	python3 grafana/build_dashboards.py
 
 up:
-	docker compose up -d
+	docker compose up -d --build
 
 down:
 	docker compose down
 
 reset: seed dashboards  ## wipe volumes and reload everything from scratch
 	docker compose down -v
-	docker compose up -d
+	docker compose up -d --build
 
 psql:
 	docker compose exec postgres psql -U kitchen kitchen
