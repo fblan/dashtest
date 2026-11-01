@@ -710,7 +710,7 @@
     },
     {
       "type": "table",
-      "title": "Steps",
+      "title": "Steps (click a step to open it)",
       "description": "actions with regressions / fixes: actions of the step that passed in the compared run and do not pass now / did not pass and pass now. Empty = no compared run.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -726,7 +726,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT s.position AS \"#\", s.description, s.expected_result AS expected, s.actual_result AS actual,\n       s.status::text AS status, d.actions,\n       CASE WHEN b.id IS NOT NULL THEN d.actions_regressed END AS \"actions with regressions\",\n       CASE WHEN b.id IS NOT NULL THEN d.actions_fixed END AS \"actions with fixes\"\nFROM (SELECT coalesce(nullif($compare, 0), (SELECT prev_test_id FROM v_test_result WHERE test_id = $test)) AS id) b\nCROSS JOIN step_diff($test, b.id) d\nJOIN step s ON s.id = d.step_id\nORDER BY s.position"
+          "rawSql": "SELECT s.id AS step_id,\n       CASE WHEN $compare = 0 THEN 0\n            ELSE coalesce((SELECT id FROM step WHERE test_id = b.id AND position = s.position), 0) END AS compare_step,\n       s.position AS \"#\", s.description, s.expected_result AS expected, s.actual_result AS actual,\n       s.status::text AS status, d.actions,\n       CASE WHEN b.id IS NOT NULL THEN d.actions_regressed END AS \"actions with regressions\",\n       CASE WHEN b.id IS NOT NULL THEN d.actions_fixed END AS \"actions with fixes\"\nFROM (SELECT coalesce(nullif($compare, 0), (SELECT prev_test_id FROM v_test_result WHERE test_id = $test)) AS id) b\nCROSS JOIN step_diff($test, b.id) d\nJOIN step s ON s.id = d.step_id\nORDER BY s.position"
         }
       ],
       "fieldConfig": {
@@ -812,6 +812,35 @@
               {
                 "id": "custom.wrapText",
                 "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(step_id|compare_step)$"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(#|description)$"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open step details",
+                    "url": "/d/kitchen-step/step-details?var-test=${test}&var-step=${__data.fields.step_id}&var-compare=${__data.fields.compare_step}&${platform:queryparam}&${__url_time_range}"
+                  }
+                ]
               }
             ]
           },

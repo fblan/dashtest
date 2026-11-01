@@ -157,6 +157,14 @@ SELECT name, platform,
        count(*) AS runs
 FROM flips GROUP BY name, platform;
 
+-- Change of one action compared with the same action in a base run (skipped and failed = not passing):
+-- 'regression' = passed before and does not pass now, 'fixed' = the reverse, NULL otherwise.
+CREATE OR REPLACE FUNCTION status_change(cur exec_status, base exec_status) RETURNS text
+LANGUAGE sql IMMUTABLE AS $$
+    SELECT CASE WHEN base = 'success' AND cur <> 'success' THEN 'regression'
+                WHEN base <> 'success' AND cur = 'success' THEN 'fixed' END
+$$;
+
 -- Differences between a test run and a base run of the same test, step by step, action by action (actions
 -- matched by step and action position): number of actions, actions whose status changed, regressed
 -- (success -> skipped/failed) or were fixed (skipped/failed -> success). base_test NULL: no regression / fix.
@@ -166,8 +174,8 @@ RETURNS TABLE (step_id int, step_position int, actions bigint, actions_changed b
 LANGUAGE sql STABLE AS $$
 SELECT s.id, s.position, count(*),
        count(*) FILTER (WHERE a.status IS DISTINCT FROM pa.status),
-       count(*) FILTER (WHERE pa.status = 'success' AND a.status <> 'success'),
-       count(*) FILTER (WHERE pa.status <> 'success' AND a.status = 'success')
+       count(*) FILTER (WHERE status_change(a.status, pa.status) = 'regression'),
+       count(*) FILTER (WHERE status_change(a.status, pa.status) = 'fixed')
 FROM step s
 JOIN action a ON a.step_id = s.id
 LEFT JOIN step ps ON ps.test_id = base_test AND ps.position = s.position
