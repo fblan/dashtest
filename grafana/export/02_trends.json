@@ -51,14 +51,16 @@
         "definition": "SELECT code || ' — ' || name AS __text, code AS __value FROM platform ORDER BY code",
         "refresh": 1,
         "multi": true,
-        "includeAll": true,
+        "includeAll": false,
         "sort": 0,
         "current": {
           "text": [
-            "All"
+            "IN — InHouse kitchen",
+            "OUT — Outdoor kitchen"
           ],
           "value": [
-            "$__all"
+            "IN",
+            "OUT"
           ]
         },
         "options": []
