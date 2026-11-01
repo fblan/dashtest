@@ -651,7 +651,7 @@
                 "value": [
                   {
                     "title": "Open test details",
-                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.id}&${__url_time_range}"
+                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.id}&var-compare=0&${__url_time_range}"
                   }
                 ]
               }
@@ -798,7 +798,7 @@
                 "value": [
                   {
                     "title": "Open test details",
-                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.id}&${__url_time_range}"
+                    "url": "/d/kitchen-test/test-details?var-test=${__data.fields.id}&var-compare=0&${__url_time_range}"
                   }
                 ]
               }

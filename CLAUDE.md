@@ -59,8 +59,11 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   User's definitions (action level, not test status): regression = an action passed before and does not pass
   now (skipped/failed = not passing), fix = the reverse; tiles count tests. Table columns (user's choice):
   name, status, steps, steps with regressions, steps with fixes, duration.
-- `kitchen-trends`, `kitchen-regressions`, `kitchen-test` (Test details, history on the same platform;
-  steps / actions tables show the previous-run status where it changed, same position matching as `v_test_diff`).
+- `kitchen-test` Test details: vars platform, test, `compare` (0 = previous run of the test on the platform, else
+  a test id of another run of the same test; resolved by `BASE_TEST`). Header rows, comparison row, steps table
+  (description, expected, actual, status, actions, actions with regressions / fixes from `step_diff()`), history.
+  `test_link(..., compare=)` passes the compared run (the overview passes the test of its compared campaign).
+- `kitchen-trends`, `kitchen-regressions`.
 - Anonymous Viewer access must stay on (dashboards visible without login).
 
 ## Grafana gotchas (Grafana 12.4.14, pinned — target is 12.x)
