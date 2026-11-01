@@ -712,17 +712,19 @@ WHERE d.step_id = $step""" % BASE_STEP,
     L.row((compared, 14), (totals, 10), h=4)
     L.row((table(
         "Actions",
-        """SELECT a.position AS "#", a.description, a.expected_result AS expected, a.actual_result AS actual,
-       a.status::text AS status, pa.status::text AS "compared status",
-       status_change(a.status, pa.status) AS change, a.duration_ms / 1000.0 AS "duration (s)"
+        """SELECT a.position AS "#", a.description,
+       a.status::text AS status, a.expected_result AS expected, a.actual_result AS actual,
+       pa.status::text AS "compared status", status_change(a.status, pa.status) AS evolution,
+       pa.expected_result AS "compared expected", pa.actual_result AS "compared actual"
 FROM action a
 LEFT JOIN action pa ON pa.step_id = %s AND pa.position = a.position
 WHERE a.step_id = $step ORDER BY a.position""" % BASE_STEP,
-        desc="compared status: status of the same action in the compared run. change: regression = passed in the "
-             "compared run and does not pass now (skipped / failed), fixed = the reverse.",
-        overrides=[color_cell("status"), color_cell("compared status"), color_cell("change", TRANSITION_MAPPING),
-                   width("#", 50), width("status", 90), width("compared status", 140), width("change", 115),
-                   width("duration (s)", 110), wrap("description", "expected", "actual")]), 24), h=14)
+        desc="Current run: status, expected, actual. Compared run (same action): status, evolution, expected, "
+             "actual. evolution: regression = passed in the compared run and does not pass now (skipped / failed), "
+             "fixed = the reverse.",
+        overrides=[color_cell("status"), color_cell("compared status"), color_cell("evolution", TRANSITION_MAPPING),
+                   width("#", 50), width("status", 90), width("compared status", 140), width("evolution", 115),
+                   wrap("description", "expected", "actual", "compared expected", "compared actual")]), 24), h=14)
     L.row((table(
         "History of this step on the same platform (click a date to open that run)",
         """SELECT r.test_id, s.id AS step_id, to_char(r.campaign_started_at, 'YYYY-MM-DD HH24:MI') AS date,

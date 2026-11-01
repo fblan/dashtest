@@ -815,7 +815,7 @@
     {
       "type": "table",
       "title": "Actions",
-      "description": "compared status: status of the same action in the compared run. change: regression = passed in the compared run and does not pass now (skipped / failed), fixed = the reverse.",
+      "description": "Current run: status, expected, actual. Compared run (same action): status, evolution, expected, actual. evolution: regression = passed in the compared run and does not pass now (skipped / failed), fixed = the reverse.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "kitchen-pg"
@@ -830,7 +830,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT a.position AS \"#\", a.description, a.expected_result AS expected, a.actual_result AS actual,\n       a.status::text AS status, pa.status::text AS \"compared status\",\n       status_change(a.status, pa.status) AS change, a.duration_ms / 1000.0 AS \"duration (s)\"\nFROM action a\nLEFT JOIN action pa ON pa.step_id = coalesce(nullif($compare, 0), (SELECT ps.id FROM step s JOIN v_test_result r ON r.test_id = s.test_id\n    JOIN step ps ON ps.test_id = r.prev_test_id AND ps.position = s.position WHERE s.id = $step)) AND pa.position = a.position\nWHERE a.step_id = $step ORDER BY a.position"
+          "rawSql": "SELECT a.position AS \"#\", a.description,\n       a.status::text AS status, a.expected_result AS expected, a.actual_result AS actual,\n       pa.status::text AS \"compared status\", status_change(a.status, pa.status) AS evolution,\n       pa.expected_result AS \"compared expected\", pa.actual_result AS \"compared actual\"\nFROM action a\nLEFT JOIN action pa ON pa.step_id = coalesce(nullif($compare, 0), (SELECT ps.id FROM step s JOIN v_test_result r ON r.test_id = s.test_id\n    JOIN step ps ON ps.test_id = r.prev_test_id AND ps.position = s.position WHERE s.id = $step)) AND pa.position = a.position\nWHERE a.step_id = $step ORDER BY a.position"
         }
       ],
       "fieldConfig": {
@@ -925,7 +925,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "change"
+              "options": "evolution"
             },
             "properties": [
               {
@@ -1015,7 +1015,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "change"
+              "options": "evolution"
             },
             "properties": [
               {
@@ -1026,20 +1026,8 @@
           },
           {
             "matcher": {
-              "id": "byName",
-              "options": "duration (s)"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 110
-              }
-            ]
-          },
-          {
-            "matcher": {
               "id": "byRegexp",
-              "options": "^(description|expected|actual)$"
+              "options": "^(description|expected|actual|compared expected|compared actual)$"
             },
             "properties": [
               {
