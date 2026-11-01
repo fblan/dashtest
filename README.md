@@ -83,7 +83,8 @@ default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
 2. **Trends over time** – one column per platform: tests per campaign over time (total, success, skipped, failed),
    under it the tests with regressions / with fixes compared with the previous campaign on the platform,
    then the campaign duration.
-   Hovering a campaign shows its numbers, its 5 versions and the components changed since the previous campaign.
+   Hovering a campaign shows its numbers, its 5 versions and the components changed since the previous campaign;
+   clicking it offers to open it in the Campaign overview.
 4. **Test details** – one test run: header and versions, then **Compare with** (default: previous run of the test
    on the platform, or any other run of the test there; opening a test from the overview keeps the overview's choice),
    the number of actions with regressions / fixes, the steps (description, expected, actual, status, number of

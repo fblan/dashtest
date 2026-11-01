@@ -74,7 +74,8 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   Versions + changed components in the tooltip only: string fields → enum (convertFieldType needs
   `enumConfig.text`, taken from generator/scenarios.py releases: rebuild dashboards when they change), drawn invisible
   (lineWidth 0, no points, axis hidden, transparent) and hidden from legend. hideFrom.viz drops them from the tooltip.
-  No release annotations (removed on request).
+  No release annotations (removed on request). Click on a point: data link to the overview with
+  `${__data.fields.campaign_id}` (hidden field).
 - The Regressions dashboard (`kitchen-regressions`, 03) was removed on request (too complex); don't bring it back.
 - Anonymous Viewer access must stay on (dashboards visible without login).
 

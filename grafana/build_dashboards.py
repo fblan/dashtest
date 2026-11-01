@@ -346,7 +346,7 @@ def trends():
                    + [", ".join(c) for n in range(1, 6) for c in combinations(components, n)],
     }
     # "KMS 2.4.1 → 2.5.0, KES 3.2.0 → 3.2.1" -> "KMS, KES"
-    versions = """c.kms_version AS "KMS", c.kes_version AS "KES", c.ktrs_version AS "KTRS",
+    versions = """c.id AS campaign_id, c.kms_version AS "KMS", c.kes_version AS "KES", c.ktrs_version AS "KTRS",
        c.gateway_version AS "Gateway", c.testcampaign_version AS "TestCampaign",
        regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed"""
     version_fields = list(enum_values)
@@ -356,8 +356,16 @@ def trends():
                             ("custom.axisPlacement", "hidden"), ("color", {"mode": "fixed", "fixedColor": "#8e8e8e"}),
                             regex=True)
 
+    # clicking a campaign offers to open it in the overview (campaign_id: hidden field of the clicked row)
+    open_campaign = [{"title": "Open campaign overview",
+                      "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}"
+                             "&var-platform=${platform}&${__url_time_range}"}]
+    hidden = override("campaign_id", ("custom.hideFrom", {"viz": True, "legend": True, "tooltip": True}))
+
     def per_platform(p):
         p.update({"repeat": "platform", "repeatDirection": "h", "maxPerRow": 2})
+        p["fieldConfig"]["defaults"]["links"] = open_campaign
+        p["fieldConfig"]["overrides"].append(hidden)
         p["transformations"] = [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [
             {"targetField": f, "destinationType": "enum", "enumConfig": {"text": values}}
             for f, values in enum_values.items()]}}]
