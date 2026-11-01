@@ -513,6 +513,12 @@ ORDER BY 2 DESC, r.rank""",
 
 
 # ---------------------------------------------------------------- 04 Test details
+# Previous run of the test on the same platform; steps / actions are matched by position (as in v_test_diff)
+PREV_TEST = "SELECT prev_test_id FROM v_test_result WHERE test_id = $test"
+PREV_RUN_DESC = ("previous run = status in the previous run of this test on the same platform, shown only when it "
+                 "differs (matched by step / action position). Empty everywhere = no change, or first run.")
+
+
 def test_details():
     L = Layout()
     head = """SELECT t.name, t.status::text AS status, c.platform || ' · ' || p.name AS platform,
@@ -542,20 +548,29 @@ WHERE t.id = $test"""
     L.row((versions_stat(in_campaign), 15), (changes_stat(in_campaign), 9), h=4)
     L.row((table(
         "Steps",
-        """SELECT position AS "#", description, expected_result AS expected, actual_result AS actual,
-       status::text AS status
-FROM step WHERE test_id = $test ORDER BY position""",
-        overrides=[color_cell("status"), width("#", 50), width("status", 90),
-                   wrap("description", "expected", "actual")]), 24), h=12)
+        """SELECT s.position AS "#", s.description, s.expected_result AS expected, s.actual_result AS actual,
+       s.status::text AS status,
+       CASE WHEN ps.status IS DISTINCT FROM s.status THEN ps.status::text END AS "previous run"
+FROM step s
+LEFT JOIN step ps ON ps.test_id = (%s) AND ps.position = s.position
+WHERE s.test_id = $test ORDER BY s.position""" % PREV_TEST,
+        desc=PREV_RUN_DESC,
+        overrides=[color_cell("status"), color_cell("previous run"), width("#", 50), width("status", 90),
+                   width("previous run", 110), wrap("description", "expected", "actual")]), 24), h=12)
     L.row((table(
         "Actions",
         """SELECT s.position || '.' || a.position AS "#", split_part(s.description, E'\\n', 1) AS step, a.description AS action,
        a.expected_result AS expected, a.actual_result AS actual, a.status::text AS status,
+       CASE WHEN pa.status IS DISTINCT FROM a.status THEN pa.status::text END AS "previous run",
        a.duration_ms / 1000.0 AS "duration (s)"
 FROM action a JOIN step s ON s.id = a.step_id
-WHERE s.test_id = $test ORDER BY s.position, a.position""",
-        overrides=[color_cell("status"), width("#", 50), width("step", 200), width("status", 90),
-                   width("duration (s)", 120), wrap("step", "action", "expected", "actual")]), 24), h=20)
+LEFT JOIN step ps ON ps.test_id = (%s) AND ps.position = s.position
+LEFT JOIN action pa ON pa.step_id = ps.id AND pa.position = a.position
+WHERE s.test_id = $test ORDER BY s.position, a.position""" % PREV_TEST,
+        desc=PREV_RUN_DESC,
+        overrides=[color_cell("status"), color_cell("previous run"), width("#", 50), width("step", 200),
+                   width("status", 90), width("previous run", 110), width("duration (s)", 120),
+                   wrap("step", "action", "expected", "actual")]), 24), h=20)
     L.row((table(
         "History of this test on the same platform (click a date to open that run)",
         """SELECT r.test_id AS id, to_char(r.campaign_started_at, 'YYYY-MM-DD HH24:MI') AS date,

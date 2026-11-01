@@ -71,6 +71,8 @@ default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
 2. **Trends over time** – pass rate, results per campaign, pass rate per test and version, durations; release annotations.
 3. **Regressions** – regressions/fixes per version, status history of each test, version-to-version comparison, flaky tests.
 4. **Test details** – one test run: steps, actions (expected vs actual) and the history of that test across campaigns.
+   The "previous run" column shows the status of each step / action in the previous run on the platform
+   when it changed.
 
 Postgres (local only): `localhost:5432`, db `kitchen`, user `kitchen`/`kitchen` (Grafana uses the read-only role `grafana_ro`, password `GRAFANA_RO_PASSWORD`).
 

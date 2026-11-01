@@ -52,7 +52,8 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   Status tiles and "Tests with action changes" tile filter the tests table; each click sets one filter and
   clears the other (combined filters confused the user). Comparison row vs previous campaign on the platform
   (`v_campaign.prev_campaign_id`, `v_test_diff`).
-- `kitchen-trends`, `kitchen-regressions`, `kitchen-test` (Test details, history on the same platform).
+- `kitchen-trends`, `kitchen-regressions`, `kitchen-test` (Test details, history on the same platform;
+  steps / actions tables show the previous-run status where it changed, same position matching as `v_test_diff`).
 - Anonymous Viewer access must stay on (dashboards visible without login).
 
 ## Grafana gotchas (Grafana 12.4.14, pinned — target is 12.x)
