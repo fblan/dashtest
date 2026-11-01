@@ -113,6 +113,73 @@
         "sort": 0,
         "current": {},
         "options": []
+      },
+      {
+        "type": "custom",
+        "name": "action_status",
+        "label": "Status",
+        "hide": 2,
+        "query": "success,skipped,failed",
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "success",
+            "value": "success",
+            "selected": false
+          },
+          {
+            "text": "skipped",
+            "value": "skipped",
+            "selected": false
+          },
+          {
+            "text": "failed",
+            "value": "failed",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "type": "custom",
+        "name": "change",
+        "label": "Change vs compared run",
+        "hide": 2,
+        "query": "all actions : all, with regressions : regression, with fixes : fix",
+        "current": {
+          "text": "all actions",
+          "value": "all"
+        },
+        "options": [
+          {
+            "text": "all actions",
+            "value": "all",
+            "selected": true
+          },
+          {
+            "text": "with regressions",
+            "value": "regression",
+            "selected": false
+          },
+          {
+            "text": "with fixes",
+            "value": "fix",
+            "selected": false
+          }
+        ]
       }
     ]
   },
@@ -654,7 +721,150 @@
       "gridPos": {
         "x": 0,
         "y": 8,
-        "w": 24,
+        "w": 15,
+        "h": 6
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Actions (click to filter the list)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_KITCHEN}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_KITCHEN}"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT count(*) AS all, count(*) FILTER (WHERE status = 'success') AS success,\n       count(*) FILTER (WHERE status = 'skipped') AS skipped, count(*) FILTER (WHERE status = 'failed') AS failed\nFROM action WHERE step_id = $step"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "all"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show all actions",
+                    "url": "/d/kitchen-step/step-details?var-test=${test}&var-step=${step}&var-compare=${compare}&${platform:queryparam}&${__url_time_range}&var-action_status=%24__all&var-change=all"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "success"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show success actions",
+                    "url": "/d/kitchen-step/step-details?var-test=${test}&var-step=${step}&var-compare=${compare}&${platform:queryparam}&${__url_time_range}&var-action_status=success&var-change=all"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "skipped"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show skipped actions",
+                    "url": "/d/kitchen-step/step-details?var-test=${test}&var-step=${step}&var-compare=${compare}&${platform:queryparam}&${__url_time_range}&var-action_status=skipped&var-change=all"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show failed actions",
+                    "url": "/d/kitchen-step/step-details?var-test=${test}&var-step=${step}&var-compare=${compare}&${platform:queryparam}&${__url_time_range}&var-action_status=failed&var-change=all"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center"
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 15,
+        "y": 8,
+        "w": 9,
         "h": 6
       }
     },
@@ -663,7 +873,7 @@
       "title": "Comparison with: ${compare:text}",
       "collapsed": false,
       "panels": [],
-      "id": 10,
+      "id": 11,
       "gridPos": {
         "x": 0,
         "y": 14,
@@ -697,7 +907,7 @@
           "links": [
             {
               "title": "Open the compared step",
-              "url": "/d/kitchen-step/step-details?var-test=${__data.fields.base_test}&var-step=${__data.fields.base_step}&var-compare=0&${platform:queryparam}&${__url_time_range}"
+              "url": "/d/kitchen-step/step-details?var-test=${__data.fields.base_test}&var-step=${__data.fields.base_step}&var-compare=0&${platform:queryparam}&${__url_time_range}&var-action_status=%24__all&var-change=all"
             }
           ]
         },
@@ -719,7 +929,7 @@
           "valueSize": 20
         }
       },
-      "id": 11,
+      "id": 12,
       "gridPos": {
         "x": 0,
         "y": 15,
@@ -729,7 +939,7 @@
     },
     {
       "type": "stat",
-      "title": "Actions with regressions / fixes",
+      "title": "Actions with regressions / fixes (click to list them)",
       "description": "Compared action by action with the same step in the compared run (matched by action position); skipped and failed count as not passing. Regression: the action passed before and does not pass now. Fix: it did not pass before and passes now.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -780,6 +990,15 @@
                     }
                   ]
                 }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show only the actions with regressions",
+                    "url": "/d/kitchen-step/step-details?var-test=${test}&var-step=${step}&var-compare=${compare}&${platform:queryparam}&${__url_time_range}&var-action_status=%24__all&var-change=regression"
+                  }
+                ]
               }
             ]
           },
@@ -810,6 +1029,15 @@
                     }
                   ]
                 }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show only the actions with fixes",
+                    "url": "/d/kitchen-step/step-details?var-test=${test}&var-step=${step}&var-compare=${compare}&${platform:queryparam}&${__url_time_range}&var-action_status=%24__all&var-change=fix"
+                  }
+                ]
               }
             ]
           }
@@ -828,7 +1056,7 @@
         "textMode": "value_and_name",
         "justifyMode": "center"
       },
-      "id": 12,
+      "id": 13,
       "gridPos": {
         "x": 14,
         "y": 15,
@@ -838,7 +1066,7 @@
     },
     {
       "type": "table",
-      "title": "Actions",
+      "title": "Actions: ${action_status:text}, ${change:text}",
       "description": "evolution, then current run: status, expected, actual, then compared run (same action): status, expected, actual. evolution: regression = passed in the compared run and does not pass now (skipped / failed), fixed = the reverse.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -854,7 +1082,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT a.position AS \"#\", a.description, status_change(a.status, pa.status) AS evolution,\n       a.status::text AS status, a.expected_result AS expected, a.actual_result AS actual,\n       pa.status::text AS \"compared status\", pa.expected_result AS \"compared expected\", pa.actual_result AS \"compared actual\"\nFROM action a\nLEFT JOIN action pa ON pa.step_id = coalesce(nullif($compare, 0), (SELECT ps.id FROM step s JOIN v_test_result r ON r.test_id = s.test_id\n    JOIN step ps ON ps.test_id = r.prev_test_id AND ps.position = s.position WHERE s.id = $step)) AND pa.position = a.position\nWHERE a.step_id = $step ORDER BY a.position"
+          "rawSql": "SELECT a.position AS \"#\", a.description, status_change(a.status, pa.status) AS evolution,\n       a.status::text AS status, a.expected_result AS expected, a.actual_result AS actual,\n       pa.status::text AS \"compared status\", pa.expected_result AS \"compared expected\", pa.actual_result AS \"compared actual\"\nFROM action a\nLEFT JOIN action pa ON pa.step_id = coalesce(nullif($compare, 0), (SELECT ps.id FROM step s JOIN v_test_result r ON r.test_id = s.test_id\n    JOIN step ps ON ps.test_id = r.prev_test_id AND ps.position = s.position WHERE s.id = $step)) AND pa.position = a.position\nWHERE a.step_id = $step AND a.status::text IN ($action_status)\n  AND CASE '$change' WHEN 'regression' THEN status_change(a.status, pa.status) = 'regression'\n                     WHEN 'fix'        THEN status_change(a.status, pa.status) = 'fixed'\n                     ELSE true END\nORDER BY a.position"
         }
       ],
       "fieldConfig": {
@@ -1066,7 +1294,7 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 13,
+      "id": 14,
       "gridPos": {
         "x": 0,
         "y": 19,
@@ -1216,7 +1444,7 @@
                 "value": [
                   {
                     "title": "Open this step in that run",
-                    "url": "/d/kitchen-step/step-details?var-test=${__data.fields.test_id}&var-step=${__data.fields.step_id}&var-compare=0&${platform:queryparam}&${__url_time_range}"
+                    "url": "/d/kitchen-step/step-details?var-test=${__data.fields.test_id}&var-step=${__data.fields.step_id}&var-compare=0&${platform:queryparam}&${__url_time_range}&var-action_status=%24__all&var-change=all"
                   }
                 ]
               }
@@ -1228,7 +1456,7 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 14,
+      "id": 15,
       "gridPos": {
         "x": 0,
         "y": 33,

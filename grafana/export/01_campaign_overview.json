@@ -100,7 +100,7 @@
       {
         "type": "custom",
         "name": "test_status",
-        "label": "Test status",
+        "label": "Status",
         "hide": 2,
         "query": "success,skipped,failed",
         "multi": true,
@@ -139,7 +139,7 @@
       {
         "type": "custom",
         "name": "change",
-        "label": "Change vs previous run",
+        "label": "Change vs compared run",
         "hide": 2,
         "query": "all tests : all, with regressions : regression, with fixes : fix",
         "current": {

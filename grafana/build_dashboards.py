@@ -173,8 +173,6 @@ def dashboard(uid, title, layout, variables, time=("now-7M", "now"), annotations
 
 
 # ---------------------------------------------------------------- 01 Campaign overview
-# values of the hidden "change" variable of the overview: (value, text shown in the table title)
-CHANGE_FILTERS = [("all", "all tests"), ("regression", "with regressions"), ("fix", "with fixes")]
 OVERVIEW_URL = ("/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}"
                 "&${platform:queryparam}&${__url_time_range}")
 # campaign compared with: the one picked in "Compare with", or (0) the previous campaign on the platform
@@ -184,19 +182,43 @@ DIFF_JOIN = f"""LEFT JOIN test bt ON bt.campaign_id = {BASE} AND bt.name = t.nam
 LEFT JOIN LATERAL test_diff(t.id, bt.id) d ON true"""
 
 
-def status_filter(field, color, value):
-    """Tile of the "Tests" stat: fixed color, click = filter the tests list on that status.
-    Clears the regression / fix filter, so the list matches the number on the tile."""
+# Filters of a list (tests of the overview, actions of the step details), set by clicking tiles. Each click sets
+# one filter and clears the other: hidden variables <status_var> (multi, All) and "change" (all / regression / fix).
+def status_filter(field, color, value, url=OVERVIEW_URL, status_var="test_status", items="tests"):
+    """Tile of a status count stat: fixed color, click = filter the list on that status
+    and clear the regression / fix filter, so the list matches the number on the tile."""
     return override(field, ("color", {"mode": "fixed", "fixedColor": color}), ("links", [{
-        "title": f"Show {field} tests",
-        "url": OVERVIEW_URL + "&var-test_status=" + value + "&var-change=all"}]))
+        "title": f"Show {field} {items}",
+        "url": url + f"&var-{status_var}=" + value + "&var-change=all"}]))
 
 
-def change_filter(field, color, value, title):
-    """Comparison tile: colored when > 0, click = list only those tests (and clear the status filter)."""
+def status_filters(**kw):
+    """The all / success / skipped / failed tiles of a status count stat."""
+    return [status_filter("all", "blue", "%24__all", **kw), *[status_filter(st, c, st, **kw)
+                                                             for st, c in STATUS_COLORS.items()]]
+
+
+def change_filter(field, color, value, title, url=OVERVIEW_URL, status_var="test_status"):
+    """Comparison tile: colored when > 0, click = list only those items (and clear the status filter)."""
     return override(field, ("color", {"mode": "thresholds"}), ("thresholds", {"mode": "absolute", "steps": [
         {"color": "text", "value": None}, {"color": color, "value": 1}]}), ("links", [{
-            "title": title, "url": OVERVIEW_URL + "&var-test_status=%24__all&var-change=" + value}]))
+            "title": title, "url": url + f"&var-{status_var}=%24__all&var-change=" + value}]))
+
+
+def filter_vars(status_var, items):
+    """Hidden variables behind status_filter / change_filter; the tiles act as the filter buttons."""
+    changes = [("all", f"all {items}"), ("regression", "with regressions"), ("fix", "with fixes")]
+    return [
+        {"type": "custom", "name": status_var, "label": "Status", "hide": 2,
+         "query": "success,skipped,failed", "multi": True, "includeAll": True,
+         "current": {"text": ["All"], "value": ["$__all"]},
+         "options": [{"text": "All", "value": "$__all", "selected": True}]
+                    + [{"text": v, "value": v, "selected": False} for v in STATUS_COLORS]},
+        {"type": "custom", "name": "change", "label": "Change vs compared run", "hide": 2,
+         "query": ", ".join(f"{text} : {value}" for value, text in changes),
+         "current": {"text": changes[0][1], "value": changes[0][0]},
+         "options": [{"text": text, "value": value, "selected": value == "all"} for value, text in changes]},
+    ]
 
 
 def comparison_row():
@@ -262,8 +284,7 @@ def campaign_overview():
         (stat("Tests (click to filter the list)",
               "SELECT n_tests AS all, n_success AS success, n_skipped AS skipped, n_failed AS failed "
               "FROM v_campaign_summary WHERE campaign_id = $campaign",
-              overrides=[status_filter("all", "blue", "%24__all"),
-                         *[status_filter(st, c, st) for st, c in STATUS_COLORS.items()]]), 10),
+              overrides=status_filters()), 10),
         (stat("Duration", "SELECT duration_s AS duration FROM v_campaign_summary WHERE campaign_id = $campaign",
               defaults={"unit": "s"}, color_mode="none"), 3),
         h=4)
@@ -313,17 +334,7 @@ ORDER BY t.rank""" % DIFF_JOIN,
     SELECT 1, o.started_at, o.id, o.label || '  (' || o.status || ')'
     FROM v_campaign c JOIN v_campaign o ON o.platform = c.platform AND o.id <> c.id WHERE c.id = $campaign
 ) x ORDER BY ord, started_at DESC"""),
-        # set by clicking the "Tests" tiles; hidden because the tiles act as the filter buttons
-        {"type": "custom", "name": "test_status", "label": "Test status", "hide": 2,
-         "query": "success,skipped,failed", "multi": True, "includeAll": True,
-         "current": {"text": ["All"], "value": ["$__all"]},
-         "options": [{"text": "All", "value": "$__all", "selected": True}]
-                    + [{"text": v, "value": v, "selected": False} for v in STATUS_COLORS]},
-        # set by clicking the regressions / fixes tile; the "Tests" tiles reset it to all
-        {"type": "custom", "name": "change", "label": "Change vs previous run", "hide": 2,
-         "query": ", ".join(f"{text} : {value}" for value, text in CHANGE_FILTERS),
-         "current": {"text": CHANGE_FILTERS[0][1], "value": CHANGE_FILTERS[0][0]},
-         "options": [{"text": text, "value": value, "selected": value == "all"} for value, text in CHANGE_FILTERS]},
+        *filter_vars("test_status", "tests"),
     ]
     return dashboard("kitchen-overview", "Campaign overview", L, variables)
 
@@ -509,6 +520,10 @@ ORDER BY 2 DESC, r.rank""",
 # Step details link: test id, step id, compared step (0 = same step in the previous run of the test)
 STEP_URL = ("/d/kitchen-step/step-details?var-test=%s&var-step=%s&var-compare=%s"
             "&${platform:queryparam}&${__url_time_range}")
+# the current step, for the filter tiles of Step details (they add the filter variables)
+STEP_SELF = STEP_URL % ("${test}", "${step}", "${compare}")
+# links opening another step reset the filters
+STEP_URL += "&var-action_status=%%24__all&var-change=all"
 # test run compared with: the one picked in "Compare with", or (0) the previous run of the test on the platform
 BASE_TEST = "coalesce(nullif($compare, 0), (SELECT prev_test_id FROM v_test_result WHERE test_id = $test))"
 
@@ -677,7 +692,12 @@ WHERE s.id = $step"""
     L.row((table(
         "Step",
         """SELECT description, expected_result AS expected, actual_result AS actual FROM step WHERE id = $step""",
-        overrides=[wrap("description", "expected", "actual")]), 24), h=6)
+        overrides=[wrap("description", "expected", "actual")]), 15),
+        (stat("Actions (click to filter the list)",
+              """SELECT count(*) AS all, count(*) FILTER (WHERE status = 'success') AS success,
+       count(*) FILTER (WHERE status = 'skipped') AS skipped, count(*) FILTER (WHERE status = 'failed') AS failed
+FROM action WHERE step_id = $step""",
+              overrides=status_filters(url=STEP_SELF, status_var="action_status", items="actions")), 9), h=6)
 
     compared = stat(
         "Compared with (click to open it)",
@@ -693,15 +713,16 @@ LEFT JOIN v_campaign c ON c.id = pt.campaign_id""" % BASE_STEP,
         "title": "Open the compared step",
         "url": STEP_URL % ("${__data.fields.base_test}", "${__data.fields.base_step}", "0")}]
     totals = stat(
-        "Actions with regressions / fixes",
+        "Actions with regressions / fixes (click to list them)",
         """SELECT d.actions_regressed AS regressions, d.actions_fixed AS fixes
 FROM (SELECT %s AS id) b
 JOIN step bs ON bs.id = b.id
 CROSS JOIN step_diff((SELECT test_id FROM step WHERE id = $step), bs.test_id) d
 WHERE d.step_id = $step""" % BASE_STEP,
-        overrides=[override(field, ("color", {"mode": "thresholds"}), ("thresholds", {"mode": "absolute", "steps": [
-            {"color": "text", "value": None}, {"color": color, "value": 1}]}))
-            for field, color in (("regressions", "red"), ("fixes", "green"))],
+        overrides=[change_filter("regressions", "red", "regression", "Show only the actions with regressions",
+                                 url=STEP_SELF, status_var="action_status"),
+                   change_filter("fixes", "green", "fix", "Show only the actions with fixes",
+                                 url=STEP_SELF, status_var="action_status")],
         color_mode="value")
     totals["fieldConfig"]["defaults"]["noValue"] = "no compared run"
     totals["description"] = (
@@ -711,13 +732,17 @@ WHERE d.step_id = $step""" % BASE_STEP,
     L.row(({"type": "row", "title": "Comparison with: ${compare:text}", "collapsed": False, "panels": []}, 24), h=1)
     L.row((compared, 14), (totals, 10), h=4)
     L.row((table(
-        "Actions",
+        "Actions: ${action_status:text}, ${change:text}",
         """SELECT a.position AS "#", a.description, status_change(a.status, pa.status) AS evolution,
        a.status::text AS status, a.expected_result AS expected, a.actual_result AS actual,
        pa.status::text AS "compared status", pa.expected_result AS "compared expected", pa.actual_result AS "compared actual"
 FROM action a
 LEFT JOIN action pa ON pa.step_id = %s AND pa.position = a.position
-WHERE a.step_id = $step ORDER BY a.position""" % BASE_STEP,
+WHERE a.step_id = $step AND a.status::text IN ($action_status)
+  AND CASE '$change' WHEN 'regression' THEN status_change(a.status, pa.status) = 'regression'
+                     WHEN 'fix'        THEN status_change(a.status, pa.status) = 'fixed'
+                     ELSE true END
+ORDER BY a.position""" % BASE_STEP,
         desc="evolution, then current run: status, expected, actual, then compared run (same action): status, "
              "expected, actual. evolution: regression = passed in the compared run and does not pass now (skipped / failed), "
              "fixed = the reverse.",
@@ -764,7 +789,8 @@ ORDER BY r.campaign_started_at DESC""",
     JOIN v_test_result o ON o.name = r.name AND o.platform = r.platform AND o.test_id <> r.test_id
     JOIN step os ON os.test_id = o.test_id AND os.position = s.position
     JOIN v_campaign oc ON oc.id = o.campaign_id WHERE s.id = $step
-) x ORDER BY ord, started_at DESC""")]
+) x ORDER BY ord, started_at DESC"""),
+        *filter_vars("action_status", "actions")]
     return dashboard("kitchen-step", "Step details", L, variables)
 
 
