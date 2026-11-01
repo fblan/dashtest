@@ -63,6 +63,10 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   a test id of another run of the same test; resolved by `BASE_TEST`). Header rows, comparison row, steps table
   (description, expected, actual, status, actions, actions with regressions / fixes from `step_diff()`), history.
   `test_link(..., compare=)` passes the compared run (the overview passes the test of its compared campaign).
+  Clicking a step (# or description) opens Step details with the step of the compared run (`STEP_URL`).
+- `kitchen-step` Step details: vars platform, test, step (steps of the test), `compare` (0 = same step in the
+  previous run, else a step id at the same position in another run of the test; resolved by `BASE_STEP`).
+  Header rows, step text, comparison row, actions table (compared status, `status_change()`), step history.
 - `kitchen-trends`, `kitchen-regressions`.
 - Anonymous Viewer access must stay on (dashboards visible without login).
 

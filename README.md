@@ -25,7 +25,8 @@ Rules:
 
 Useful views: `v_campaign` (label + versions changed since the previous campaign on the platform),
 `v_test_result` (with `transition`: regression/fixed/… and `changes`), `v_first_failure` (root cause),
-`v_campaign_summary`, `v_flakiness`, `step_diff(test, base_test)` (per step, action by action vs a base run of
+`v_campaign_summary`, `v_flakiness`, `status_change(status, base_status)` (regression / fixed / NULL for
+one action), `step_diff(test, base_test)` (per step, action by action vs a base run of
 the test: actions, actions changed, regressed = passed before and not now, fixed = the reverse), `test_diff(test,
 base_test)` (the same summed over the test, with the number of steps concerned),
 `v_test_diff` (`test_diff` vs the previous run of the test on the platform), `check_cascade` (must be empty).
@@ -84,7 +85,11 @@ default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
 4. **Test details** – one test run: header and versions, then **Compare with** (default: previous run of the test
    on the platform, or any other run of the test there; opening a test from the overview keeps the overview's choice),
    the number of actions with regressions / fixes, the steps (description, expected, actual, status, number of
-   actions, actions with regressions, actions with fixes) and the history of the test on the platform.
+   actions, actions with regressions, actions with fixes; click a step to open it) and the history of the test.
+5. **Step details** – one step of a test run, built like Test details: header and versions, the step (description,
+   expected, actual), **Compare with** (default: the same step in the previous run of the test on the platform),
+   actions with regressions / fixes, the actions (expected, actual, status, status in the compared run, change)
+   and the history of the step on the platform.
 
 Postgres (local only): `localhost:5432`, db `kitchen`, user `kitchen`/`kitchen` (Grafana uses the read-only role `grafana_ro`, password `GRAFANA_RO_PASSWORD`).
 
@@ -101,7 +106,7 @@ them into a Grafana 12.4.14 that only had a PostgreSQL data source.
 Prerequisites on the target: a PostgreSQL data source pointing at a database that contains the
 tables **and the views** from `db/init/01_schema.sql` + `02_functions_views.sql`.
 
-For each file (01 → 04):
+For each file (01 → 05):
 1. Open the file, select all, copy.
 2. Grafana → Dashboards → New → Import → paste into the text box → **Load**.
 3. In `DS_KITCHEN`, pick your PostgreSQL data source → **Import**.
