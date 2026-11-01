@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from scenarios import (BASE_FAIL_P, COMPONENT_RELEASES, ENV_SKIP_P, ENV_SKIP_REASONS, KMS_VERSIONS,
-                       PLATFORMS, REGRESSIONS, SCENARIOS)
+                       LATEST_CAMPAIGNS, PLATFORMS, REGRESSIONS, SCENARIOS)
 
 OUT = Path(__file__).resolve().parent.parent / "db" / "init" / "03_seed.sql"
 
@@ -96,14 +96,18 @@ def generate(seed, start, end):
         hour = 22 if platform == "IN" else 10
         for i, kms in enumerate(plan):
             day = (start + span * i).replace(hour=hour, minute=0, second=0, microsecond=0)
-            schedule.append((day + timedelta(minutes=rng.randint(-120, 120)), platform, kms))
+            schedule.append((day + timedelta(minutes=rng.randint(-120, 120)), platform, kms, True))
     schedule.sort()
+    # then the latest campaigns at fixed dates, without random noise
+    schedule += [(datetime.fromisoformat(d).replace(tzinfo=timezone.utc), platform, kms, False)
+                 for d, platform, kms in LATEST_CAMPAIGNS]
 
     campaigns, tests, steps, actions = [], [], [], []
     test_id = step_id = action_id = 0
 
-    for c_idx, (c_start, platform, kms) in enumerate(schedule, start=1):
+    for c_idx, (c_start, platform, kms, noisy) in enumerate(schedule, start=1):
         versions = {"kms": kms, **component_versions(c_start)}
+        fail_p, skip_p = (BASE_FAIL_P, ENV_SKIP_P) if noisy else (0.0, 0.0)
         t_cursor = c_start
 
         for rank, slug, scenario_steps in SCENARIOS:
@@ -126,14 +130,14 @@ def generate(seed, start, end):
                         dur = rng.randint(5_000, 240_000)
                         r = rng.random()
                         p_regression = regression_p(action["tag"], versions, platform)
-                        if r < p_regression + BASE_FAIL_P:
+                        if r < p_regression + fail_p:
                             # a regression breaks the first check, a random failure any check
                             bad = 0 if r < p_regression else rng.randrange(len(checks))
                             lines = [actual_line(c, i != bad, rng) for i, c in enumerate(checks)]
                             status, actual = "failed", "\n".join(lines)
                             step_actual = (f"FAILED at action {s_pos}.{a_pos}\n{lines[bad].replace('  ✗ out of tolerance', '')}"
                                            + (f"\n{n_actions - a_pos} remaining action(s) skipped" if a_pos < n_actions else ""))
-                        elif r < p_regression + BASE_FAIL_P + ENV_SKIP_P:
+                        elif r < p_regression + fail_p + skip_p:
                             reason = rng.choice(ENV_SKIP_REASONS)
                             status, actual, dur = "skipped", reason, 0
                             step_actual = f"SKIPPED at action {s_pos}.{a_pos}\n{reason}"

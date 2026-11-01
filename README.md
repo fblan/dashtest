@@ -30,8 +30,8 @@ actions changed, regressed = passed before and not now, fixed = the reverse, and
 `v_test_diff` (`test_diff` vs the previous run of the test on the platform), `check_cascade` (must be empty).
 
 ## Simulated story
-Apr → Oct 2026: 40 campaigns on IN (around 22:00) and 28 on OUT (around 10:00), KMS 1.0.0 → 2.4.0.
-The other components get their own releases (KES 3.0.0 → 3.2.0, KTRS 5.4.2 → 5.5.1,
+Apr → Oct 2026: 42 campaigns on IN (around 22:00) and 30 on OUT (around 10:00), KMS 1.0.0 → 2.5.0.
+The other components get their own releases (KES 3.0.0 → 3.2.1, KTRS 5.4.2 → 5.5.1,
 Gateway 1.8.3 → 2.0.1, TestCampaign TC-2026.1 → TC-2026.3). Scripted regressions (`generator/scenarios.py`):
 
 | Bug | Component | Introduced | Fixed | Platforms |
@@ -40,12 +40,19 @@ Gateway 1.8.3 → 2.0.1, TestCampaign TC-2026.1 → TC-2026.3). Scripted regress
 | oven temperature regulation (Wellington, soufflé, breads) | KMS | 1.3.0 | 1.4.1 | both |
 | sous-vide timer (minutes vs hours) | KMS | 2.0.0 | 2.1.0 | both |
 | induction power curve (hollandaise, risotto) | KMS | 2.1.0 | 2.1.1 | both |
-| fryer oil temperature unstable | KMS | 2.2.0 | open | OUT |
-| dishwasher heater firmware | KMS | 2.4.0 | open | IN |
+| fryer oil temperature unstable | KMS | 2.2.0 | 2.4.1 | OUT |
+| dishwasher heater firmware | KMS | 2.4.0 | 2.4.1 | IN |
 | push notifications dropped (fridge shopping list) | Gateway | 2.0.0 | 2.0.1 | both |
-| rotisserie motor simulation (grill skewers) | KES | 3.2.0 | open | OUT |
+| rotisserie motor simulation (grill skewers) | KES | 3.2.0 | 3.2.1 | OUT |
+| steam generator below 100°C (dim sum) | KMS | 2.5.0 | open | both |
+| blender motor speed limit (gazpacho) | KMS | 2.5.0 | open | IN |
+| grill preheat setpoint (ribeye) | KMS | 2.5.0 | open | OUT |
 
 Plus small random failures and operator skips (ingredient not delivered, module in maintenance, door interlock).
+
+The last 4 campaigns (27 → 31 Oct, `LATEST_CAMPAIGNS`) have no random failures, so they show regression
+detection clearly: KMS 2.4.1 + KES 3.2.1 fix the open bugs (all tests pass), then KMS 2.5.0 brings exactly
+3 bugs: 2 regressions in the latest campaign of each platform (IN: steamer + blender, OUT: steamer + grill).
 
 Scenarios are written like test procedures (`generator/scenarios.py`): step and action descriptions
 can span several lines, and each action lists checks (numeric with tolerance, or qualitative).
@@ -124,10 +131,9 @@ and is only used through `COMPOSE_FILE` in your local `.env`.)
 6. **Deploy**, then check the logs of `postgres` (init scripts) and `grafana`.
 
 Notes:
-- The database is created and filled only on the first deploy (empty `pgdata` volume). To reload it,
-  delete the volume in Dokploy and redeploy.
-- Views and functions (`db/init/02_functions_views.sql`) are re-applied on every deploy by the one-shot
-  `migrate` service (Grafana starts after it succeeds), so view changes reach the existing database
-  without touching the data.
+- The database is created on the first deploy (empty `pgdata` volume). After that, the one-shot `migrate`
+  service (`db/migrate.sh`, Grafana starts after it succeeds) runs on every deploy: it re-applies the views and
+  functions (`db/init/02_functions_views.sql`), and reloads the simulated data when `db/init/03_seed.sql`
+  has changed since the last load (all campaigns are replaced). Table changes still need the volume deleted.
 - `GRAFANA_ADMIN_PASSWORD` is only applied when the Grafana volume is created; later, change it in Grafana.
 - Dashboards come from the image: edit `grafana/build_dashboards.py`, run `make dashboards`, push, redeploy.
