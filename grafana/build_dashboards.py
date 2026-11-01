@@ -8,6 +8,8 @@ EXPORT = Path(__file__).resolve().parent / "export"      # portable copies to pa
 DS = {"type": "grafana-postgresql-datasource", "uid": "kitchen-pg"}
 
 STATUS_COLORS = {"success": "green", "skipped": "orange", "failed": "red"}
+# platforms, as in db/init/01_schema.sql (default selection of the Trends platform filter)
+PLATFORMS = {"IN": "InHouse kitchen", "OUT": "Outdoor kitchen"}
 STATUS_MAPPING = [{"type": "value", "options": {
     s: {"color": c, "text": s, "index": i} for i, (s, c) in enumerate(STATUS_COLORS.items())}}]
 TRANSITION_MAPPING = [{"type": "value", "options": {
@@ -92,12 +94,14 @@ def query_var(name, label, sql, multi=False, include_all=False, refresh=1):
             "includeAll": include_all, "sort": 0, "current": {}, "options": []}
 
 
-def platform_var():
-    """Platform filter shared by all dashboards (multi-select, All by default)."""
+def platform_var(include_all=True):
+    """Platform filter shared by all dashboards (multi-select, all platforms by default). Without include_all
+    there is no "All" option: the platforms are selected one by one (both by default)."""
     v = query_var("platform", "Platform",
                   "SELECT code || ' — ' || name AS __text, code AS __value FROM platform ORDER BY code",
-                  multi=True, include_all=True)
-    v["current"] = {"text": ["All"], "value": ["$__all"]}
+                  multi=True, include_all=include_all)
+    v["current"] = ({"text": ["All"], "value": ["$__all"]} if include_all else
+                    {"text": [f"{code} — {name}" for code, name in PLATFORMS.items()], "value": list(PLATFORMS)})
     return v
 
 
@@ -370,7 +374,8 @@ GROUP BY c.id ORDER BY 1""",
         desc="Compared with the previous campaign on the platform, action by action (skipped and failed count as "
              "not passing). With regressions: at least one action passed before and does not pass now. "
              "With fixes: at least one action did not pass before and passes now.")), 24), h=10)
-    return dashboard("kitchen-trends", "Trends over time", L, [platform_var()], annotations=release_annotations())
+    return dashboard("kitchen-trends", "Trends over time", L, [platform_var(include_all=False)],
+                     annotations=release_annotations())
 
 
 # ---------------------------------------------------------------- 04 Test details
