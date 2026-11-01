@@ -80,46 +80,6 @@
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
-      },
-      {
-        "name": "KMS releases",
-        "enable": true,
-        "iconColor": "blue",
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "${DS_KITCHEN}"
-        },
-        "target": {
-          "refId": "Anno",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT min(started_at) AS time, 'KMS ' || kms_version AS text, 'KMS' AS tags FROM campaign WHERE platform IN ($platform) GROUP BY kms_version"
-        }
-      },
-      {
-        "name": "Other component releases (KES, KTRS, Gateway, TestCampaign)",
-        "enable": true,
-        "iconColor": "purple",
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "${DS_KITCHEN}"
-        },
-        "target": {
-          "refId": "Anno2",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_KITCHEN}"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT min(started_at) AS time, 'KES ' || kes_version AS text, 'KES' AS tags FROM campaign WHERE platform IN ($platform) GROUP BY kes_version HAVING min(started_at) > (SELECT min(started_at) FROM campaign)\nUNION ALL\nSELECT min(started_at) AS time, 'KTRS ' || ktrs_version AS text, 'KTRS' AS tags FROM campaign WHERE platform IN ($platform) GROUP BY ktrs_version HAVING min(started_at) > (SELECT min(started_at) FROM campaign)\nUNION ALL\nSELECT min(started_at) AS time, 'Gateway ' || gateway_version AS text, 'Gateway' AS tags FROM campaign WHERE platform IN ($platform) GROUP BY gateway_version HAVING min(started_at) > (SELECT min(started_at) FROM campaign)\nUNION ALL\nSELECT min(started_at) AS time, 'TestCampaign ' || testcampaign_version AS text, 'TestCampaign' AS tags FROM campaign WHERE platform IN ($platform) GROUP BY testcampaign_version HAVING min(started_at) > (SELECT min(started_at) FROM campaign)"
-        }
       }
     ]
   },
@@ -154,7 +114,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT started_at AS time, n_tests AS total, n_success AS success, n_skipped AS skipped,\n       n_failed AS failed\nFROM v_campaign_summary\nWHERE $__timeFilter(started_at) AND platform IN (${platform:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT s.started_at AS time, s.n_tests AS total, s.n_success AS success, s.n_skipped AS skipped,\n       s.n_failed AS failed, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\", c.changes AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
         }
       ],
       "fieldConfig": {
@@ -241,6 +201,22 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(KMS|KES|KTRS|Gateway|TestCampaign|changed)$"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": true,
+                  "tooltip": false
+                }
+              }
+            ]
           }
         ]
       },
@@ -258,6 +234,40 @@
       "repeat": "platform",
       "repeatDirection": "h",
       "maxPerRow": 2,
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "KMS",
+                "destinationType": "enum"
+              },
+              {
+                "targetField": "KES",
+                "destinationType": "enum"
+              },
+              {
+                "targetField": "KTRS",
+                "destinationType": "enum"
+              },
+              {
+                "targetField": "Gateway",
+                "destinationType": "enum"
+              },
+              {
+                "targetField": "TestCampaign",
+                "destinationType": "enum"
+              },
+              {
+                "targetField": "changed",
+                "destinationType": "enum"
+              }
+            ]
+          }
+        }
+      ],
       "id": 1,
       "gridPos": {
         "x": 0,
@@ -284,7 +294,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT c.started_at AS time, count(*) AS total,\n       count(*) FILTER (WHERE d.actions_regressed > 0) AS \"with regressions\",\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS \"with fixes\"\nFROM campaign c\nJOIN test t ON t.campaign_id = c.id\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE $__timeFilter(c.started_at) AND c.platform IN (${platform:sqlstring})\nGROUP BY c.id ORDER BY 1"
+          "rawSql": "SELECT c.started_at AS time, count(*) AS total,\n       count(*) FILTER (WHERE d.actions_regressed > 0) AS \"with regressions\",\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS \"with fixes\", c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\", c.changes AS changed\nFROM v_campaign c\nJOIN test t ON t.campaign_id = c.id\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE $__timeFilter(c.started_at) AND c.platform IN (${platform:sqlstring})\nGROUP BY c.id, c.started_at, c.kms_version, c.kes_version, c.ktrs_version, c.gateway_version,\n         c.testcampaign_version, c.changes\nORDER BY 1"
         }
       ],
       "fieldConfig": {
@@ -356,6 +366,22 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(KMS|KES|KTRS|Gateway|TestCampaign|changed)$"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": true,
+                  "tooltip": false
+                }
+              }
+            ]
           }
         ]
       },
@@ -373,6 +399,40 @@
       "repeat": "platform",
       "repeatDirection": "h",
       "maxPerRow": 2,
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "KMS",
+                "destinationType": "enum"
+              },
+              {
+                "targetField": "KES",
+                "destinationType": "enum"
+              },
+              {
+                "targetField": "KTRS",
+                "destinationType": "enum"
+              },
+              {
+                "targetField": "Gateway",
+                "destinationType": "enum"
+              },
+              {
+                "targetField": "TestCampaign",
+                "destinationType": "enum"
+              },
+              {
+                "targetField": "changed",
+                "destinationType": "enum"
+              }
+            ]
+          }
+        }
+      ],
       "id": 2,
       "gridPos": {
         "x": 0,
