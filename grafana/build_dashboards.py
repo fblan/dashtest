@@ -183,12 +183,73 @@ def dashboard(uid, title, layout, variables, time=("now-7M", "now"), annotations
 
 
 # ---------------------------------------------------------------- 01 Campaign overview
+OVERVIEW_URL = "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}"
+
+
 def status_filter(field, color, value):
-    """Tile of the "Tests" stat: fixed color, click = filter the tests list on that status."""
+    """Tile of the "Tests" stat: fixed color, click = filter the tests list on that status.
+    "all" also clears the "with action changes" filter."""
+    changed = "0" if field == "all" else "${only_changed}"
     return override(field, ("color", {"mode": "fixed", "fixedColor": color}), ("links", [{
         "title": f"Show {field} tests",
-        "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&var-test_status=" + value
-               + "&${platform:queryparam}&${__url_time_range}"}]))
+        "url": OVERVIEW_URL + "&var-test_status=" + value + "&var-only_changed=" + changed}]))
+
+
+def comparison_row():
+    """Tiles comparing the campaign with the previous campaign on the same platform."""
+    previous = stat(
+        "Previous campaign on this platform (click to open)",
+        """SELECT coalesce(p.label || '  (' || p.status || ')', 'none: first campaign on this platform') AS previous,
+       p.id AS prev_id
+FROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id
+WHERE c.id = $campaign""", color_mode="none")
+    previous["options"]["reduceOptions"]["fields"] = "/^previous$/"
+    previous["options"].update({"textMode": "value", "text": {"valueSize": 20}})
+    previous["fieldConfig"]["defaults"]["links"] = [{
+        "title": "Open the previous campaign",
+        "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.prev_id}"
+               "&${platform:queryparam}&${__url_time_range}"}]
+
+    pass_rate = stat(
+        "Pass rate: previous / change",
+        """SELECT p.pass_rate AS previous,
+       CASE WHEN c.pass_rate = p.pass_rate THEN '±0.0 pts'
+            ELSE to_char(c.pass_rate - p.pass_rate, 'FMSG990.0') || ' pts' END AS change
+FROM v_campaign_summary c
+JOIN v_campaign v ON v.id = c.campaign_id
+JOIN v_campaign_summary p ON p.campaign_id = v.prev_campaign_id
+WHERE c.campaign_id = $campaign""",
+        overrides=[override("previous", ("unit", "percent"), ("color", {"mode": "fixed", "fixedColor": "text"})),
+                   override("change", ("mappings", [
+                       {"type": "regex", "options": {"pattern": "^\\+.*", "result": {"color": "green"}}},
+                       {"type": "regex", "options": {"pattern": "^-.*", "result": {"color": "red"}}},
+                       {"type": "regex", "options": {"pattern": ".*", "result": {"color": "text"}}}]))],
+        color_mode="value")
+
+    def alert_when_positive(field, color):
+        return override(field, ("color", {"mode": "thresholds"}), ("thresholds", {"mode": "absolute", "steps": [
+            {"color": "text", "value": None}, {"color": color, "value": 1}]}))
+    transitions = stat(
+        "Regressions / fixes vs previous run",
+        """SELECT count(*) FILTER (WHERE transition = 'regression') AS regressions,
+       count(*) FILTER (WHERE transition = 'fixed') AS fixes
+FROM v_test_result WHERE campaign_id = $campaign""",
+        overrides=[alert_when_positive("regressions", "red"), alert_when_positive("fixes", "green")],
+        color_mode="value")
+
+    changed = stat(
+        "Tests with action changes (click to list them)",
+        """SELECT count(*) FILTER (WHERE d.actions_changed > 0) AS "tests with action changes"
+FROM test t LEFT JOIN v_test_diff d ON d.test_id = t.id
+WHERE t.campaign_id = $campaign""",
+        defaults={"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [
+            {"color": "transparent", "value": None}, {"color": "orange", "value": 1}]},
+                  "links": [{"title": "Show only the tests with action changes",
+                             "url": OVERVIEW_URL + "&${test_status:queryparam}&var-only_changed=1"}]})
+    changed["description"] = ("Tests where at least one action has a different status than in the previous run "
+                              "of the same test on this platform (actions matched by step and action position).")
+    changed["options"]["textMode"] = "value"
+    return [(previous, 8), (pass_rate, 5), (transitions, 6), (changed, 5)]
 
 
 def campaign_overview():
@@ -214,14 +275,19 @@ def campaign_overview():
               defaults={"unit": "s"}, color_mode="none"), 3),
         h=4)
     L.row((versions_stat("id = $campaign"), 15), (changes_stat("id = $campaign"), 9), h=4)
+    L.row(({"type": "row", "title": "Comparison with the previous campaign on this platform",
+            "collapsed": False, "panels": []}, 24), h=1)
+    L.row(*comparison_row(), h=4)
     L.row((table(
-        "Tests: ${test_status:text} (click a name to drill down)",
+        "Tests: ${test_status:text}, ${only_changed:text} (click a name to drill down)",
         """SELECT t.id, t.name, t.status::text AS status, r.transition,
+       d.steps_changed AS "steps changed", d.actions_changed AS "actions changed",
        s.ok AS "steps ok", s.skip AS "steps skip", s.fail AS "steps fail",
        a.ok AS "actions ok", a.skip AS "actions skip", a.fail AS "actions fail",
        r.duration_s / 60.0 AS duration
 FROM test t
 JOIN v_test_result r ON r.test_id = t.id
+LEFT JOIN v_test_diff d ON d.test_id = t.id
 CROSS JOIN LATERAL (
     SELECT count(*) FILTER (WHERE status = 'success') AS ok,
            count(*) FILTER (WHERE status = 'skipped') AS skip,
@@ -233,12 +299,20 @@ CROSS JOIN LATERAL (
            count(*) FILTER (WHERE a.status = 'failed')  AS fail
     FROM action a JOIN step st ON st.id = a.step_id WHERE st.test_id = t.id) a
 WHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)
+  AND ($only_changed = 0 OR coalesce(d.actions_changed, 0) > 0)
 ORDER BY t.rank""",
-        desc="transition = compared with the previous campaign on the same platform",
+        desc="transition and steps/actions changed: compared with the previous run of the test on the same "
+             "platform (actions whose status differs, and the steps containing them).",
         overrides=[color_cell("status"), color_cell("transition", TRANSITION_MAPPING),
                    override("id", ("custom.hidden", True)), test_link("name"),
                    override("name", ("custom.minWidth", 240)), width("status", 85), width("transition", 115),
-                   override("duration", ("unit", "m"), ("decimals", 1), ("custom.width", 90)), *count_cells()]),
+                   override("duration", ("unit", "m"), ("decimals", 1), ("custom.width", 90)), *count_cells(),
+                   override("(steps|actions) changed", ("custom.width", 110), ("custom.align", "center"),
+                            ("custom.filterable", False), ("custom.cellOptions", {"type": "color-background"}),
+                            ("color", {"mode": "thresholds"}),
+                            ("thresholds", {"mode": "absolute", "steps": [
+                                {"color": "transparent", "value": None}, {"color": "orange", "value": 1}]}),
+                            regex=True)]),
            24), h=17)
 
     variables = [
@@ -252,6 +326,12 @@ ORDER BY t.rank""",
          "current": {"text": ["All"], "value": ["$__all"]},
          "options": [{"text": "All", "value": "$__all", "selected": True}]
                     + [{"text": v, "value": v, "selected": False} for v in STATUS_COLORS]},
+        # set by clicking the "Tests with action changes" tile (1) or the "all" tile (0)
+        {"type": "custom", "name": "only_changed", "label": "Only tests with action changes", "hide": 2,
+         "query": "all tests : 0, with action changes : 1",
+         "current": {"text": "all tests", "value": "0"},
+         "options": [{"text": "all tests", "value": "0", "selected": True},
+                     {"text": "with action changes", "value": "1", "selected": False}]},
     ]
     return dashboard("kitchen-overview", "Campaign overview", L, variables)
 

@@ -25,7 +25,8 @@ Rules:
 
 Useful views: `v_campaign` (label + versions changed since the previous campaign on the platform),
 `v_test_result` (with `transition`: regression/fixed/… and `changes`), `v_first_failure` (root cause),
-`v_campaign_summary`, `v_flakiness`, `check_cascade` (must be empty).
+`v_campaign_summary`, `v_flakiness`, `v_test_diff` (actions whose status changed since the previous run of
+the test on the platform, and the steps containing them), `check_cascade` (must be empty).
 
 ## Simulated story
 Apr → Oct 2026: 40 campaigns on IN (around 22:00) and 28 on OUT (around 10:00), KMS 1.0.0 → 2.4.0.
@@ -64,6 +65,9 @@ Grafana 12.4.14 (pinned): http://localhost:3000 — anonymous read-only access (
 default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
 1. **Campaign overview** – pick a campaign; per test: status, regression marker, step and action
    counts (ok / skip / fail) and root cause. Click a test name to open its details.
+   A comparison row shows the previous campaign on the same platform (click to open it), the pass-rate
+   change, regressions / fixes, and the number of tests with action changes (click to list only those;
+   the table shows steps / actions changed per test).
 2. **Trends over time** – pass rate, results per campaign, pass rate per test and version, durations; release annotations.
 3. **Regressions** – regressions/fixes per version, status history of each test, version-to-version comparison, flaky tests.
 4. **Test details** – one test run: steps, actions (expected vs actual) and the history of that test across campaigns.
@@ -117,5 +121,8 @@ and is only used through `COMPOSE_FILE` in your local `.env`.)
 Notes:
 - The database is created and filled only on the first deploy (empty `pgdata` volume). To reload it,
   delete the volume in Dokploy and redeploy.
+- Views and functions (`db/init/02_functions_views.sql`) are re-applied on every deploy by the one-shot
+  `migrate` service (Grafana starts after it succeeds), so view changes reach the existing database
+  without touching the data.
 - `GRAFANA_ADMIN_PASSWORD` is only applied when the Grafana volume is created; later, change it in Grafana.
 - Dashboards come from the image: edit `grafana/build_dashboards.py`, run `make dashboards`, push, redeploy.

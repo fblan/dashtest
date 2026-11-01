@@ -1,12 +1,17 @@
+-- Functions and views. Idempotent: run at first start (initdb) and re-applied on every deploy
+-- by the "migrate" service, so changes here reach an existing database. Data is not touched.
+DROP VIEW IF EXISTS v_test_diff, v_flakiness, v_campaign_summary, v_test_result, v_campaign,
+    v_first_failure, check_cascade, v_action_ordered CASCADE;
+
 -- Status derivation: any failed -> failed, else any skipped -> skipped, else success
-CREATE FUNCTION agg_status(failed bool, skipped bool) RETURNS exec_status
+CREATE OR REPLACE FUNCTION agg_status(failed bool, skipped bool) RETURNS exec_status
 LANGUAGE sql IMMUTABLE AS $$
     SELECT CASE WHEN failed THEN 'failed'::exec_status
                 WHEN skipped THEN 'skipped'::exec_status
                 ELSE 'success'::exec_status END
 $$;
 
-CREATE FUNCTION recompute_status() RETURNS void
+CREATE OR REPLACE FUNCTION recompute_status() RETURNS void
 LANGUAGE sql AS $$
     UPDATE step s SET status = a.st
     FROM (SELECT step_id,
@@ -60,6 +65,7 @@ CREATE VIEW v_campaign AS
 WITH c AS (
 SELECT c.*,
        c.platform || ' · KMS ' || c.kms_version || ' · ' || to_char(c.started_at, 'YYYY-MM-DD HH24:MI') AS label,
+       lag(c.id) OVER w AS prev_campaign_id,
        coalesce(nullif(concat_ws(', ',
            CASE WHEN lag(c.kms_version) OVER w <> c.kms_version
                 THEN 'KMS ' || lag(c.kms_version) OVER w || ' → ' || c.kms_version END,
@@ -93,6 +99,7 @@ SELECT t.id AS test_id, t.name, t.rank, t.status,
        c.id AS campaign_id, c.platform, c.started_at AS campaign_started_at,
        c.kms_version, c.kms_version_order, c.kes_version, c.ktrs_version, c.gateway_version,
        c.testcampaign_version,
+       lag(t.id) OVER w AS prev_test_id,
        lag(t.status) OVER w AS prev_status,
        lag(c.kms_version) OVER w AS prev_kms_version,
        concat_ws(', ',
@@ -148,5 +155,19 @@ SELECT name, platform,
        count(*) FILTER (WHERE status = 'failed') AS failures,
        count(*) AS runs
 FROM flips GROUP BY name, platform;
+
+-- Differences with the previous run of the same test on the same platform: actions whose status
+-- changed (matched by step and action position) and the number of steps containing them.
+CREATE VIEW v_test_diff AS
+SELECT r.test_id, r.prev_test_id,
+       count(*) FILTER (WHERE a.status IS DISTINCT FROM pa.status) AS actions_changed,
+       count(DISTINCT s.position) FILTER (WHERE a.status IS DISTINCT FROM pa.status) AS steps_changed
+FROM v_test_result r
+JOIN step s ON s.test_id = r.test_id
+JOIN action a ON a.step_id = s.id
+LEFT JOIN step ps ON ps.test_id = r.prev_test_id AND ps.position = s.position
+LEFT JOIN action pa ON pa.step_id = ps.id AND pa.position = a.position
+WHERE r.prev_test_id IS NOT NULL
+GROUP BY r.test_id, r.prev_test_id;
 
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana_ro;

@@ -13,17 +13,35 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-kitchen} -d kitchen"]
+      # TCP check: during first-time init Postgres only listens on its socket, so this waits for the real start
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${PG_USER:-kitchen} -d kitchen"]
       interval: 5s
       retries: 20
+    networks: [default]
+
+  # One-shot job on every deploy: re-applies functions and views (02_functions_views.sql) so that
+  # view changes reach an existing database. Data is not modified.
+  migrate:
+    build: ./db
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGDATABASE: kitchen
+      PGUSER: ${PG_USER:-kitchen}
+      PGPASSWORD: ${PG_PASSWORD:?set PG_PASSWORD}
+    entrypoint: ["psql", "-v", "ON_ERROR_STOP=1", "--single-transaction",
+                 "-f", "/docker-entrypoint-initdb.d/02_functions_views.sql"]
     networks: [default]
 
   grafana:
     build: ./grafana
     restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD}

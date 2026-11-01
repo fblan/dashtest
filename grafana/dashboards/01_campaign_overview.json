@@ -94,6 +94,29 @@
             "selected": false
           }
         ]
+      },
+      {
+        "type": "custom",
+        "name": "only_changed",
+        "label": "Only tests with action changes",
+        "hide": 2,
+        "query": "all tests : 0, with action changes : 1",
+        "current": {
+          "text": "all tests",
+          "value": "0"
+        },
+        "options": [
+          {
+            "text": "all tests",
+            "value": "0",
+            "selected": true
+          },
+          {
+            "text": "with action changes",
+            "value": "1",
+            "selected": false
+          }
+        ]
       }
     ]
   },
@@ -365,7 +388,7 @@
                 "value": [
                   {
                     "title": "Show all tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&var-test_status=%24__all&${platform:queryparam}&${__url_time_range}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-only_changed=0"
                   }
                 ]
               }
@@ -389,7 +412,7 @@
                 "value": [
                   {
                     "title": "Show success tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&var-test_status=success&${platform:queryparam}&${__url_time_range}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=success&var-only_changed=${only_changed}"
                   }
                 ]
               }
@@ -413,7 +436,7 @@
                 "value": [
                   {
                     "title": "Show skipped tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&var-test_status=skipped&${platform:queryparam}&${__url_time_range}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=skipped&var-only_changed=${only_changed}"
                   }
                 ]
               }
@@ -437,7 +460,7 @@
                 "value": [
                   {
                     "title": "Show failed tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&var-test_status=failed&${platform:queryparam}&${__url_time_range}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&var-test_status=failed&var-only_changed=${only_changed}"
                   }
                 ]
               }
@@ -655,9 +678,22 @@
       }
     },
     {
-      "type": "table",
-      "title": "Tests: ${test_status:text} (click a name to drill down)",
-      "description": "transition = compared with the previous campaign on the same platform",
+      "type": "row",
+      "title": "Comparison with the previous campaign on this platform",
+      "collapsed": false,
+      "panels": [],
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Previous campaign on this platform (click to open)",
+      "description": "",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "kitchen-pg"
@@ -672,7 +708,345 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT t.id, t.name, t.status::text AS status, r.transition,\n       s.ok AS \"steps ok\", s.skip AS \"steps skip\", s.fail AS \"steps fail\",\n       a.ok AS \"actions ok\", a.skip AS \"actions skip\", a.fail AS \"actions fail\",\n       r.duration_s / 60.0 AS duration\nFROM test t\nJOIN v_test_result r ON r.test_id = t.id\nCROSS JOIN LATERAL (\n    SELECT count(*) FILTER (WHERE status = 'success') AS ok,\n           count(*) FILTER (WHERE status = 'skipped') AS skip,\n           count(*) FILTER (WHERE status = 'failed')  AS fail\n    FROM step WHERE test_id = t.id) s\nCROSS JOIN LATERAL (\n    SELECT count(*) FILTER (WHERE a.status = 'success') AS ok,\n           count(*) FILTER (WHERE a.status = 'skipped') AS skip,\n           count(*) FILTER (WHERE a.status = 'failed')  AS fail\n    FROM action a JOIN step st ON st.id = a.step_id WHERE st.test_id = t.id) a\nWHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)\nORDER BY t.rank"
+          "rawSql": "SELECT coalesce(p.label || '  (' || p.status || ')', 'none: first campaign on this platform') AS previous,\n       p.id AS prev_id\nFROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id\nWHERE c.id = $campaign"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Open the previous campaign",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.prev_id}&${platform:queryparam}&${__url_time_range}"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^previous$/"
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "text": {
+          "valueSize": 20
+        }
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 8,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Pass rate: previous / change",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "kitchen-pg"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "kitchen-pg"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT p.pass_rate AS previous,\n       CASE WHEN c.pass_rate = p.pass_rate THEN '±0.0 pts'\n            ELSE to_char(c.pass_rate - p.pass_rate, 'FMSG990.0') || ' pts' END AS change\nFROM v_campaign_summary c\nJOIN v_campaign v ON v.id = c.campaign_id\nJOIN v_campaign_summary p ON p.campaign_id = v.prev_campaign_id\nWHERE c.campaign_id = $campaign"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "previous"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "change"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^\\+.*",
+                      "result": {
+                        "color": "green"
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^-.*",
+                      "result": {
+                        "color": "red"
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": ".*",
+                      "result": {
+                        "color": "text"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center"
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 8,
+        "y": 9,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Regressions / fixes vs previous run",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "kitchen-pg"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "kitchen-pg"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT count(*) FILTER (WHERE transition = 'regression') AS regressions,\n       count(*) FILTER (WHERE transition = 'fixed') AS fixes\nFROM v_test_result WHERE campaign_id = $campaign"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "regressions"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fixes"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center"
+      },
+      "id": 11,
+      "gridPos": {
+        "x": 13,
+        "y": 9,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Tests with action changes (click to list them)",
+      "description": "Tests where at least one action has a different status than in the previous run of the same test on this platform (actions matched by step and action position).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "kitchen-pg"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "kitchen-pg"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT count(*) FILTER (WHERE d.actions_changed > 0) AS \"tests with action changes\"\nFROM test t LEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE t.campaign_id = $campaign"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "Show only the tests with action changes",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${platform:queryparam}&${__url_time_range}&${test_status:queryparam}&var-only_changed=1"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "id": 12,
+      "gridPos": {
+        "x": 19,
+        "y": 9,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "table",
+      "title": "Tests: ${test_status:text}, ${only_changed:text} (click a name to drill down)",
+      "description": "transition and steps/actions changed: compared with the previous run of the test on the same platform (actions whose status differs, and the steps containing them).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "kitchen-pg"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "kitchen-pg"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT t.id, t.name, t.status::text AS status, r.transition,\n       d.steps_changed AS \"steps changed\", d.actions_changed AS \"actions changed\",\n       s.ok AS \"steps ok\", s.skip AS \"steps skip\", s.fail AS \"steps fail\",\n       a.ok AS \"actions ok\", a.skip AS \"actions skip\", a.fail AS \"actions fail\",\n       r.duration_s / 60.0 AS duration\nFROM test t\nJOIN v_test_result r ON r.test_id = t.id\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nCROSS JOIN LATERAL (\n    SELECT count(*) FILTER (WHERE status = 'success') AS ok,\n           count(*) FILTER (WHERE status = 'skipped') AS skip,\n           count(*) FILTER (WHERE status = 'failed')  AS fail\n    FROM step WHERE test_id = t.id) s\nCROSS JOIN LATERAL (\n    SELECT count(*) FILTER (WHERE a.status = 'success') AS ok,\n           count(*) FILTER (WHERE a.status = 'skipped') AS skip,\n           count(*) FILTER (WHERE a.status = 'failed')  AS fail\n    FROM action a JOIN step st ON st.id = a.step_id WHERE st.test_id = t.id) a\nWHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)\n  AND ($only_changed = 0 OR coalesce(d.actions_changed, 0) > 0)\nORDER BY t.rank"
         }
       ],
       "fieldConfig": {
@@ -1007,6 +1381,54 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "(steps|actions) changed"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "custom.filterable",
+                "value": false
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
           }
         ]
       },
@@ -1014,10 +1436,10 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 8,
+      "id": 13,
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 13,
         "w": 24,
         "h": 17
       }
