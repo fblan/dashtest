@@ -71,6 +71,8 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   Header rows, step text + actions count tile, comparison row, actions table (evolution = `status_change()`, status, expected, actual | compared status, expected, actual), step history.
 - `kitchen-trends` Trends over time: var platform without "All" (user's choice; IN and OUT selected by default); 2 panels repeated per platform (horizontal): tests per campaign
   (total, success, skipped, failed), tests with regressions / fixes vs previous campaign (`v_test_diff`).
+  Versions + changes in the tooltip only (string fields → enum via convertFieldType, hideFrom viz/legend).
+  No release annotations (removed on request).
 - The Regressions dashboard (`kitchen-regressions`, 03) was removed on request (too complex); don't bring it back.
 - Anonymous Viewer access must stay on (dashboards visible without login).
 

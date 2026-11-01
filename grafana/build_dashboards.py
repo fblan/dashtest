@@ -135,22 +135,6 @@ FROM v_campaign WHERE {where}""",
     return p
 
 
-def release_annotations():
-    kms = {
-        "name": "KMS releases", "enable": True, "iconColor": "blue", "datasource": DS,
-        "target": target("SELECT min(started_at) AS time, 'KMS ' || kms_version AS text, 'KMS' AS tags "
-                         "FROM campaign WHERE platform IN ($platform) GROUP BY kms_version", ref="Anno")}
-    parts = [f"SELECT min(started_at) AS time, '{label} ' || {col} AS text, '{label}' AS tags FROM campaign "
-             f"WHERE platform IN ($platform) GROUP BY {col} "
-             f"HAVING min(started_at) > (SELECT min(started_at) FROM campaign)"
-             for label, col in (("KES", "kes_version"), ("KTRS", "ktrs_version"),
-                                ("Gateway", "gateway_version"), ("TestCampaign", "testcampaign_version"))]
-    others = {
-        "name": "Other component releases (KES, KTRS, Gateway, TestCampaign)", "enable": True,
-        "iconColor": "purple", "datasource": DS, "target": target("\nUNION ALL\n".join(parts), ref="Anno2")}
-    return [kms, others]
-
-
 def dashboard(uid, title, layout, variables, time=("now-7M", "now"), annotations=()):
     return {
         "uid": uid, "title": title, "tags": ["kitchen", "qa"], "editable": True, "schemaVersion": 39,
@@ -344,16 +328,27 @@ def trends():
     total = override("total", ("color", {"mode": "fixed", "fixedColor": "text"}),
                      ("custom.lineStyle", {"fill": "dash", "dash": [10, 10]}))
 
+    # versions of the campaign, shown in the tooltip only: text fields converted to enum (a time series panel
+    # only keeps graphable fields) and hidden from the plot and the legend
+    versions = """c.kms_version AS "KMS", c.kes_version AS "KES", c.ktrs_version AS "KTRS",
+       c.gateway_version AS "Gateway", c.testcampaign_version AS "TestCampaign", c.changes AS changed"""
+    version_fields = ["KMS", "KES", "KTRS", "Gateway", "TestCampaign", "changed"]
+    tooltip_only = override("^(" + "|".join(version_fields) + ")$",
+                            ("custom.hideFrom", {"viz": True, "legend": True, "tooltip": False}), regex=True)
+
     def per_platform(p):
         p.update({"repeat": "platform", "repeatDirection": "h", "maxPerRow": 2})
+        p["transformations"] = [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [
+            {"targetField": f, "destinationType": "enum"} for f in version_fields]}}]
+        p["fieldConfig"]["overrides"].append(tooltip_only)
         return p
     L.row((per_platform(panel(
         "timeseries", "Test results per campaign — $platform",
-        """SELECT started_at AS time, n_tests AS total, n_success AS success, n_skipped AS skipped,
-       n_failed AS failed
-FROM v_campaign_summary
-WHERE $__timeFilter(started_at) AND platform IN (${platform:sqlstring})
-ORDER BY 1""",
+        """SELECT s.started_at AS time, s.n_tests AS total, s.n_success AS success, s.n_skipped AS skipped,
+       s.n_failed AS failed, %s
+FROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id
+WHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})
+ORDER BY 1""" % versions,
         defaults={"unit": "none", "decimals": 0, "min": 0, "custom": line},
         overrides=[total, *[fixed_color(st, c) for st, c in STATUS_COLORS.items()]],
         options=legend,
@@ -362,20 +357,21 @@ ORDER BY 1""",
         "timeseries", "Tests with regressions / fixes per campaign — $platform",
         """SELECT c.started_at AS time, count(*) AS total,
        count(*) FILTER (WHERE d.actions_regressed > 0) AS "with regressions",
-       count(*) FILTER (WHERE d.actions_fixed > 0) AS "with fixes"
-FROM campaign c
+       count(*) FILTER (WHERE d.actions_fixed > 0) AS "with fixes", %s
+FROM v_campaign c
 JOIN test t ON t.campaign_id = c.id
 LEFT JOIN v_test_diff d ON d.test_id = t.id
 WHERE $__timeFilter(c.started_at) AND c.platform IN (${platform:sqlstring})
-GROUP BY c.id ORDER BY 1""",
+GROUP BY c.id, c.started_at, c.kms_version, c.kes_version, c.ktrs_version, c.gateway_version,
+         c.testcampaign_version, c.changes
+ORDER BY 1""" % versions,
         defaults={"unit": "none", "decimals": 0, "min": 0, "custom": line},
         overrides=[total, fixed_color("with regressions", "red"), fixed_color("with fixes", "green")],
         options=legend,
         desc="Compared with the previous campaign on the platform, action by action (skipped and failed count as "
              "not passing). With regressions: at least one action passed before and does not pass now. "
              "With fixes: at least one action did not pass before and passes now.")), 24), h=10)
-    return dashboard("kitchen-trends", "Trends over time", L, [platform_var(include_all=False)],
-                     annotations=release_annotations())
+    return dashboard("kitchen-trends", "Trends over time", L, [platform_var(include_all=False)])
 
 
 # ---------------------------------------------------------------- 04 Test details
