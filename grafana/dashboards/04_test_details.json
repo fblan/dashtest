@@ -206,12 +206,10 @@
         },
         "colorMode": "none",
         "graphMode": "none",
-        "textMode": "value_and_name",
+        "textMode": "value",
         "justifyMode": "center",
-        "wideLayout": true,
         "text": {
-          "titleSize": 12,
-          "valueSize": 20
+          "valueSize": 22
         }
       },
       "id": 1,
@@ -958,7 +956,7 @@
         "x": 0,
         "y": 8,
         "w": 24,
-        "h": 14
+        "h": 11
       }
     },
     {
@@ -1216,7 +1214,7 @@
       "id": 8,
       "gridPos": {
         "x": 0,
-        "y": 22,
+        "y": 19,
         "w": 24,
         "h": 16
       }

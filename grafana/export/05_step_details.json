@@ -230,7 +230,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT t.name AS test, s.position AS step, t.id AS test_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step"
+          "rawSql": "SELECT t.name || '  ·  step ' || s.position AS step, t.id AS test_id FROM step s JOIN test t ON t.id = s.test_id WHERE s.id = $step"
         }
       ],
       "fieldConfig": {
@@ -254,12 +254,10 @@
         },
         "colorMode": "none",
         "graphMode": "none",
-        "textMode": "value_and_name",
+        "textMode": "value",
         "justifyMode": "center",
-        "wideLayout": true,
         "text": {
-          "titleSize": 12,
-          "valueSize": 20
+          "valueSize": 22
         }
       },
       "id": 1,
@@ -1040,7 +1038,7 @@
         "x": 0,
         "y": 13,
         "w": 24,
-        "h": 14
+        "h": 10
       }
     },
     {
@@ -1200,7 +1198,7 @@
       "id": 9,
       "gridPos": {
         "x": 0,
-        "y": 27,
+        "y": 23,
         "w": 24,
         "h": 16
       }
