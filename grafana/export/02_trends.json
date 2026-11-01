@@ -802,6 +802,301 @@
         "w": 24,
         "h": 10
       }
+    },
+    {
+      "type": "timeseries",
+      "title": "Campaign duration — $platform",
+      "description": "Duration of each campaign on the platform (first test start to last test end).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_KITCHEN}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_KITCHEN}"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT s.started_at AS time, s.duration_s AS duration, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 1,
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "always",
+            "pointSize": 8,
+            "fillOpacity": 0,
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(KMS|KES|KTRS|Gateway|TestCampaign|changed)$"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": false,
+                  "legend": true,
+                  "tooltip": false
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 0
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "transparent"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "repeat": "platform",
+      "repeatDirection": "h",
+      "maxPerRow": 2,
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "KMS",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.0.0",
+                    "1.1.0",
+                    "1.2.0",
+                    "1.3.0",
+                    "1.4.0",
+                    "1.4.1",
+                    "1.5.0",
+                    "2.0.0",
+                    "2.1.0",
+                    "2.1.1",
+                    "2.2.0",
+                    "2.3.0",
+                    "2.4.0",
+                    "2.4.1",
+                    "2.5.0"
+                  ],
+                  "color": [
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent"
+                  ]
+                }
+              },
+              {
+                "targetField": "KES",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "3.0.0",
+                    "3.1.0",
+                    "3.2.0",
+                    "3.2.1"
+                  ],
+                  "color": [
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent"
+                  ]
+                }
+              },
+              {
+                "targetField": "KTRS",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "5.4.2",
+                    "5.5.0",
+                    "5.5.1"
+                  ],
+                  "color": [
+                    "transparent",
+                    "transparent",
+                    "transparent"
+                  ]
+                }
+              },
+              {
+                "targetField": "Gateway",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.8.3",
+                    "2.0.0",
+                    "2.0.1"
+                  ],
+                  "color": [
+                    "transparent",
+                    "transparent",
+                    "transparent"
+                  ]
+                }
+              },
+              {
+                "targetField": "TestCampaign",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "TC-2026.1",
+                    "TC-2026.2",
+                    "TC-2026.3"
+                  ],
+                  "color": [
+                    "transparent",
+                    "transparent",
+                    "transparent"
+                  ]
+                }
+              },
+              {
+                "targetField": "changed",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "no change",
+                    "first campaign on IN",
+                    "first campaign on OUT",
+                    "KMS",
+                    "KES",
+                    "KTRS",
+                    "Gateway",
+                    "TestCampaign",
+                    "KMS, KES",
+                    "KMS, KTRS",
+                    "KMS, Gateway",
+                    "KMS, TestCampaign",
+                    "KES, KTRS",
+                    "KES, Gateway",
+                    "KES, TestCampaign",
+                    "KTRS, Gateway",
+                    "KTRS, TestCampaign",
+                    "Gateway, TestCampaign",
+                    "KMS, KES, KTRS",
+                    "KMS, KES, Gateway",
+                    "KMS, KES, TestCampaign",
+                    "KMS, KTRS, Gateway",
+                    "KMS, KTRS, TestCampaign",
+                    "KMS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway",
+                    "KES, KTRS, TestCampaign",
+                    "KES, Gateway, TestCampaign",
+                    "KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway",
+                    "KMS, KES, KTRS, TestCampaign",
+                    "KMS, KES, Gateway, TestCampaign",
+                    "KMS, KTRS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway, TestCampaign"
+                  ],
+                  "color": [
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent",
+                    "transparent"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "id": 3,
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 8
+      }
     }
   ]
 }
