@@ -1,0 +1,4 @@
+# local secrets (copy .env.example to .env)
+.env
+__pycache__/
+*.pyc
