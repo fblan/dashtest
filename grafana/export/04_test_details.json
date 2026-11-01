@@ -838,7 +838,7 @@
                 "value": [
                   {
                     "title": "Open step details",
-                    "url": "/d/kitchen-step/step-details?var-test=${test}&var-step=${__data.fields.step_id}&var-compare=${__data.fields.compare_step}&${platform:queryparam}&${__url_time_range}"
+                    "url": "/d/kitchen-step/step-details?var-test=${test}&var-step=${__data.fields.step_id}&var-compare=${__data.fields.compare_step}&${platform:queryparam}&${__url_time_range}&var-action_status=%24__all&var-change=all"
                   }
                 ]
               }
