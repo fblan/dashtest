@@ -68,7 +68,11 @@ INSERT INTO campaign (id, platform, kms_version, kms_version_order, kes_version,
 (65, 'IN', '2.4.0', 13, '3.2.0', '5.5.1', '2.0.1', 'TC-2026.3', '2026-10-14T23:42:00+00:00', '2026-10-15T03:22:53.334000+00:00'),
 (66, 'IN', '2.4.0', 13, '3.2.0', '5.5.1', '2.0.1', 'TC-2026.3', '2026-10-19T20:01:00+00:00', '2026-10-19T23:49:17.535000+00:00'),
 (67, 'OUT', '2.4.0', 13, '3.2.0', '5.5.1', '2.0.1', 'TC-2026.3', '2026-10-22T08:20:00+00:00', '2026-10-22T12:15:56.338000+00:00'),
-(68, 'IN', '2.4.0', 13, '3.2.0', '5.5.1', '2.0.1', 'TC-2026.3', '2026-10-24T23:14:00+00:00', '2026-10-25T02:46:41.982000+00:00');
+(68, 'IN', '2.4.0', 13, '3.2.0', '5.5.1', '2.0.1', 'TC-2026.3', '2026-10-24T23:14:00+00:00', '2026-10-25T02:46:41.982000+00:00'),
+(69, 'IN', '2.4.1', 14, '3.2.1', '5.5.1', '2.0.1', 'TC-2026.3', '2026-10-27T22:10:00+00:00', '2026-10-28T02:02:35.461000+00:00'),
+(70, 'OUT', '2.4.1', 14, '3.2.1', '5.5.1', '2.0.1', 'TC-2026.3', '2026-10-28T10:05:00+00:00', '2026-10-28T13:53:15.540000+00:00'),
+(71, 'IN', '2.5.0', 15, '3.2.1', '5.5.1', '2.0.1', 'TC-2026.3', '2026-10-30T21:50:00+00:00', '2026-10-31T01:06:03.212000+00:00'),
+(72, 'OUT', '2.5.0', 15, '3.2.1', '5.5.1', '2.0.1', 'TC-2026.3', '2026-10-31T09:55:00+00:00', '2026-10-31T13:08:18.316000+00:00');
 INSERT INTO test (id, campaign_id, rank, name, started_at, ended_at) VALUES
 (1, 1, 1, '01_fridge_ingredient_check', '2026-04-01T11:26:00+00:00', '2026-04-01T11:42:47.065000+00:00'),
 (2, 1, 2, '02_mixer_brioche_dough', '2026-04-01T11:42:47.065000+00:00', '2026-04-01T12:05:52.863000+00:00'),
@@ -1091,7 +1095,67 @@ INSERT INTO test (id, campaign_id, rank, name, started_at, ended_at) VALUES
 (1017, 68, 12, '12_oven_sourdough_bread', '2026-10-25T01:56:58.268000+00:00', '2026-10-25T02:14:14.801000+00:00'),
 (1018, 68, 13, '13_grill_vegetable_skewers', '2026-10-25T02:14:14.801000+00:00', '2026-10-25T02:25:17.319000+00:00'),
 (1019, 68, 14, '14_sous_vide_creme_brulee', '2026-10-25T02:25:17.319000+00:00', '2026-10-25T02:40:12.325000+00:00'),
-(1020, 68, 15, '15_dishwasher_cleanup', '2026-10-25T02:40:12.325000+00:00', '2026-10-25T02:46:41.982000+00:00');
+(1020, 68, 15, '15_dishwasher_cleanup', '2026-10-25T02:40:12.325000+00:00', '2026-10-25T02:46:41.982000+00:00'),
+(1021, 69, 1, '01_fridge_ingredient_check', '2026-10-27T22:10:00+00:00', '2026-10-27T22:22:11.212000+00:00'),
+(1022, 69, 2, '02_mixer_brioche_dough', '2026-10-27T22:22:11.212000+00:00', '2026-10-27T22:44:57.427000+00:00'),
+(1023, 69, 3, '03_oven_beef_wellington', '2026-10-27T22:44:57.427000+00:00', '2026-10-27T23:14:18.493000+00:00'),
+(1024, 69, 4, '04_sous_vide_duck_breast', '2026-10-27T23:14:18.493000+00:00', '2026-10-27T23:25:26.951000+00:00'),
+(1025, 69, 5, '05_stove_hollandaise', '2026-10-27T23:25:26.951000+00:00', '2026-10-27T23:41:41.161000+00:00'),
+(1026, 69, 6, '06_fryer_tempura', '2026-10-27T23:41:41.161000+00:00', '2026-10-27T23:55:35.590000+00:00'),
+(1027, 69, 7, '07_steamer_dim_sum', '2026-10-27T23:55:35.590000+00:00', '2026-10-28T00:06:18.648000+00:00'),
+(1028, 69, 8, '08_blender_gazpacho', '2026-10-28T00:06:18.648000+00:00', '2026-10-28T00:14:45.507000+00:00'),
+(1029, 69, 9, '09_grill_ribeye', '2026-10-28T00:14:45.507000+00:00', '2026-10-28T00:33:32.920000+00:00'),
+(1030, 69, 10, '10_oven_souffle', '2026-10-28T00:33:32.920000+00:00', '2026-10-28T00:47:45.146000+00:00'),
+(1031, 69, 11, '11_stove_risotto', '2026-10-28T00:47:45.146000+00:00', '2026-10-28T00:59:31.987000+00:00'),
+(1032, 69, 12, '12_oven_sourdough_bread', '2026-10-28T00:59:31.987000+00:00', '2026-10-28T01:15:27.932000+00:00'),
+(1033, 69, 13, '13_grill_vegetable_skewers', '2026-10-28T01:15:27.932000+00:00', '2026-10-28T01:26:18.418000+00:00'),
+(1034, 69, 14, '14_sous_vide_creme_brulee', '2026-10-28T01:26:18.418000+00:00', '2026-10-28T01:46:42.668000+00:00'),
+(1035, 69, 15, '15_dishwasher_cleanup', '2026-10-28T01:46:42.668000+00:00', '2026-10-28T02:02:35.461000+00:00'),
+(1036, 70, 1, '01_fridge_ingredient_check', '2026-10-28T10:05:00+00:00', '2026-10-28T10:16:18.058000+00:00'),
+(1037, 70, 2, '02_mixer_brioche_dough', '2026-10-28T10:16:18.058000+00:00', '2026-10-28T10:37:13.495000+00:00'),
+(1038, 70, 3, '03_oven_beef_wellington', '2026-10-28T10:37:13.495000+00:00', '2026-10-28T11:02:03.701000+00:00'),
+(1039, 70, 4, '04_sous_vide_duck_breast', '2026-10-28T11:02:03.701000+00:00', '2026-10-28T11:17:21.329000+00:00'),
+(1040, 70, 5, '05_stove_hollandaise', '2026-10-28T11:17:21.329000+00:00', '2026-10-28T11:28:57.960000+00:00'),
+(1041, 70, 6, '06_fryer_tempura', '2026-10-28T11:28:57.960000+00:00', '2026-10-28T11:46:48.585000+00:00'),
+(1042, 70, 7, '07_steamer_dim_sum', '2026-10-28T11:46:48.585000+00:00', '2026-10-28T12:02:48.057000+00:00'),
+(1043, 70, 8, '08_blender_gazpacho', '2026-10-28T12:02:48.057000+00:00', '2026-10-28T12:16:15.014000+00:00'),
+(1044, 70, 9, '09_grill_ribeye', '2026-10-28T12:16:15.014000+00:00', '2026-10-28T12:28:15.062000+00:00'),
+(1045, 70, 10, '10_oven_souffle', '2026-10-28T12:28:15.062000+00:00', '2026-10-28T12:47:12.663000+00:00'),
+(1046, 70, 11, '11_stove_risotto', '2026-10-28T12:47:12.663000+00:00', '2026-10-28T12:55:41.926000+00:00'),
+(1047, 70, 12, '12_oven_sourdough_bread', '2026-10-28T12:55:41.926000+00:00', '2026-10-28T13:10:19.800000+00:00'),
+(1048, 70, 13, '13_grill_vegetable_skewers', '2026-10-28T13:10:19.800000+00:00', '2026-10-28T13:17:49.412000+00:00'),
+(1049, 70, 14, '14_sous_vide_creme_brulee', '2026-10-28T13:17:49.412000+00:00', '2026-10-28T13:39:07.651000+00:00'),
+(1050, 70, 15, '15_dishwasher_cleanup', '2026-10-28T13:39:07.651000+00:00', '2026-10-28T13:53:15.540000+00:00'),
+(1051, 71, 1, '01_fridge_ingredient_check', '2026-10-30T21:50:00+00:00', '2026-10-30T22:01:23.265000+00:00'),
+(1052, 71, 2, '02_mixer_brioche_dough', '2026-10-30T22:01:23.265000+00:00', '2026-10-30T22:17:50.636000+00:00'),
+(1053, 71, 3, '03_oven_beef_wellington', '2026-10-30T22:17:50.636000+00:00', '2026-10-30T22:44:30.132000+00:00'),
+(1054, 71, 4, '04_sous_vide_duck_breast', '2026-10-30T22:44:30.132000+00:00', '2026-10-30T22:56:32.344000+00:00'),
+(1055, 71, 5, '05_stove_hollandaise', '2026-10-30T22:56:32.344000+00:00', '2026-10-30T23:10:49.906000+00:00'),
+(1056, 71, 6, '06_fryer_tempura', '2026-10-30T23:10:49.906000+00:00', '2026-10-30T23:23:42.304000+00:00'),
+(1057, 71, 7, '07_steamer_dim_sum', '2026-10-30T23:23:42.304000+00:00', '2026-10-30T23:34:27.703000+00:00'),
+(1058, 71, 8, '08_blender_gazpacho', '2026-10-30T23:34:27.703000+00:00', '2026-10-30T23:39:04.236000+00:00'),
+(1059, 71, 9, '09_grill_ribeye', '2026-10-30T23:39:04.236000+00:00', '2026-10-30T23:48:31.178000+00:00'),
+(1060, 71, 10, '10_oven_souffle', '2026-10-30T23:48:31.178000+00:00', '2026-10-30T23:59:56.075000+00:00'),
+(1061, 71, 11, '11_stove_risotto', '2026-10-30T23:59:56.075000+00:00', '2026-10-31T00:05:31.518000+00:00'),
+(1062, 71, 12, '12_oven_sourdough_bread', '2026-10-31T00:05:31.518000+00:00', '2026-10-31T00:20:49.066000+00:00'),
+(1063, 71, 13, '13_grill_vegetable_skewers', '2026-10-31T00:20:49.066000+00:00', '2026-10-31T00:27:45.415000+00:00'),
+(1064, 71, 14, '14_sous_vide_creme_brulee', '2026-10-31T00:27:45.415000+00:00', '2026-10-31T00:48:59.055000+00:00'),
+(1065, 71, 15, '15_dishwasher_cleanup', '2026-10-31T00:48:59.055000+00:00', '2026-10-31T01:06:03.212000+00:00'),
+(1066, 72, 1, '01_fridge_ingredient_check', '2026-10-31T09:55:00+00:00', '2026-10-31T10:08:09.931000+00:00'),
+(1067, 72, 2, '02_mixer_brioche_dough', '2026-10-31T10:08:09.931000+00:00', '2026-10-31T10:26:26.950000+00:00'),
+(1068, 72, 3, '03_oven_beef_wellington', '2026-10-31T10:26:26.950000+00:00', '2026-10-31T10:56:53.968000+00:00'),
+(1069, 72, 4, '04_sous_vide_duck_breast', '2026-10-31T10:56:53.968000+00:00', '2026-10-31T11:09:11.326000+00:00'),
+(1070, 72, 5, '05_stove_hollandaise', '2026-10-31T11:09:11.326000+00:00', '2026-10-31T11:20:35.392000+00:00'),
+(1071, 72, 6, '06_fryer_tempura', '2026-10-31T11:20:35.392000+00:00', '2026-10-31T11:29:19.192000+00:00'),
+(1072, 72, 7, '07_steamer_dim_sum', '2026-10-31T11:29:19.192000+00:00', '2026-10-31T11:39:55.319000+00:00'),
+(1073, 72, 8, '08_blender_gazpacho', '2026-10-31T11:39:55.319000+00:00', '2026-10-31T11:46:34.433000+00:00'),
+(1074, 72, 9, '09_grill_ribeye', '2026-10-31T11:46:34.433000+00:00', '2026-10-31T11:53:22.280000+00:00'),
+(1075, 72, 10, '10_oven_souffle', '2026-10-31T11:53:22.280000+00:00', '2026-10-31T12:06:51.028000+00:00'),
+(1076, 72, 11, '11_stove_risotto', '2026-10-31T12:06:51.028000+00:00', '2026-10-31T12:16:43.163000+00:00'),
+(1077, 72, 12, '12_oven_sourdough_bread', '2026-10-31T12:16:43.163000+00:00', '2026-10-31T12:32:00.941000+00:00'),
+(1078, 72, 13, '13_grill_vegetable_skewers', '2026-10-31T12:32:00.941000+00:00', '2026-10-31T12:40:13.560000+00:00'),
+(1079, 72, 14, '14_sous_vide_creme_brulee', '2026-10-31T12:40:13.560000+00:00', '2026-10-31T12:53:22.347000+00:00'),
+(1080, 72, 15, '15_dishwasher_cleanup', '2026-10-31T12:53:22.347000+00:00', '2026-10-31T13:08:18.316000+00:00');
 INSERT INTO step (id, test_id, position, description, expected_result, actual_result) VALUES
 (1, 1, 1, 'Inventory scan of the fridge.
 The vision system identifies every item on shelves 1-4 and in the door racks,
@@ -8231,7 +8295,423 @@ Dishes dry.', 'FAILED at action 2.2
 Water temperature: 52°C
 1 remaining action(s) skipped'),
 (3264, 1020, 3, 'Inspect and unload.', 'No residue.
-All dishes stored.', 'Not executed: test stopped at action 2.2');
+All dishes stored.', 'Not executed: test stopped at action 2.2'),
+(3265, 1021, 1, 'Inventory scan of the fridge.
+The vision system identifies every item on shelves 1-4 and in the door racks,
+then reads the expiry date labels.', 'Inventory matches the reference load list (42 items).
+No expired or unidentified item.', 'OK: all 2 actions passed'),
+(3266, 1021, 2, 'Temperature check of the fridge and freezer compartments.
+Measurements are taken after the door has been closed for 5 minutes.', 'Fridge 4°C ±1
+Freezer -18°C ±2', 'OK: all 2 actions passed'),
+(3267, 1021, 3, 'Shopping list generation.
+Compare the inventory with tonight''s menu and push the missing items to the mobile app.', 'Shopping list created.
+Push notification received on the paired phone.', 'OK: all 2 actions passed'),
+(3268, 1022, 1, 'Weigh and load the ingredients into the mixer bowl.
+Recipe: flour 500 g, sugar 60 g, salt 10 g, yeast 15 g, eggs 5, butter 250 g (added later).', 'All dry ingredients and eggs loaded within tolerance.', 'OK: all 3 actions passed'),
+(3269, 1022, 2, 'Knead the dough.
+Speed 2 for 8 minutes, then incorporate the butter at speed 4.', 'Smooth, elastic dough.
+Windowpane test passed.
+Dough temperature below 26°C.', 'OK: all 3 actions passed'),
+(3270, 1022, 3, 'Proof the dough in the proofing drawer.', 'Dough doubled in volume after 2 h at 27°C.', 'OK: all 2 actions passed'),
+(3271, 1022, 4, 'Shape and bake the brioche.
+Braid into a loaf tin, egg-wash, bake at 180°C.', 'Golden crust.
+Core temperature 92°C at the end of baking.', 'OK: all 2 actions passed'),
+(3272, 1023, 1, 'Sear the beef fillet.
+1.2 kg centre-cut fillet, seasoned, seared on all 4 sides.', 'Even brown crust on all sides.
+Core still raw (below 20°C).', 'OK: all 2 actions passed'),
+(3273, 1023, 2, 'Prepare the duxelles.
+500 g chestnut mushrooms chopped, cooked until all moisture evaporates.', 'Dry, spreadable mushroom paste.', 'OK: all 2 actions passed'),
+(3274, 1023, 3, 'Wrap the fillet.
+Layer prosciutto and duxelles on cling film, roll the fillet,
+then wrap in puff pastry and chill.', 'Fillet fully wrapped, seam sealed.
+Pastry firm after chilling.', 'OK: all 3 actions passed'),
+(3275, 1023, 4, 'Bake the Wellington.
+Oven preheated to 200°C, baked 35 min until the core reaches 52°C.', 'Golden pastry.
+Core temperature 52°C ±2 (medium rare).', 'OK: all 3 actions passed'),
+(3276, 1023, 5, 'Rest and slice.', 'Even pink centre, 8 clean slices.', 'OK: all 2 actions passed'),
+(3277, 1024, 1, 'Prepare and vacuum-seal the duck breasts.', '2 bags sealed below 10 mbar.', 'OK: all 2 actions passed'),
+(3278, 1024, 2, 'Cook in the water bath.
+57°C for 2 hours.', 'Bath held at 57°C ±0.5 for 2 hours.', 'OK: all 3 actions passed'),
+(3279, 1024, 3, 'Finish in the pan.
+Sear skin side down until crispy.', 'Crispy skin.
+Core 57°C, pink flesh.', 'OK: all 2 actions passed'),
+(3280, 1025, 1, 'Clarify the butter.
+Melt 250 g of butter gently and remove the milk solids.', 'Clear, golden butterfat.', 'OK: all 2 actions passed'),
+(3281, 1025, 2, 'Make the sabayon.
+Whisk 3 yolks with 2 tbsp water over a bain-marie until ribbon stage.', 'Thick, pale sabayon at ribbon stage.
+No scrambled egg.', 'OK: all 2 actions passed'),
+(3282, 1025, 3, 'Emulsify and season.', 'Stable, glossy sauce.
+pH 4.5 ±0.3.', 'OK: all 2 actions passed'),
+(3283, 1026, 1, 'Prepare the batter.
+Ice-cold water, flour and egg, mixed briefly (lumps are fine).', 'Cold, lumpy batter below 6°C.', 'OK: all 2 actions passed'),
+(3284, 1026, 2, 'Heat the frying oil.', 'Oil stable at 180°C ±3.', 'OK: all 2 actions passed'),
+(3285, 1026, 3, 'Fry prawns and vegetables in batches of 6 pieces.', 'Light, crispy, pale golden coating.
+Oil content below 5%.', 'OK: all 3 actions passed'),
+(3286, 1027, 1, 'Prepare the wrapper dough.
+Wheat starch and tapioca with boiling water, rested 10 min.', 'Smooth dough, 24 wrappers of 8 cm.', 'OK: all 2 actions passed'),
+(3287, 1027, 2, 'Fill and pleat the har gow.', '24 sealed dumplings with 7 pleats.', 'OK: all 2 actions passed'),
+(3288, 1027, 3, 'Steam the dumplings.', 'Translucent wrappers.
+Core 75°C.', 'OK: all 2 actions passed'),
+(3289, 1028, 1, 'Load the vegetables.
+Tomatoes 1 kg, cucumber 200 g, red pepper 150 g, garlic 1 clove, bread 50 g.', 'All ingredients loaded within ±2%.', 'OK: all 2 actions passed'),
+(3290, 1028, 2, 'Blend.
+90 s at maximum speed, then emulsify 80 ml olive oil at medium speed.', 'Smooth soup, stable emulsion.', 'OK: all 2 actions passed'),
+(3291, 1028, 3, 'Chill the gazpacho.', 'Served at 6°C.', 'OK: all 2 actions passed'),
+(3292, 1029, 1, 'Temper and season the steak.
+350 g ribeye, 3 cm thick.', 'Steak at room temperature, seasoned with 1% salt.', 'OK: all 2 actions passed'),
+(3293, 1029, 2, 'Grill to medium rare.', 'Crosshatch marks.
+Core 54°C ±1.', 'OK: all 3 actions passed'),
+(3294, 1029, 3, 'Rest the steak.', 'Juices redistributed, core 56°C.', 'OK: all 1 actions passed'),
+(3295, 1030, 1, 'Prepare 6 ramekins.
+Butter with upward strokes and coat with sugar.', 'All ramekins evenly buttered and sugared.', 'OK: all 2 actions passed'),
+(3296, 1030, 2, 'Make the chocolate base.
+Melt 150 g dark chocolate, fold in 4 yolks.', 'Smooth, homogeneous base at 40-50°C.', 'OK: all 2 actions passed'),
+(3297, 1030, 3, 'Whip the egg whites and fold them in.', 'Stiff peaks.
+Volume kept above 90% after folding.', 'OK: all 2 actions passed'),
+(3298, 1030, 4, 'Bake the soufflés.
+190°C for 12 minutes, door closed.', 'Risen 4 cm above the rim.
+No collapse within 60 s of serving.', 'OK: all 3 actions passed'),
+(3299, 1031, 1, 'Toast the rice.
+Sweat 1 shallot in butter, add 320 g carnaroli rice.', 'Shallot translucent, rice edges translucent.', 'OK: all 2 actions passed'),
+(3300, 1031, 2, 'Cook the risotto.
+Deglaze with 100 ml white wine, then add hot stock ladle by ladle for 18 min.', 'Rice al dente, creamy texture.', 'OK: all 2 actions passed'),
+(3301, 1031, 3, 'Mantecatura.
+Off the heat, beat in cold butter and parmesan.', 'Creamy, flowing ''all''onda'' texture.', 'OK: all 1 actions passed'),
+(3302, 1032, 1, 'Feed the levain.', 'Starter doubled within 6 hours.', 'OK: all 1 actions passed'),
+(3303, 1032, 2, 'Bulk fermentation.
+Autolyse 1 h, add levain and salt, 4 sets of stretch and folds.', 'Dough volume +50% after 4 h at 24°C.', 'OK: all 3 actions passed'),
+(3304, 1032, 3, 'Bake the loaf.
+In a dutch oven at 250°C, 20 min covered with steam, then 25 min uncovered.', 'Open crumb.
+Core 98°C, deep brown crust.', 'OK: all 3 actions passed'),
+(3305, 1033, 1, 'Prepare 12 vegetable skewers.
+Courgette, pepper, red onion and cherry tomatoes cut in 3 cm pieces.', '12 skewers with uniform pieces.', 'OK: all 2 actions passed'),
+(3306, 1033, 2, 'Grill the skewers on the rotisserie.', 'Charred edges, tender vegetables.', 'OK: all 2 actions passed'),
+(3307, 1034, 1, 'Make the custard.
+Infuse 500 ml cream with a vanilla pod, temper into 6 yolks and 100 g sugar.', 'Smooth custard, 6 jars of 120 g.', 'OK: all 3 actions passed'),
+(3308, 1034, 2, 'Cook and chill.
+82°C water bath for 1 hour, then chill 4 hours.', 'Set custard, chilled to 4°C.', 'OK: all 3 actions passed'),
+(3309, 1034, 3, 'Brûlée.
+Sprinkle sugar and caramelise with the torch.', 'Glassy amber crust on all 6 jars.', 'OK: all 2 actions passed'),
+(3310, 1035, 1, 'Load the dishwasher.', '24 plates and 6 pans loaded.', 'OK: all 2 actions passed'),
+(3311, 1035, 2, 'Run the intensive wash programme.
+Pre-rinse 40°C, main wash 65°C for 45 min, rinse, dry.', 'Wash temperatures reached.
+Dishes dry.', 'OK: all 3 actions passed'),
+(3312, 1035, 3, 'Inspect and unload.', 'No residue.
+All dishes stored.', 'OK: all 2 actions passed'),
+(3313, 1036, 1, 'Inventory scan of the fridge.
+The vision system identifies every item on shelves 1-4 and in the door racks,
+then reads the expiry date labels.', 'Inventory matches the reference load list (42 items).
+No expired or unidentified item.', 'OK: all 2 actions passed'),
+(3314, 1036, 2, 'Temperature check of the fridge and freezer compartments.
+Measurements are taken after the door has been closed for 5 minutes.', 'Fridge 4°C ±1
+Freezer -18°C ±2', 'OK: all 2 actions passed'),
+(3315, 1036, 3, 'Shopping list generation.
+Compare the inventory with tonight''s menu and push the missing items to the mobile app.', 'Shopping list created.
+Push notification received on the paired phone.', 'OK: all 2 actions passed'),
+(3316, 1037, 1, 'Weigh and load the ingredients into the mixer bowl.
+Recipe: flour 500 g, sugar 60 g, salt 10 g, yeast 15 g, eggs 5, butter 250 g (added later).', 'All dry ingredients and eggs loaded within tolerance.', 'OK: all 3 actions passed'),
+(3317, 1037, 2, 'Knead the dough.
+Speed 2 for 8 minutes, then incorporate the butter at speed 4.', 'Smooth, elastic dough.
+Windowpane test passed.
+Dough temperature below 26°C.', 'OK: all 3 actions passed'),
+(3318, 1037, 3, 'Proof the dough in the proofing drawer.', 'Dough doubled in volume after 2 h at 27°C.', 'OK: all 2 actions passed'),
+(3319, 1037, 4, 'Shape and bake the brioche.
+Braid into a loaf tin, egg-wash, bake at 180°C.', 'Golden crust.
+Core temperature 92°C at the end of baking.', 'OK: all 2 actions passed'),
+(3320, 1038, 1, 'Sear the beef fillet.
+1.2 kg centre-cut fillet, seasoned, seared on all 4 sides.', 'Even brown crust on all sides.
+Core still raw (below 20°C).', 'OK: all 2 actions passed'),
+(3321, 1038, 2, 'Prepare the duxelles.
+500 g chestnut mushrooms chopped, cooked until all moisture evaporates.', 'Dry, spreadable mushroom paste.', 'OK: all 2 actions passed'),
+(3322, 1038, 3, 'Wrap the fillet.
+Layer prosciutto and duxelles on cling film, roll the fillet,
+then wrap in puff pastry and chill.', 'Fillet fully wrapped, seam sealed.
+Pastry firm after chilling.', 'OK: all 3 actions passed'),
+(3323, 1038, 4, 'Bake the Wellington.
+Oven preheated to 200°C, baked 35 min until the core reaches 52°C.', 'Golden pastry.
+Core temperature 52°C ±2 (medium rare).', 'OK: all 3 actions passed'),
+(3324, 1038, 5, 'Rest and slice.', 'Even pink centre, 8 clean slices.', 'OK: all 2 actions passed'),
+(3325, 1039, 1, 'Prepare and vacuum-seal the duck breasts.', '2 bags sealed below 10 mbar.', 'OK: all 2 actions passed'),
+(3326, 1039, 2, 'Cook in the water bath.
+57°C for 2 hours.', 'Bath held at 57°C ±0.5 for 2 hours.', 'OK: all 3 actions passed'),
+(3327, 1039, 3, 'Finish in the pan.
+Sear skin side down until crispy.', 'Crispy skin.
+Core 57°C, pink flesh.', 'OK: all 2 actions passed'),
+(3328, 1040, 1, 'Clarify the butter.
+Melt 250 g of butter gently and remove the milk solids.', 'Clear, golden butterfat.', 'OK: all 2 actions passed'),
+(3329, 1040, 2, 'Make the sabayon.
+Whisk 3 yolks with 2 tbsp water over a bain-marie until ribbon stage.', 'Thick, pale sabayon at ribbon stage.
+No scrambled egg.', 'OK: all 2 actions passed'),
+(3330, 1040, 3, 'Emulsify and season.', 'Stable, glossy sauce.
+pH 4.5 ±0.3.', 'OK: all 2 actions passed'),
+(3331, 1041, 1, 'Prepare the batter.
+Ice-cold water, flour and egg, mixed briefly (lumps are fine).', 'Cold, lumpy batter below 6°C.', 'OK: all 2 actions passed'),
+(3332, 1041, 2, 'Heat the frying oil.', 'Oil stable at 180°C ±3.', 'OK: all 2 actions passed'),
+(3333, 1041, 3, 'Fry prawns and vegetables in batches of 6 pieces.', 'Light, crispy, pale golden coating.
+Oil content below 5%.', 'OK: all 3 actions passed'),
+(3334, 1042, 1, 'Prepare the wrapper dough.
+Wheat starch and tapioca with boiling water, rested 10 min.', 'Smooth dough, 24 wrappers of 8 cm.', 'OK: all 2 actions passed'),
+(3335, 1042, 2, 'Fill and pleat the har gow.', '24 sealed dumplings with 7 pleats.', 'OK: all 2 actions passed'),
+(3336, 1042, 3, 'Steam the dumplings.', 'Translucent wrappers.
+Core 75°C.', 'OK: all 2 actions passed'),
+(3337, 1043, 1, 'Load the vegetables.
+Tomatoes 1 kg, cucumber 200 g, red pepper 150 g, garlic 1 clove, bread 50 g.', 'All ingredients loaded within ±2%.', 'OK: all 2 actions passed'),
+(3338, 1043, 2, 'Blend.
+90 s at maximum speed, then emulsify 80 ml olive oil at medium speed.', 'Smooth soup, stable emulsion.', 'OK: all 2 actions passed'),
+(3339, 1043, 3, 'Chill the gazpacho.', 'Served at 6°C.', 'OK: all 2 actions passed'),
+(3340, 1044, 1, 'Temper and season the steak.
+350 g ribeye, 3 cm thick.', 'Steak at room temperature, seasoned with 1% salt.', 'OK: all 2 actions passed'),
+(3341, 1044, 2, 'Grill to medium rare.', 'Crosshatch marks.
+Core 54°C ±1.', 'OK: all 3 actions passed'),
+(3342, 1044, 3, 'Rest the steak.', 'Juices redistributed, core 56°C.', 'OK: all 1 actions passed'),
+(3343, 1045, 1, 'Prepare 6 ramekins.
+Butter with upward strokes and coat with sugar.', 'All ramekins evenly buttered and sugared.', 'OK: all 2 actions passed'),
+(3344, 1045, 2, 'Make the chocolate base.
+Melt 150 g dark chocolate, fold in 4 yolks.', 'Smooth, homogeneous base at 40-50°C.', 'OK: all 2 actions passed'),
+(3345, 1045, 3, 'Whip the egg whites and fold them in.', 'Stiff peaks.
+Volume kept above 90% after folding.', 'OK: all 2 actions passed'),
+(3346, 1045, 4, 'Bake the soufflés.
+190°C for 12 minutes, door closed.', 'Risen 4 cm above the rim.
+No collapse within 60 s of serving.', 'OK: all 3 actions passed'),
+(3347, 1046, 1, 'Toast the rice.
+Sweat 1 shallot in butter, add 320 g carnaroli rice.', 'Shallot translucent, rice edges translucent.', 'OK: all 2 actions passed'),
+(3348, 1046, 2, 'Cook the risotto.
+Deglaze with 100 ml white wine, then add hot stock ladle by ladle for 18 min.', 'Rice al dente, creamy texture.', 'OK: all 2 actions passed'),
+(3349, 1046, 3, 'Mantecatura.
+Off the heat, beat in cold butter and parmesan.', 'Creamy, flowing ''all''onda'' texture.', 'OK: all 1 actions passed'),
+(3350, 1047, 1, 'Feed the levain.', 'Starter doubled within 6 hours.', 'OK: all 1 actions passed'),
+(3351, 1047, 2, 'Bulk fermentation.
+Autolyse 1 h, add levain and salt, 4 sets of stretch and folds.', 'Dough volume +50% after 4 h at 24°C.', 'OK: all 3 actions passed'),
+(3352, 1047, 3, 'Bake the loaf.
+In a dutch oven at 250°C, 20 min covered with steam, then 25 min uncovered.', 'Open crumb.
+Core 98°C, deep brown crust.', 'OK: all 3 actions passed'),
+(3353, 1048, 1, 'Prepare 12 vegetable skewers.
+Courgette, pepper, red onion and cherry tomatoes cut in 3 cm pieces.', '12 skewers with uniform pieces.', 'OK: all 2 actions passed'),
+(3354, 1048, 2, 'Grill the skewers on the rotisserie.', 'Charred edges, tender vegetables.', 'OK: all 2 actions passed'),
+(3355, 1049, 1, 'Make the custard.
+Infuse 500 ml cream with a vanilla pod, temper into 6 yolks and 100 g sugar.', 'Smooth custard, 6 jars of 120 g.', 'OK: all 3 actions passed'),
+(3356, 1049, 2, 'Cook and chill.
+82°C water bath for 1 hour, then chill 4 hours.', 'Set custard, chilled to 4°C.', 'OK: all 3 actions passed'),
+(3357, 1049, 3, 'Brûlée.
+Sprinkle sugar and caramelise with the torch.', 'Glassy amber crust on all 6 jars.', 'OK: all 2 actions passed'),
+(3358, 1050, 1, 'Load the dishwasher.', '24 plates and 6 pans loaded.', 'OK: all 2 actions passed'),
+(3359, 1050, 2, 'Run the intensive wash programme.
+Pre-rinse 40°C, main wash 65°C for 45 min, rinse, dry.', 'Wash temperatures reached.
+Dishes dry.', 'OK: all 3 actions passed'),
+(3360, 1050, 3, 'Inspect and unload.', 'No residue.
+All dishes stored.', 'OK: all 2 actions passed'),
+(3361, 1051, 1, 'Inventory scan of the fridge.
+The vision system identifies every item on shelves 1-4 and in the door racks,
+then reads the expiry date labels.', 'Inventory matches the reference load list (42 items).
+No expired or unidentified item.', 'OK: all 2 actions passed'),
+(3362, 1051, 2, 'Temperature check of the fridge and freezer compartments.
+Measurements are taken after the door has been closed for 5 minutes.', 'Fridge 4°C ±1
+Freezer -18°C ±2', 'OK: all 2 actions passed'),
+(3363, 1051, 3, 'Shopping list generation.
+Compare the inventory with tonight''s menu and push the missing items to the mobile app.', 'Shopping list created.
+Push notification received on the paired phone.', 'OK: all 2 actions passed'),
+(3364, 1052, 1, 'Weigh and load the ingredients into the mixer bowl.
+Recipe: flour 500 g, sugar 60 g, salt 10 g, yeast 15 g, eggs 5, butter 250 g (added later).', 'All dry ingredients and eggs loaded within tolerance.', 'OK: all 3 actions passed'),
+(3365, 1052, 2, 'Knead the dough.
+Speed 2 for 8 minutes, then incorporate the butter at speed 4.', 'Smooth, elastic dough.
+Windowpane test passed.
+Dough temperature below 26°C.', 'OK: all 3 actions passed'),
+(3366, 1052, 3, 'Proof the dough in the proofing drawer.', 'Dough doubled in volume after 2 h at 27°C.', 'OK: all 2 actions passed'),
+(3367, 1052, 4, 'Shape and bake the brioche.
+Braid into a loaf tin, egg-wash, bake at 180°C.', 'Golden crust.
+Core temperature 92°C at the end of baking.', 'OK: all 2 actions passed'),
+(3368, 1053, 1, 'Sear the beef fillet.
+1.2 kg centre-cut fillet, seasoned, seared on all 4 sides.', 'Even brown crust on all sides.
+Core still raw (below 20°C).', 'OK: all 2 actions passed'),
+(3369, 1053, 2, 'Prepare the duxelles.
+500 g chestnut mushrooms chopped, cooked until all moisture evaporates.', 'Dry, spreadable mushroom paste.', 'OK: all 2 actions passed'),
+(3370, 1053, 3, 'Wrap the fillet.
+Layer prosciutto and duxelles on cling film, roll the fillet,
+then wrap in puff pastry and chill.', 'Fillet fully wrapped, seam sealed.
+Pastry firm after chilling.', 'OK: all 3 actions passed'),
+(3371, 1053, 4, 'Bake the Wellington.
+Oven preheated to 200°C, baked 35 min until the core reaches 52°C.', 'Golden pastry.
+Core temperature 52°C ±2 (medium rare).', 'OK: all 3 actions passed'),
+(3372, 1053, 5, 'Rest and slice.', 'Even pink centre, 8 clean slices.', 'OK: all 2 actions passed'),
+(3373, 1054, 1, 'Prepare and vacuum-seal the duck breasts.', '2 bags sealed below 10 mbar.', 'OK: all 2 actions passed'),
+(3374, 1054, 2, 'Cook in the water bath.
+57°C for 2 hours.', 'Bath held at 57°C ±0.5 for 2 hours.', 'OK: all 3 actions passed'),
+(3375, 1054, 3, 'Finish in the pan.
+Sear skin side down until crispy.', 'Crispy skin.
+Core 57°C, pink flesh.', 'OK: all 2 actions passed'),
+(3376, 1055, 1, 'Clarify the butter.
+Melt 250 g of butter gently and remove the milk solids.', 'Clear, golden butterfat.', 'OK: all 2 actions passed'),
+(3377, 1055, 2, 'Make the sabayon.
+Whisk 3 yolks with 2 tbsp water over a bain-marie until ribbon stage.', 'Thick, pale sabayon at ribbon stage.
+No scrambled egg.', 'OK: all 2 actions passed'),
+(3378, 1055, 3, 'Emulsify and season.', 'Stable, glossy sauce.
+pH 4.5 ±0.3.', 'OK: all 2 actions passed'),
+(3379, 1056, 1, 'Prepare the batter.
+Ice-cold water, flour and egg, mixed briefly (lumps are fine).', 'Cold, lumpy batter below 6°C.', 'OK: all 2 actions passed'),
+(3380, 1056, 2, 'Heat the frying oil.', 'Oil stable at 180°C ±3.', 'OK: all 2 actions passed'),
+(3381, 1056, 3, 'Fry prawns and vegetables in batches of 6 pieces.', 'Light, crispy, pale golden coating.
+Oil content below 5%.', 'OK: all 3 actions passed'),
+(3382, 1057, 1, 'Prepare the wrapper dough.
+Wheat starch and tapioca with boiling water, rested 10 min.', 'Smooth dough, 24 wrappers of 8 cm.', 'OK: all 2 actions passed'),
+(3383, 1057, 2, 'Fill and pleat the har gow.', '24 sealed dumplings with 7 pleats.', 'OK: all 2 actions passed'),
+(3384, 1057, 3, 'Steam the dumplings.', 'Translucent wrappers.
+Core 75°C.', 'FAILED at action 3.1
+Steam temperature: 88.0°C
+1 remaining action(s) skipped'),
+(3385, 1058, 1, 'Load the vegetables.
+Tomatoes 1 kg, cucumber 200 g, red pepper 150 g, garlic 1 clove, bread 50 g.', 'All ingredients loaded within ±2%.', 'OK: all 2 actions passed'),
+(3386, 1058, 2, 'Blend.
+90 s at maximum speed, then emulsify 80 ml olive oil at medium speed.', 'Smooth soup, stable emulsion.', 'FAILED at action 2.1
+Particle size: 2.1 mm
+1 remaining action(s) skipped'),
+(3387, 1058, 3, 'Chill the gazpacho.', 'Served at 6°C.', 'Not executed: test stopped at action 2.1'),
+(3388, 1059, 1, 'Temper and season the steak.
+350 g ribeye, 3 cm thick.', 'Steak at room temperature, seasoned with 1% salt.', 'OK: all 2 actions passed'),
+(3389, 1059, 2, 'Grill to medium rare.', 'Crosshatch marks.
+Core 54°C ±1.', 'OK: all 3 actions passed'),
+(3390, 1059, 3, 'Rest the steak.', 'Juices redistributed, core 56°C.', 'OK: all 1 actions passed'),
+(3391, 1060, 1, 'Prepare 6 ramekins.
+Butter with upward strokes and coat with sugar.', 'All ramekins evenly buttered and sugared.', 'OK: all 2 actions passed'),
+(3392, 1060, 2, 'Make the chocolate base.
+Melt 150 g dark chocolate, fold in 4 yolks.', 'Smooth, homogeneous base at 40-50°C.', 'OK: all 2 actions passed'),
+(3393, 1060, 3, 'Whip the egg whites and fold them in.', 'Stiff peaks.
+Volume kept above 90% after folding.', 'OK: all 2 actions passed'),
+(3394, 1060, 4, 'Bake the soufflés.
+190°C for 12 minutes, door closed.', 'Risen 4 cm above the rim.
+No collapse within 60 s of serving.', 'OK: all 3 actions passed'),
+(3395, 1061, 1, 'Toast the rice.
+Sweat 1 shallot in butter, add 320 g carnaroli rice.', 'Shallot translucent, rice edges translucent.', 'OK: all 2 actions passed'),
+(3396, 1061, 2, 'Cook the risotto.
+Deglaze with 100 ml white wine, then add hot stock ladle by ladle for 18 min.', 'Rice al dente, creamy texture.', 'OK: all 2 actions passed'),
+(3397, 1061, 3, 'Mantecatura.
+Off the heat, beat in cold butter and parmesan.', 'Creamy, flowing ''all''onda'' texture.', 'OK: all 1 actions passed'),
+(3398, 1062, 1, 'Feed the levain.', 'Starter doubled within 6 hours.', 'OK: all 1 actions passed'),
+(3399, 1062, 2, 'Bulk fermentation.
+Autolyse 1 h, add levain and salt, 4 sets of stretch and folds.', 'Dough volume +50% after 4 h at 24°C.', 'OK: all 3 actions passed'),
+(3400, 1062, 3, 'Bake the loaf.
+In a dutch oven at 250°C, 20 min covered with steam, then 25 min uncovered.', 'Open crumb.
+Core 98°C, deep brown crust.', 'OK: all 3 actions passed'),
+(3401, 1063, 1, 'Prepare 12 vegetable skewers.
+Courgette, pepper, red onion and cherry tomatoes cut in 3 cm pieces.', '12 skewers with uniform pieces.', 'OK: all 2 actions passed'),
+(3402, 1063, 2, 'Grill the skewers on the rotisserie.', 'Charred edges, tender vegetables.', 'OK: all 2 actions passed'),
+(3403, 1064, 1, 'Make the custard.
+Infuse 500 ml cream with a vanilla pod, temper into 6 yolks and 100 g sugar.', 'Smooth custard, 6 jars of 120 g.', 'OK: all 3 actions passed'),
+(3404, 1064, 2, 'Cook and chill.
+82°C water bath for 1 hour, then chill 4 hours.', 'Set custard, chilled to 4°C.', 'OK: all 3 actions passed'),
+(3405, 1064, 3, 'Brûlée.
+Sprinkle sugar and caramelise with the torch.', 'Glassy amber crust on all 6 jars.', 'OK: all 2 actions passed'),
+(3406, 1065, 1, 'Load the dishwasher.', '24 plates and 6 pans loaded.', 'OK: all 2 actions passed'),
+(3407, 1065, 2, 'Run the intensive wash programme.
+Pre-rinse 40°C, main wash 65°C for 45 min, rinse, dry.', 'Wash temperatures reached.
+Dishes dry.', 'OK: all 3 actions passed'),
+(3408, 1065, 3, 'Inspect and unload.', 'No residue.
+All dishes stored.', 'OK: all 2 actions passed'),
+(3409, 1066, 1, 'Inventory scan of the fridge.
+The vision system identifies every item on shelves 1-4 and in the door racks,
+then reads the expiry date labels.', 'Inventory matches the reference load list (42 items).
+No expired or unidentified item.', 'OK: all 2 actions passed'),
+(3410, 1066, 2, 'Temperature check of the fridge and freezer compartments.
+Measurements are taken after the door has been closed for 5 minutes.', 'Fridge 4°C ±1
+Freezer -18°C ±2', 'OK: all 2 actions passed'),
+(3411, 1066, 3, 'Shopping list generation.
+Compare the inventory with tonight''s menu and push the missing items to the mobile app.', 'Shopping list created.
+Push notification received on the paired phone.', 'OK: all 2 actions passed'),
+(3412, 1067, 1, 'Weigh and load the ingredients into the mixer bowl.
+Recipe: flour 500 g, sugar 60 g, salt 10 g, yeast 15 g, eggs 5, butter 250 g (added later).', 'All dry ingredients and eggs loaded within tolerance.', 'OK: all 3 actions passed'),
+(3413, 1067, 2, 'Knead the dough.
+Speed 2 for 8 minutes, then incorporate the butter at speed 4.', 'Smooth, elastic dough.
+Windowpane test passed.
+Dough temperature below 26°C.', 'OK: all 3 actions passed'),
+(3414, 1067, 3, 'Proof the dough in the proofing drawer.', 'Dough doubled in volume after 2 h at 27°C.', 'OK: all 2 actions passed'),
+(3415, 1067, 4, 'Shape and bake the brioche.
+Braid into a loaf tin, egg-wash, bake at 180°C.', 'Golden crust.
+Core temperature 92°C at the end of baking.', 'OK: all 2 actions passed'),
+(3416, 1068, 1, 'Sear the beef fillet.
+1.2 kg centre-cut fillet, seasoned, seared on all 4 sides.', 'Even brown crust on all sides.
+Core still raw (below 20°C).', 'OK: all 2 actions passed'),
+(3417, 1068, 2, 'Prepare the duxelles.
+500 g chestnut mushrooms chopped, cooked until all moisture evaporates.', 'Dry, spreadable mushroom paste.', 'OK: all 2 actions passed'),
+(3418, 1068, 3, 'Wrap the fillet.
+Layer prosciutto and duxelles on cling film, roll the fillet,
+then wrap in puff pastry and chill.', 'Fillet fully wrapped, seam sealed.
+Pastry firm after chilling.', 'OK: all 3 actions passed'),
+(3419, 1068, 4, 'Bake the Wellington.
+Oven preheated to 200°C, baked 35 min until the core reaches 52°C.', 'Golden pastry.
+Core temperature 52°C ±2 (medium rare).', 'OK: all 3 actions passed'),
+(3420, 1068, 5, 'Rest and slice.', 'Even pink centre, 8 clean slices.', 'OK: all 2 actions passed'),
+(3421, 1069, 1, 'Prepare and vacuum-seal the duck breasts.', '2 bags sealed below 10 mbar.', 'OK: all 2 actions passed'),
+(3422, 1069, 2, 'Cook in the water bath.
+57°C for 2 hours.', 'Bath held at 57°C ±0.5 for 2 hours.', 'OK: all 3 actions passed'),
+(3423, 1069, 3, 'Finish in the pan.
+Sear skin side down until crispy.', 'Crispy skin.
+Core 57°C, pink flesh.', 'OK: all 2 actions passed'),
+(3424, 1070, 1, 'Clarify the butter.
+Melt 250 g of butter gently and remove the milk solids.', 'Clear, golden butterfat.', 'OK: all 2 actions passed'),
+(3425, 1070, 2, 'Make the sabayon.
+Whisk 3 yolks with 2 tbsp water over a bain-marie until ribbon stage.', 'Thick, pale sabayon at ribbon stage.
+No scrambled egg.', 'OK: all 2 actions passed'),
+(3426, 1070, 3, 'Emulsify and season.', 'Stable, glossy sauce.
+pH 4.5 ±0.3.', 'OK: all 2 actions passed'),
+(3427, 1071, 1, 'Prepare the batter.
+Ice-cold water, flour and egg, mixed briefly (lumps are fine).', 'Cold, lumpy batter below 6°C.', 'OK: all 2 actions passed'),
+(3428, 1071, 2, 'Heat the frying oil.', 'Oil stable at 180°C ±3.', 'OK: all 2 actions passed'),
+(3429, 1071, 3, 'Fry prawns and vegetables in batches of 6 pieces.', 'Light, crispy, pale golden coating.
+Oil content below 5%.', 'OK: all 3 actions passed'),
+(3430, 1072, 1, 'Prepare the wrapper dough.
+Wheat starch and tapioca with boiling water, rested 10 min.', 'Smooth dough, 24 wrappers of 8 cm.', 'OK: all 2 actions passed'),
+(3431, 1072, 2, 'Fill and pleat the har gow.', '24 sealed dumplings with 7 pleats.', 'OK: all 2 actions passed'),
+(3432, 1072, 3, 'Steam the dumplings.', 'Translucent wrappers.
+Core 75°C.', 'FAILED at action 3.1
+Steam temperature: 87.9°C
+1 remaining action(s) skipped'),
+(3433, 1073, 1, 'Load the vegetables.
+Tomatoes 1 kg, cucumber 200 g, red pepper 150 g, garlic 1 clove, bread 50 g.', 'All ingredients loaded within ±2%.', 'OK: all 2 actions passed'),
+(3434, 1073, 2, 'Blend.
+90 s at maximum speed, then emulsify 80 ml olive oil at medium speed.', 'Smooth soup, stable emulsion.', 'OK: all 2 actions passed'),
+(3435, 1073, 3, 'Chill the gazpacho.', 'Served at 6°C.', 'OK: all 2 actions passed'),
+(3436, 1074, 1, 'Temper and season the steak.
+350 g ribeye, 3 cm thick.', 'Steak at room temperature, seasoned with 1% salt.', 'OK: all 2 actions passed'),
+(3437, 1074, 2, 'Grill to medium rare.', 'Crosshatch marks.
+Core 54°C ±1.', 'FAILED at action 2.1
+Grate temperature: 212°C
+2 remaining action(s) skipped'),
+(3438, 1074, 3, 'Rest the steak.', 'Juices redistributed, core 56°C.', 'Not executed: test stopped at action 2.1'),
+(3439, 1075, 1, 'Prepare 6 ramekins.
+Butter with upward strokes and coat with sugar.', 'All ramekins evenly buttered and sugared.', 'OK: all 2 actions passed'),
+(3440, 1075, 2, 'Make the chocolate base.
+Melt 150 g dark chocolate, fold in 4 yolks.', 'Smooth, homogeneous base at 40-50°C.', 'OK: all 2 actions passed'),
+(3441, 1075, 3, 'Whip the egg whites and fold them in.', 'Stiff peaks.
+Volume kept above 90% after folding.', 'OK: all 2 actions passed'),
+(3442, 1075, 4, 'Bake the soufflés.
+190°C for 12 minutes, door closed.', 'Risen 4 cm above the rim.
+No collapse within 60 s of serving.', 'OK: all 3 actions passed'),
+(3443, 1076, 1, 'Toast the rice.
+Sweat 1 shallot in butter, add 320 g carnaroli rice.', 'Shallot translucent, rice edges translucent.', 'OK: all 2 actions passed'),
+(3444, 1076, 2, 'Cook the risotto.
+Deglaze with 100 ml white wine, then add hot stock ladle by ladle for 18 min.', 'Rice al dente, creamy texture.', 'OK: all 2 actions passed'),
+(3445, 1076, 3, 'Mantecatura.
+Off the heat, beat in cold butter and parmesan.', 'Creamy, flowing ''all''onda'' texture.', 'OK: all 1 actions passed'),
+(3446, 1077, 1, 'Feed the levain.', 'Starter doubled within 6 hours.', 'OK: all 1 actions passed'),
+(3447, 1077, 2, 'Bulk fermentation.
+Autolyse 1 h, add levain and salt, 4 sets of stretch and folds.', 'Dough volume +50% after 4 h at 24°C.', 'OK: all 3 actions passed'),
+(3448, 1077, 3, 'Bake the loaf.
+In a dutch oven at 250°C, 20 min covered with steam, then 25 min uncovered.', 'Open crumb.
+Core 98°C, deep brown crust.', 'OK: all 3 actions passed'),
+(3449, 1078, 1, 'Prepare 12 vegetable skewers.
+Courgette, pepper, red onion and cherry tomatoes cut in 3 cm pieces.', '12 skewers with uniform pieces.', 'OK: all 2 actions passed'),
+(3450, 1078, 2, 'Grill the skewers on the rotisserie.', 'Charred edges, tender vegetables.', 'OK: all 2 actions passed'),
+(3451, 1079, 1, 'Make the custard.
+Infuse 500 ml cream with a vanilla pod, temper into 6 yolks and 100 g sugar.', 'Smooth custard, 6 jars of 120 g.', 'OK: all 3 actions passed'),
+(3452, 1079, 2, 'Cook and chill.
+82°C water bath for 1 hour, then chill 4 hours.', 'Set custard, chilled to 4°C.', 'OK: all 3 actions passed'),
+(3453, 1079, 3, 'Brûlée.
+Sprinkle sugar and caramelise with the torch.', 'Glassy amber crust on all 6 jars.', 'OK: all 2 actions passed'),
+(3454, 1080, 1, 'Load the dishwasher.', '24 plates and 6 pans loaded.', 'OK: all 2 actions passed'),
+(3455, 1080, 2, 'Run the intensive wash programme.
+Pre-rinse 40°C, main wash 65°C for 45 min, rinse, dry.', 'Wash temperatures reached.
+Dishes dry.', 'OK: all 3 actions passed'),
+(3456, 1080, 3, 'Inspect and unload.', 'No residue.
+All dishes stored.', 'OK: all 2 actions passed');
 INSERT INTO action (id, step_id, position, description, expected_result, actual_result, status, duration_ms) VALUES
 (1, 1, 1, 'Open the fridge door with the robot arm (door angle 90°).
 Trigger a full camera scan: shelves 1 to 4, then door racks.
@@ -22194,7 +22674,835 @@ Heater current: 8.7 A ±0.5 A', 'Water temperature: 52°C  ✗ out of tolerance
 Heater current: 8.6 A', 'failed', 65220),
 (7206, 3263, 3, 'Dry cycle.', 'Residual water: 0.4 g/plate ±0.4 g/plate', NULL, 'skipped', 0),
 (7207, 3264, 1, 'Inspect every item with the camera.', 'Dirty items: 0', NULL, 'skipped', 0),
-(7208, 3264, 2, 'Store the dishes in the cupboards.', 'Storage: all stored', NULL, 'skipped', 0);
+(7208, 3264, 2, 'Store the dishes in the cupboards.', 'Storage: all stored', NULL, 'skipped', 0),
+(7209, 3265, 1, 'Open the fridge door with the robot arm (door angle 90°).
+Trigger a full camera scan: shelves 1 to 4, then door racks.
+Close the door.', 'Items identified: 42
+Unidentified items: none', 'Items identified: 42
+Unidentified items: none', 'success', 22752),
+(7210, 3265, 2, 'Run OCR on all expiry date labels.
+Compare each date with the current date.', 'Expired items: none
+Labels read: 100%', 'Expired items: none
+Labels read: 100%', 'success', 117138),
+(7211, 3266, 1, 'Wait 5 min with the door closed.
+Read the fridge probe (middle shelf).', 'Fridge temperature: 4.0°C ±1.0°C', 'Fridge temperature: 4.4°C', 'success', 218853),
+(7212, 3266, 2, 'Read the freezer probe (top drawer).', 'Freezer temperature: -18°C ±2°C', 'Freezer temperature: -18°C', 'success', 42222),
+(7213, 3267, 1, 'Compute the difference between the menu requirements and the inventory.', 'Computation: completed
+Missing items: 2', 'Computation: completed
+Missing items: 2', 'success', 96061),
+(7214, 3267, 2, 'Push the shopping list to the paired phone.
+Wait for the delivery receipt.', 'Push notification: delivered
+Delivery delay: 1.5 s ±1.5 s', 'Push notification: delivered
+Delivery delay: 1.1 s', 'success', 201186),
+(7215, 3268, 1, 'Dispense flour from silo 1 into the bowl on the scale.', 'Flour: 500 g ±5 g', 'Flour: 503 g', 'success', 60209),
+(7216, 3268, 2, 'Dispense sugar, salt and yeast from the spice carousel.', 'Sugar: 60 g ±2 g
+Salt: 10.0 g ±0.5 g
+Yeast: 15.0 g ±1.0 g', 'Sugar: 61 g
+Salt: 10.0 g
+Yeast: 14.7 g', 'success', 50361),
+(7217, 3268, 3, 'Crack 5 eggs into the bowl with the egg module.
+Check for shell fragments with the camera.', 'Eggs: 5
+Shell fragments: none', 'Eggs: 5
+Shell fragments: none', 'success', 132830),
+(7218, 3269, 1, 'Knead at speed 2 for 8 minutes.', 'Hook speed: 120 rpm ±5 rpm
+Motor current: 2.1 A ±0.4 A', 'Hook speed: 123 rpm
+Motor current: 1.9 A', 'success', 76002),
+(7219, 3269, 2, 'Add 250 g of cold butter in 5 portions, one every 30 s.
+Knead at speed 4 for 6 minutes.', 'Butter incorporation: complete, no lumps
+Dough temperature: 24°C ±2°C', 'Butter incorporation: complete, no lumps
+Dough temperature: 24°C', 'success', 38306),
+(7220, 3269, 3, 'Stretch a small piece of dough with the gripper (windowpane test).', 'Gluten membrane: translucent, holds', 'Gluten membrane: translucent, holds', 'success', 214598),
+(7221, 3270, 1, 'Set the proofing drawer to 27°C and 80% humidity.
+Start a 2 h timer.', 'Drawer temperature: 27.0°C ±1.0°C
+Humidity: 80% ±5%', 'Drawer temperature: 27.5°C
+Humidity: 77%', 'success', 199353),
+(7222, 3270, 2, 'After 2 h, measure the dough volume with the depth camera.', 'Volume ratio: 2.0x ±0.2x', 'Volume ratio: 2.1x', 'success', 124070),
+(7223, 3271, 1, 'Preheat the oven to 180°C (fan mode).
+Wait for the preheat-complete signal.', 'Cavity temperature: 180°C ±5°C
+Preheat signal: received', 'Cavity temperature: 179°C
+Preheat signal: received', 'success', 178517),
+(7224, 3271, 2, 'Bake for 30 minutes.
+Insert the core probe at minute 25.', 'Core temperature: 92°C ±2°C
+Crust color: golden brown', 'Core temperature: 92°C
+Crust color: golden brown', 'success', 235969),
+(7225, 3272, 1, 'Heat the pan with 2 tbsp oil to 230°C.', 'Pan surface temperature: 230°C ±10°C', 'Pan surface temperature: 227°C', 'success', 113419),
+(7226, 3272, 2, 'Sear each side 60 s, turning with the tongs module.', 'Sides seared: 4
+Core temperature: 15°C ±4°C', 'Sides seared: 4
+Core temperature: 17°C', 'success', 236498),
+(7227, 3273, 1, 'Chop the mushrooms with the blender (pulse mode, 6 pulses).', 'Texture: fine chop
+Particle size: 3.0 mm ±1.0 mm', 'Texture: fine chop
+Particle size: 3.2 mm', 'success', 223024),
+(7228, 3273, 2, 'Cook the mushrooms in the pan at medium heat, stirring every 30 s.
+Stop when the moisture sensor reads below 10%.', 'Moisture: 8% ±2%
+Cooking time: 12 min ±3 min', 'Moisture: 9%
+Cooking time: 12 min', 'success', 186137),
+(7229, 3274, 1, 'Lay 8 slices of prosciutto, spread the duxelles evenly.', 'Layer coverage: even, no gaps
+Duxelles thickness: 4.0 mm ±1.0 mm', 'Layer coverage: even, no gaps
+Duxelles thickness: 4.1 mm', 'success', 168131),
+(7230, 3274, 2, 'Roll the fillet in puff pastry, seal the seam with egg wash.', 'Seam: sealed
+Pastry: intact', 'Seam: sealed
+Pastry: intact', 'success', 231037),
+(7231, 3274, 3, 'Chill in the fridge for 20 minutes.', 'Pastry temperature: 5°C ±2°C', 'Pastry temperature: 5°C', 'success', 74129),
+(7232, 3275, 1, 'Preheat the oven to 200°C (fan mode).
+Wait for the preheat-complete signal.', 'Cavity temperature: 200°C ±5°C
+Preheat signal: received', 'Cavity temperature: 202°C
+Preheat signal: received', 'success', 146983),
+(7233, 3275, 2, 'Bake for 35 minutes with the core probe inserted.', 'Core temperature: 52°C ±2°C', 'Core temperature: 52°C', 'success', 120528),
+(7234, 3275, 3, 'Check the pastry colour with the camera (colour chart index).', 'Browning index: 7.0 ±1.0', 'Browning index: 7.0', 'success', 169868),
+(7235, 3276, 1, 'Rest 10 minutes on the rack.', 'Core temperature: 55°C ±2°C', 'Core temperature: 55°C', 'success', 21800),
+(7236, 3276, 2, 'Slice into 2 cm portions with the slicer module.', 'Slices: 8
+Slice integrity: clean cuts', 'Slices: 8
+Slice integrity: clean cuts', 'success', 15512),
+(7237, 3277, 1, 'Score the skin in a crosshatch pattern (5 mm spacing, 2 mm depth).', 'Cut depth: 2.0 mm ±0.5 mm', 'Cut depth: 2.2 mm', 'success', 94978),
+(7238, 3277, 2, 'Season and vacuum-seal each breast.', 'Bag pressure: 6 mbar ±4 mbar
+Seal: airtight', 'Bag pressure: 8 mbar
+Seal: airtight', 'success', 78858),
+(7239, 3278, 1, 'Heat the bath to 57°C.', 'Bath temperature: 57.0°C ±0.5°C', 'Bath temperature: 57.3°C', 'success', 194977),
+(7240, 3278, 2, 'Start the cook timer for 2 hours.', 'Timer setting: 02:00:00', 'Timer setting: 02:00:00', 'success', 132262),
+(7241, 3278, 3, 'Hold the temperature until the timer ends.
+Log the bath temperature every minute.', 'Cook time: 120.0 min ±1.0 min
+Max deviation: 0.2°C ±0.3°C', 'Cook time: 120.3 min
+Max deviation: 0.0°C', 'success', 54185),
+(7242, 3279, 1, 'Pan-sear skin side down for 3 minutes at 220°C.', 'Skin texture: crispy
+Pan temperature: 220°C ±10°C', 'Skin texture: crispy
+Pan temperature: 215°C', 'success', 53839),
+(7243, 3279, 2, 'Probe the core temperature.', 'Core temperature: 57.0°C ±1.0°C', 'Core temperature: 56.9°C', 'success', 17359),
+(7244, 3280, 1, 'Melt the butter in a saucepan on induction zone 2 at 80°C.', 'Butter temperature: 80°C ±3°C', 'Butter temperature: 79°C', 'success', 16000),
+(7245, 3280, 2, 'Skim the foam and pour off the clear fat, leaving the milk solids.', 'Clarity: clear
+Yield: 200 g ±10 g', 'Clarity: clear
+Yield: 204 g', 'success', 185449),
+(7246, 3281, 1, 'Set the bain-marie to 65°C.', 'Water temperature: 65°C ±2°C', 'Water temperature: 65°C', 'success', 199706),
+(7247, 3281, 2, 'Whisk the yolks for 4 minutes.', 'Consistency: ribbon stage
+Sabayon temperature: 62°C ±3°C', 'Consistency: ribbon stage
+Sabayon temperature: 60°C', 'success', 238532),
+(7248, 3282, 1, 'Stream the clarified butter in slowly while whisking (10 ml/s).', 'Emulsion: stable
+Flow rate: 10 ml/s ±2 ml/s', 'Emulsion: stable
+Flow rate: 11 ml/s', 'success', 229148),
+(7249, 3282, 2, 'Season with lemon juice and salt.
+Measure the pH.', 'pH: 4.5 ±0.3', 'pH: 4.6', 'success', 81375),
+(7250, 3283, 1, 'Chill the water to 4°C.', 'Water temperature: 4.0°C ±1.0°C', 'Water temperature: 3.5°C', 'success', 161831),
+(7251, 3283, 2, 'Mix the flour in for less than 15 s.', 'Mixing time: 11 s ±4 s
+Texture: lumpy, light', 'Mixing time: 12 s
+Texture: lumpy, light', 'success', 167378),
+(7252, 3284, 1, 'Heat the oil to 180°C.', 'Oil temperature: 180°C ±3°C', 'Oil temperature: 181°C', 'success', 51714),
+(7253, 3284, 2, 'Let it stabilise for 2 minutes.
+Record the temperature drift.', 'Drift: 1.0°C ±1.0°C', 'Drift: 0.5°C', 'success', 205361),
+(7254, 3285, 1, 'Dip the prawns in the batter and fry for 2 minutes.', 'Coating: pale golden, crisp
+Oil recovery time: 40 s ±10 s', 'Coating: pale golden, crisp
+Oil recovery time: 40 s', 'success', 51007),
+(7255, 3285, 2, 'Fry the vegetables for 90 s.', 'Texture: crisp', 'Texture: crisp', 'success', 106662),
+(7256, 3285, 3, 'Drain on the rack for 1 minute.
+Estimate the oil content (NIR sensor).', 'Oil content: 3% ±2%', 'Oil content: 3%', 'success', 70476),
+(7257, 3286, 1, 'Mix the starches with boiling water using the dough hook.', 'Dough: smooth
+Water temperature: 98°C ±2°C', 'Dough: smooth
+Water temperature: 97°C', 'success', 10626),
+(7258, 3286, 2, 'Roll and cut 24 wrappers.', 'Wrappers: 24
+Diameter: 8.0 cm ±0.3 cm', 'Wrappers: 24
+Diameter: 8.1 cm', 'success', 42838),
+(7259, 3287, 1, 'Place 12 g of shrimp filling on each wrapper.', 'Filling: 12.0 g ±1.0 g', 'Filling: 12.1 g', 'success', 184594),
+(7260, 3287, 2, 'Pleat 7 folds and seal.', 'Seal: closed
+Pleats: 7.0 ±1.0', 'Seal: closed
+Pleats: 7.5', 'success', 174357),
+(7261, 3288, 1, 'Bring the steamer to full steam.', 'Steam temperature: 100.0°C ±1.0°C', 'Steam temperature: 99.4°C', 'success', 56196),
+(7262, 3288, 2, 'Steam for 6 minutes.', 'Core temperature: 76°C ±3°C', 'Core temperature: 75°C', 'success', 146447),
+(7263, 3289, 1, 'Dispense the tomatoes.', 'Tomatoes: 1000 g ±20 g', 'Tomatoes: 1009 g', 'success', 82182),
+(7264, 3289, 2, 'Add the cucumber, pepper, garlic and bread.', 'Total added: 401 g ±8 g
+Garlic: present', 'Total added: 401 g
+Garlic: present', 'success', 223500),
+(7265, 3290, 1, 'Blend for 90 s at maximum speed.', 'Particle size: 0.3 mm ±0.2 mm
+Motor speed: 24000 rpm ±1500 rpm', 'Particle size: 0.3 mm
+Motor speed: 24760 rpm', 'success', 140938),
+(7266, 3290, 2, 'Stream in the olive oil at medium speed.', 'Emulsion: stable', 'Emulsion: stable', 'success', 8078),
+(7267, 3291, 1, 'Transfer to the fridge.', 'Fridge door event: detected', 'Fridge door event: detected', 'success', 10455),
+(7268, 3291, 2, 'Chill for 2 hours.', 'Soup temperature: 6.0°C ±1.0°C', 'Soup temperature: 6.1°C', 'success', 7706),
+(7269, 3292, 1, 'Rest the steak 45 minutes at room temperature.', 'Core temperature: 18°C ±2°C', 'Core temperature: 18°C', 'success', 205790),
+(7270, 3292, 2, 'Season with salt and pepper.', 'Salt: 3.5 g ±0.3 g', 'Salt: 3.4 g', 'success', 165452),
+(7271, 3293, 1, 'Preheat the grill to 260°C.', 'Grate temperature: 260°C ±10°C', 'Grate temperature: 260°C', 'success', 211575),
+(7272, 3293, 2, 'Grill 4 min per side, rotating 90° after 2 min.', 'Grill marks: crosshatch
+Rotations: 4', 'Grill marks: crosshatch
+Rotations: 4', 'success', 168555),
+(7273, 3293, 3, 'Probe the core.', 'Core temperature: 54.0°C ±1.0°C', 'Core temperature: 53.7°C', 'success', 116971),
+(7274, 3294, 1, 'Rest 8 minutes on the board.', 'Core temperature: 56.0°C ±1.5°C', 'Core temperature: 55.7°C', 'success', 235070),
+(7275, 3295, 1, 'Butter the ramekins with upward strokes.', 'Coating: even', 'Coating: even', 'success', 75256),
+(7276, 3295, 2, 'Coat with caster sugar and tip out the excess.', 'Coverage: 100% ±2%', 'Coverage: 101%', 'success', 135549),
+(7277, 3296, 1, 'Melt the chocolate over the bain-marie.', 'Chocolate temperature: 45°C ±2°C', 'Chocolate temperature: 45°C', 'success', 46947),
+(7278, 3296, 2, 'Fold in the yolks one by one.', 'Texture: homogeneous', 'Texture: homogeneous', 'success', 9597),
+(7279, 3297, 1, 'Whip 6 whites at speed 6 for 3 minutes.', 'Peaks: stiff
+Whisk speed: 260 rpm ±10 rpm', 'Peaks: stiff
+Whisk speed: 261 rpm', 'success', 237212),
+(7280, 3297, 2, 'Fold into the base in 3 additions.', 'Volume kept: 94% ±4%', 'Volume kept: 92%', 'success', 42161),
+(7281, 3298, 1, 'Preheat the oven to 190°C.
+Wait for the preheat-complete signal.', 'Cavity temperature: 190°C ±5°C', 'Cavity temperature: 191°C', 'success', 176473),
+(7282, 3298, 2, 'Bake for 12 minutes without opening the door.', 'Rise: 4.0 cm ±0.5 cm', 'Rise: 3.9 cm', 'success', 46331),
+(7283, 3298, 3, 'Serve within 60 s and monitor the height.', 'Height loss after 60 s: 3% ±5%', 'Height loss after 60 s: 5%', 'success', 23700),
+(7284, 3299, 1, 'Sweat the shallot at medium heat for 3 minutes.', 'Shallot: translucent, no browning
+Pan temperature: 120°C ±10°C', 'Shallot: translucent, no browning
+Pan temperature: 116°C', 'success', 112613),
+(7285, 3299, 2, 'Add the rice and toast for 2 minutes.', 'Rice: translucent edges', 'Rice: translucent edges', 'success', 88295),
+(7286, 3300, 1, 'Deglaze with the wine and stir until absorbed.', 'Wine: absorbed', 'Wine: absorbed', 'success', 179283),
+(7287, 3300, 2, 'Add 1 ladle of stock every 90 s for 18 minutes, stirring.', 'Simmer temperature: 95°C ±3°C
+Rice: al dente', 'Simmer temperature: 94°C
+Rice: al dente', 'success', 110440),
+(7288, 3301, 1, 'Beat in 40 g butter and 60 g parmesan for 1 minute.', 'Texture: creamy wave
+Spread on plate: 18 cm ±3 cm', 'Texture: creamy wave
+Spread on plate: 17 cm', 'success', 180210),
+(7289, 3302, 1, 'Feed the starter 1:1:1 (starter, flour, water) and keep at 26°C.', 'Rise after 6 h: 2.0x ±0.3x', 'Rise after 6 h: 2.1x', 'success', 50183),
+(7290, 3303, 1, 'Autolyse flour and water for 1 hour.', 'Hydration: uniform', 'Hydration: uniform', 'success', 179084),
+(7291, 3303, 2, 'Perform 4 sets of stretch and folds, 30 min apart.', 'Dough strength: strong', 'Dough strength: strong', 'success', 52155),
+(7292, 3303, 3, 'Ferment at 24°C for 4 hours.', 'Volume increase: 50% ±10%', 'Volume increase: 52%', 'success', 103823),
+(7293, 3304, 1, 'Preheat the oven and dutch oven to 250°C.', 'Cavity temperature: 250°C ±5°C', 'Cavity temperature: 251°C', 'success', 168447),
+(7294, 3304, 2, 'Bake covered for 20 minutes with steam injection.', 'Steam injection: active
+Humidity: 85% ±10%', 'Steam injection: active
+Humidity: 81%', 'success', 149500),
+(7295, 3304, 3, 'Remove the lid and bake 25 minutes more.', 'Core temperature: 98.0°C ±1.0°C', 'Core temperature: 98.2°C', 'success', 194753),
+(7296, 3305, 1, 'Cut the vegetables into 3 cm pieces.', 'Piece size: 3.0 cm ±0.4 cm', 'Piece size: 2.9 cm', 'success', 228171),
+(7297, 3305, 2, 'Thread the skewers.', 'Skewers: 12', 'Skewers: 12', 'success', 145098),
+(7298, 3306, 1, 'Preheat the grill to 230°C.', 'Grate temperature: 230°C ±10°C', 'Grate temperature: 234°C', 'success', 229274),
+(7299, 3306, 2, 'Grill for 10 minutes, rotating every 2 minutes.', 'Rotations: 5
+Char: even', 'Rotations: 5
+Char: even', 'success', 26943),
+(7300, 3307, 1, 'Heat the cream with the vanilla to 80°C.', 'Cream temperature: 80°C ±2°C', 'Cream temperature: 81°C', 'success', 210025),
+(7301, 3307, 2, 'Temper the yolks with the hot cream while whisking.', 'Texture: smooth', 'Texture: smooth', 'success', 139050),
+(7302, 3307, 3, 'Fill 6 jars and close the lids finger-tight.', 'Jar fill: 120 g ±5 g', 'Jar fill: 119 g', 'success', 236587),
+(7303, 3308, 1, 'Heat the bath to 82°C.', 'Bath temperature: 82.0°C ±0.5°C', 'Bath temperature: 82.0°C', 'success', 45279),
+(7304, 3308, 2, 'Cook for 1 hour.', 'Timer setting: 01:00:00
+Cook time: 60.0 min ±1.0 min', 'Timer setting: 01:00:00
+Cook time: 59.9 min', 'success', 145452),
+(7305, 3308, 3, 'Chill in the fridge for 4 hours.', 'Custard temperature: 4.0°C ±1.0°C', 'Custard temperature: 4.3°C', 'success', 239259),
+(7306, 3309, 1, 'Sprinkle 1 tsp of sugar on each custard.', 'Sugar per jar: 5.0 g ±1.0 g', 'Sugar per jar: 4.7 g', 'success', 33766),
+(7307, 3309, 2, 'Caramelise with the torch, 20 s per jar.', 'Crust: amber glass
+Crust colour index: 6.0 ±1.0', 'Crust: amber glass
+Crust colour index: 5.8', 'success', 145832),
+(7308, 3310, 1, 'Load the plates with the robot arm.', 'Plates: 24', 'Plates: 24', 'success', 201628),
+(7309, 3310, 2, 'Load the pans on the lower rack.', 'Pans: 6', 'Pans: 6', 'success', 5251),
+(7310, 3311, 1, 'Pre-rinse at 40°C.', 'Water temperature: 40°C ±2°C', 'Water temperature: 41°C', 'success', 154426),
+(7311, 3311, 2, 'Main wash at 65°C for 45 minutes.', 'Water temperature: 65°C ±2°C
+Heater current: 8.7 A ±0.5 A', 'Water temperature: 65°C
+Heater current: 8.5 A', 'success', 135502),
+(7312, 3311, 3, 'Dry cycle.', 'Residual water: 0.4 g/plate ±0.4 g/plate', 'Residual water: 0.5 g/plate', 'success', 87228),
+(7313, 3312, 1, 'Inspect every item with the camera.', 'Dirty items: 0', 'Dirty items: 0', 'success', 106637),
+(7314, 3312, 2, 'Store the dishes in the cupboards.', 'Storage: all stored', 'Storage: all stored', 'success', 233121),
+(7315, 3313, 1, 'Open the fridge door with the robot arm (door angle 90°).
+Trigger a full camera scan: shelves 1 to 4, then door racks.
+Close the door.', 'Items identified: 42
+Unidentified items: none', 'Items identified: 42
+Unidentified items: none', 'success', 208180),
+(7316, 3313, 2, 'Run OCR on all expiry date labels.
+Compare each date with the current date.', 'Expired items: none
+Labels read: 100%', 'Expired items: none
+Labels read: 100%', 'success', 194850),
+(7317, 3314, 1, 'Wait 5 min with the door closed.
+Read the fridge probe (middle shelf).', 'Fridge temperature: 4.0°C ±1.0°C', 'Fridge temperature: 3.6°C', 'success', 52262),
+(7318, 3314, 2, 'Read the freezer probe (top drawer).', 'Freezer temperature: -18°C ±2°C', 'Freezer temperature: -19°C', 'success', 119325),
+(7319, 3315, 1, 'Compute the difference between the menu requirements and the inventory.', 'Computation: completed
+Missing items: 2', 'Computation: completed
+Missing items: 2', 'success', 55674),
+(7320, 3315, 2, 'Push the shopping list to the paired phone.
+Wait for the delivery receipt.', 'Push notification: delivered
+Delivery delay: 1.5 s ±1.5 s', 'Push notification: delivered
+Delivery delay: 0.9 s', 'success', 21767),
+(7321, 3316, 1, 'Dispense flour from silo 1 into the bowl on the scale.', 'Flour: 500 g ±5 g', 'Flour: 503 g', 'success', 144433),
+(7322, 3316, 2, 'Dispense sugar, salt and yeast from the spice carousel.', 'Sugar: 60 g ±2 g
+Salt: 10.0 g ±0.5 g
+Yeast: 15.0 g ±1.0 g', 'Sugar: 61 g
+Salt: 10.3 g
+Yeast: 15.1 g', 'success', 78768),
+(7323, 3316, 3, 'Crack 5 eggs into the bowl with the egg module.
+Check for shell fragments with the camera.', 'Eggs: 5
+Shell fragments: none', 'Eggs: 5
+Shell fragments: none', 'success', 230934),
+(7324, 3317, 1, 'Knead at speed 2 for 8 minutes.', 'Hook speed: 120 rpm ±5 rpm
+Motor current: 2.1 A ±0.4 A', 'Hook speed: 120 rpm
+Motor current: 2.3 A', 'success', 128485),
+(7325, 3317, 2, 'Add 250 g of cold butter in 5 portions, one every 30 s.
+Knead at speed 4 for 6 minutes.', 'Butter incorporation: complete, no lumps
+Dough temperature: 24°C ±2°C', 'Butter incorporation: complete, no lumps
+Dough temperature: 24°C', 'success', 111496),
+(7326, 3317, 3, 'Stretch a small piece of dough with the gripper (windowpane test).', 'Gluten membrane: translucent, holds', 'Gluten membrane: translucent, holds', 'success', 165685),
+(7327, 3318, 1, 'Set the proofing drawer to 27°C and 80% humidity.
+Start a 2 h timer.', 'Drawer temperature: 27.0°C ±1.0°C
+Humidity: 80% ±5%', 'Drawer temperature: 27.2°C
+Humidity: 80%', 'success', 186050),
+(7328, 3318, 2, 'After 2 h, measure the dough volume with the depth camera.', 'Volume ratio: 2.0x ±0.2x', 'Volume ratio: 2.0x', 'success', 57209),
+(7329, 3319, 1, 'Preheat the oven to 180°C (fan mode).
+Wait for the preheat-complete signal.', 'Cavity temperature: 180°C ±5°C
+Preheat signal: received', 'Cavity temperature: 180°C
+Preheat signal: received', 'success', 19945),
+(7330, 3319, 2, 'Bake for 30 minutes.
+Insert the core probe at minute 25.', 'Core temperature: 92°C ±2°C
+Crust color: golden brown', 'Core temperature: 92°C
+Crust color: golden brown', 'success', 112432),
+(7331, 3320, 1, 'Heat the pan with 2 tbsp oil to 230°C.', 'Pan surface temperature: 230°C ±10°C', 'Pan surface temperature: 224°C', 'success', 190134),
+(7332, 3320, 2, 'Sear each side 60 s, turning with the tongs module.', 'Sides seared: 4
+Core temperature: 15°C ±4°C', 'Sides seared: 4
+Core temperature: 14°C', 'success', 56565),
+(7333, 3321, 1, 'Chop the mushrooms with the blender (pulse mode, 6 pulses).', 'Texture: fine chop
+Particle size: 3.0 mm ±1.0 mm', 'Texture: fine chop
+Particle size: 2.5 mm', 'success', 108816),
+(7334, 3321, 2, 'Cook the mushrooms in the pan at medium heat, stirring every 30 s.
+Stop when the moisture sensor reads below 10%.', 'Moisture: 8% ±2%
+Cooking time: 12 min ±3 min', 'Moisture: 8%
+Cooking time: 11 min', 'success', 89348),
+(7335, 3322, 1, 'Lay 8 slices of prosciutto, spread the duxelles evenly.', 'Layer coverage: even, no gaps
+Duxelles thickness: 4.0 mm ±1.0 mm', 'Layer coverage: even, no gaps
+Duxelles thickness: 4.5 mm', 'success', 69034),
+(7336, 3322, 2, 'Roll the fillet in puff pastry, seal the seam with egg wash.', 'Seam: sealed
+Pastry: intact', 'Seam: sealed
+Pastry: intact', 'success', 149135),
+(7337, 3322, 3, 'Chill in the fridge for 20 minutes.', 'Pastry temperature: 5°C ±2°C', 'Pastry temperature: 4°C', 'success', 98134),
+(7338, 3323, 1, 'Preheat the oven to 200°C (fan mode).
+Wait for the preheat-complete signal.', 'Cavity temperature: 200°C ±5°C
+Preheat signal: received', 'Cavity temperature: 201°C
+Preheat signal: received', 'success', 114557),
+(7339, 3323, 2, 'Bake for 35 minutes with the core probe inserted.', 'Core temperature: 52°C ±2°C', 'Core temperature: 53°C', 'success', 178011),
+(7340, 3323, 3, 'Check the pastry colour with the camera (colour chart index).', 'Browning index: 7.0 ±1.0', 'Browning index: 6.9', 'success', 21370),
+(7341, 3324, 1, 'Rest 10 minutes on the rack.', 'Core temperature: 55°C ±2°C', 'Core temperature: 56°C', 'success', 187847),
+(7342, 3324, 2, 'Slice into 2 cm portions with the slicer module.', 'Slices: 8
+Slice integrity: clean cuts', 'Slices: 8
+Slice integrity: clean cuts', 'success', 203255),
+(7343, 3325, 1, 'Score the skin in a crosshatch pattern (5 mm spacing, 2 mm depth).', 'Cut depth: 2.0 mm ±0.5 mm', 'Cut depth: 2.3 mm', 'success', 51480),
+(7344, 3325, 2, 'Season and vacuum-seal each breast.', 'Bag pressure: 6 mbar ±4 mbar
+Seal: airtight', 'Bag pressure: 6 mbar
+Seal: airtight', 'success', 59213),
+(7345, 3326, 1, 'Heat the bath to 57°C.', 'Bath temperature: 57.0°C ±0.5°C', 'Bath temperature: 57.2°C', 'success', 239083),
+(7346, 3326, 2, 'Start the cook timer for 2 hours.', 'Timer setting: 02:00:00', 'Timer setting: 02:00:00', 'success', 58437),
+(7347, 3326, 3, 'Hold the temperature until the timer ends.
+Log the bath temperature every minute.', 'Cook time: 120.0 min ±1.0 min
+Max deviation: 0.2°C ±0.3°C', 'Cook time: 120.3 min
+Max deviation: 0.2°C', 'success', 131786),
+(7348, 3327, 1, 'Pan-sear skin side down for 3 minutes at 220°C.', 'Skin texture: crispy
+Pan temperature: 220°C ±10°C', 'Skin texture: crispy
+Pan temperature: 222°C', 'success', 171461),
+(7349, 3327, 2, 'Probe the core temperature.', 'Core temperature: 57.0°C ±1.0°C', 'Core temperature: 57.3°C', 'success', 147168),
+(7350, 3328, 1, 'Melt the butter in a saucepan on induction zone 2 at 80°C.', 'Butter temperature: 80°C ±3°C', 'Butter temperature: 80°C', 'success', 110510),
+(7351, 3328, 2, 'Skim the foam and pour off the clear fat, leaving the milk solids.', 'Clarity: clear
+Yield: 200 g ±10 g', 'Clarity: clear
+Yield: 198 g', 'success', 69967),
+(7352, 3329, 1, 'Set the bain-marie to 65°C.', 'Water temperature: 65°C ±2°C', 'Water temperature: 66°C', 'success', 208678),
+(7353, 3329, 2, 'Whisk the yolks for 4 minutes.', 'Consistency: ribbon stage
+Sabayon temperature: 62°C ±3°C', 'Consistency: ribbon stage
+Sabayon temperature: 62°C', 'success', 54773),
+(7354, 3330, 1, 'Stream the clarified butter in slowly while whisking (10 ml/s).', 'Emulsion: stable
+Flow rate: 10 ml/s ±2 ml/s', 'Emulsion: stable
+Flow rate: 9 ml/s', 'success', 46117),
+(7355, 3330, 2, 'Season with lemon juice and salt.
+Measure the pH.', 'pH: 4.5 ±0.3', 'pH: 4.6', 'success', 164586),
+(7356, 3331, 1, 'Chill the water to 4°C.', 'Water temperature: 4.0°C ±1.0°C', 'Water temperature: 3.8°C', 'success', 196650),
+(7357, 3331, 2, 'Mix the flour in for less than 15 s.', 'Mixing time: 11 s ±4 s
+Texture: lumpy, light', 'Mixing time: 11 s
+Texture: lumpy, light', 'success', 53977),
+(7358, 3332, 1, 'Heat the oil to 180°C.', 'Oil temperature: 180°C ±3°C', 'Oil temperature: 180°C', 'success', 229431),
+(7359, 3332, 2, 'Let it stabilise for 2 minutes.
+Record the temperature drift.', 'Drift: 1.0°C ±1.0°C', 'Drift: 1.3°C', 'success', 190662),
+(7360, 3333, 1, 'Dip the prawns in the batter and fry for 2 minutes.', 'Coating: pale golden, crisp
+Oil recovery time: 40 s ±10 s', 'Coating: pale golden, crisp
+Oil recovery time: 45 s', 'success', 188583),
+(7361, 3333, 2, 'Fry the vegetables for 90 s.', 'Texture: crisp', 'Texture: crisp', 'success', 131426),
+(7362, 3333, 3, 'Drain on the rack for 1 minute.
+Estimate the oil content (NIR sensor).', 'Oil content: 3% ±2%', 'Oil content: 3%', 'success', 29896),
+(7363, 3334, 1, 'Mix the starches with boiling water using the dough hook.', 'Dough: smooth
+Water temperature: 98°C ±2°C', 'Dough: smooth
+Water temperature: 98°C', 'success', 194622),
+(7364, 3334, 2, 'Roll and cut 24 wrappers.', 'Wrappers: 24
+Diameter: 8.0 cm ±0.3 cm', 'Wrappers: 24
+Diameter: 8.0 cm', 'success', 6644),
+(7365, 3335, 1, 'Place 12 g of shrimp filling on each wrapper.', 'Filling: 12.0 g ±1.0 g', 'Filling: 11.7 g', 'success', 229474),
+(7366, 3335, 2, 'Pleat 7 folds and seal.', 'Seal: closed
+Pleats: 7.0 ±1.0', 'Seal: closed
+Pleats: 6.6', 'success', 206935),
+(7367, 3336, 1, 'Bring the steamer to full steam.', 'Steam temperature: 100.0°C ±1.0°C', 'Steam temperature: 99.9°C', 'success', 164042),
+(7368, 3336, 2, 'Steam for 6 minutes.', 'Core temperature: 76°C ±3°C', 'Core temperature: 77°C', 'success', 125755),
+(7369, 3337, 1, 'Dispense the tomatoes.', 'Tomatoes: 1000 g ±20 g', 'Tomatoes: 1008 g', 'success', 160561),
+(7370, 3337, 2, 'Add the cucumber, pepper, garlic and bread.', 'Total added: 401 g ±8 g
+Garlic: present', 'Total added: 403 g
+Garlic: present', 'success', 173624),
+(7371, 3338, 1, 'Blend for 90 s at maximum speed.', 'Particle size: 0.3 mm ±0.2 mm
+Motor speed: 24000 rpm ±1500 rpm', 'Particle size: 0.2 mm
+Motor speed: 24316 rpm', 'success', 96735),
+(7372, 3338, 2, 'Stream in the olive oil at medium speed.', 'Emulsion: stable', 'Emulsion: stable', 'success', 192745),
+(7373, 3339, 1, 'Transfer to the fridge.', 'Fridge door event: detected', 'Fridge door event: detected', 'success', 44498),
+(7374, 3339, 2, 'Chill for 2 hours.', 'Soup temperature: 6.0°C ±1.0°C', 'Soup temperature: 6.5°C', 'success', 103794),
+(7375, 3340, 1, 'Rest the steak 45 minutes at room temperature.', 'Core temperature: 18°C ±2°C', 'Core temperature: 17°C', 'success', 144949),
+(7376, 3340, 2, 'Season with salt and pepper.', 'Salt: 3.5 g ±0.3 g', 'Salt: 3.6 g', 'success', 233033),
+(7377, 3341, 1, 'Preheat the grill to 260°C.', 'Grate temperature: 260°C ±10°C', 'Grate temperature: 256°C', 'success', 41271),
+(7378, 3341, 2, 'Grill 4 min per side, rotating 90° after 2 min.', 'Grill marks: crosshatch
+Rotations: 4', 'Grill marks: crosshatch
+Rotations: 4', 'success', 166675),
+(7379, 3341, 3, 'Probe the core.', 'Core temperature: 54.0°C ±1.0°C', 'Core temperature: 53.7°C', 'success', 47600),
+(7380, 3342, 1, 'Rest 8 minutes on the board.', 'Core temperature: 56.0°C ±1.5°C', 'Core temperature: 56.2°C', 'success', 76520),
+(7381, 3343, 1, 'Butter the ramekins with upward strokes.', 'Coating: even', 'Coating: even', 'success', 205277),
+(7382, 3343, 2, 'Coat with caster sugar and tip out the excess.', 'Coverage: 100% ±2%', 'Coverage: 100%', 'success', 83082),
+(7383, 3344, 1, 'Melt the chocolate over the bain-marie.', 'Chocolate temperature: 45°C ±2°C', 'Chocolate temperature: 44°C', 'success', 164338),
+(7384, 3344, 2, 'Fold in the yolks one by one.', 'Texture: homogeneous', 'Texture: homogeneous', 'success', 129565),
+(7385, 3345, 1, 'Whip 6 whites at speed 6 for 3 minutes.', 'Peaks: stiff
+Whisk speed: 260 rpm ±10 rpm', 'Peaks: stiff
+Whisk speed: 261 rpm', 'success', 166832),
+(7386, 3345, 2, 'Fold into the base in 3 additions.', 'Volume kept: 94% ±4%', 'Volume kept: 94%', 'success', 84826),
+(7387, 3346, 1, 'Preheat the oven to 190°C.
+Wait for the preheat-complete signal.', 'Cavity temperature: 190°C ±5°C', 'Cavity temperature: 187°C', 'success', 167197),
+(7388, 3346, 2, 'Bake for 12 minutes without opening the door.', 'Rise: 4.0 cm ±0.5 cm', 'Rise: 4.1 cm', 'success', 6008),
+(7389, 3346, 3, 'Serve within 60 s and monitor the height.', 'Height loss after 60 s: 3% ±5%', 'Height loss after 60 s: 3%', 'success', 85476),
+(7390, 3347, 1, 'Sweat the shallot at medium heat for 3 minutes.', 'Shallot: translucent, no browning
+Pan temperature: 120°C ±10°C', 'Shallot: translucent, no browning
+Pan temperature: 124°C', 'success', 97259),
+(7391, 3347, 2, 'Add the rice and toast for 2 minutes.', 'Rice: translucent edges', 'Rice: translucent edges', 'success', 79508),
+(7392, 3348, 1, 'Deglaze with the wine and stir until absorbed.', 'Wine: absorbed', 'Wine: absorbed', 'success', 24731),
+(7393, 3348, 2, 'Add 1 ladle of stock every 90 s for 18 minutes, stirring.', 'Simmer temperature: 95°C ±3°C
+Rice: al dente', 'Simmer temperature: 96°C
+Rice: al dente', 'success', 55735),
+(7394, 3349, 1, 'Beat in 40 g butter and 60 g parmesan for 1 minute.', 'Texture: creamy wave
+Spread on plate: 18 cm ±3 cm', 'Texture: creamy wave
+Spread on plate: 18 cm', 'success', 227030),
+(7395, 3350, 1, 'Feed the starter 1:1:1 (starter, flour, water) and keep at 26°C.', 'Rise after 6 h: 2.0x ±0.3x', 'Rise after 6 h: 2.0x', 'success', 80753),
+(7396, 3351, 1, 'Autolyse flour and water for 1 hour.', 'Hydration: uniform', 'Hydration: uniform', 'success', 170128),
+(7397, 3351, 2, 'Perform 4 sets of stretch and folds, 30 min apart.', 'Dough strength: strong', 'Dough strength: strong', 'success', 109508),
+(7398, 3351, 3, 'Ferment at 24°C for 4 hours.', 'Volume increase: 50% ±10%', 'Volume increase: 45%', 'success', 145623),
+(7399, 3352, 1, 'Preheat the oven and dutch oven to 250°C.', 'Cavity temperature: 250°C ±5°C', 'Cavity temperature: 251°C', 'success', 104829),
+(7400, 3352, 2, 'Bake covered for 20 minutes with steam injection.', 'Steam injection: active
+Humidity: 85% ±10%', 'Steam injection: active
+Humidity: 83%', 'success', 12328),
+(7401, 3352, 3, 'Remove the lid and bake 25 minutes more.', 'Core temperature: 98.0°C ±1.0°C', 'Core temperature: 98.2°C', 'success', 212705),
+(7402, 3353, 1, 'Cut the vegetables into 3 cm pieces.', 'Piece size: 3.0 cm ±0.4 cm', 'Piece size: 2.8 cm', 'success', 216341),
+(7403, 3353, 2, 'Thread the skewers.', 'Skewers: 12', 'Skewers: 12', 'success', 49800),
+(7404, 3354, 1, 'Preheat the grill to 230°C.', 'Grate temperature: 230°C ±10°C', 'Grate temperature: 226°C', 'success', 13231),
+(7405, 3354, 2, 'Grill for 10 minutes, rotating every 2 minutes.', 'Rotations: 5
+Char: even', 'Rotations: 5
+Char: even', 'success', 125240),
+(7406, 3355, 1, 'Heat the cream with the vanilla to 80°C.', 'Cream temperature: 80°C ±2°C', 'Cream temperature: 79°C', 'success', 162765),
+(7407, 3355, 2, 'Temper the yolks with the hot cream while whisking.', 'Texture: smooth', 'Texture: smooth', 'success', 147701),
+(7408, 3355, 3, 'Fill 6 jars and close the lids finger-tight.', 'Jar fill: 120 g ±5 g', 'Jar fill: 119 g', 'success', 145153),
+(7409, 3356, 1, 'Heat the bath to 82°C.', 'Bath temperature: 82.0°C ±0.5°C', 'Bath temperature: 81.7°C', 'success', 32361),
+(7410, 3356, 2, 'Cook for 1 hour.', 'Timer setting: 01:00:00
+Cook time: 60.0 min ±1.0 min', 'Timer setting: 01:00:00
+Cook time: 60.1 min', 'success', 234968),
+(7411, 3356, 3, 'Chill in the fridge for 4 hours.', 'Custard temperature: 4.0°C ±1.0°C', 'Custard temperature: 3.4°C', 'success', 234358),
+(7412, 3357, 1, 'Sprinkle 1 tsp of sugar on each custard.', 'Sugar per jar: 5.0 g ±1.0 g', 'Sugar per jar: 5.4 g', 'success', 131475),
+(7413, 3357, 2, 'Caramelise with the torch, 20 s per jar.', 'Crust: amber glass
+Crust colour index: 6.0 ±1.0', 'Crust: amber glass
+Crust colour index: 6.1', 'success', 149458),
+(7414, 3358, 1, 'Load the plates with the robot arm.', 'Plates: 24', 'Plates: 24', 'success', 73658),
+(7415, 3358, 2, 'Load the pans on the lower rack.', 'Pans: 6', 'Pans: 6', 'success', 32783),
+(7416, 3359, 1, 'Pre-rinse at 40°C.', 'Water temperature: 40°C ±2°C', 'Water temperature: 39°C', 'success', 231883),
+(7417, 3359, 2, 'Main wash at 65°C for 45 minutes.', 'Water temperature: 65°C ±2°C
+Heater current: 8.7 A ±0.5 A', 'Water temperature: 66°C
+Heater current: 8.4 A', 'success', 122198),
+(7418, 3359, 3, 'Dry cycle.', 'Residual water: 0.4 g/plate ±0.4 g/plate', 'Residual water: 0.3 g/plate', 'success', 60798),
+(7419, 3360, 1, 'Inspect every item with the camera.', 'Dirty items: 0', 'Dirty items: 0', 'success', 107335),
+(7420, 3360, 2, 'Store the dishes in the cupboards.', 'Storage: all stored', 'Storage: all stored', 'success', 160234),
+(7421, 3361, 1, 'Open the fridge door with the robot arm (door angle 90°).
+Trigger a full camera scan: shelves 1 to 4, then door racks.
+Close the door.', 'Items identified: 42
+Unidentified items: none', 'Items identified: 42
+Unidentified items: none', 'success', 161353),
+(7422, 3361, 2, 'Run OCR on all expiry date labels.
+Compare each date with the current date.', 'Expired items: none
+Labels read: 100%', 'Expired items: none
+Labels read: 100%', 'success', 98699),
+(7423, 3362, 1, 'Wait 5 min with the door closed.
+Read the fridge probe (middle shelf).', 'Fridge temperature: 4.0°C ±1.0°C', 'Fridge temperature: 3.6°C', 'success', 73435),
+(7424, 3362, 2, 'Read the freezer probe (top drawer).', 'Freezer temperature: -18°C ±2°C', 'Freezer temperature: -18°C', 'success', 119891),
+(7425, 3363, 1, 'Compute the difference between the menu requirements and the inventory.', 'Computation: completed
+Missing items: 2', 'Computation: completed
+Missing items: 2', 'success', 82120),
+(7426, 3363, 2, 'Push the shopping list to the paired phone.
+Wait for the delivery receipt.', 'Push notification: delivered
+Delivery delay: 1.5 s ±1.5 s', 'Push notification: delivered
+Delivery delay: 2.2 s', 'success', 136767),
+(7427, 3364, 1, 'Dispense flour from silo 1 into the bowl on the scale.', 'Flour: 500 g ±5 g', 'Flour: 500 g', 'success', 176344),
+(7428, 3364, 2, 'Dispense sugar, salt and yeast from the spice carousel.', 'Sugar: 60 g ±2 g
+Salt: 10.0 g ±0.5 g
+Yeast: 15.0 g ±1.0 g', 'Sugar: 61 g
+Salt: 9.7 g
+Yeast: 15.2 g', 'success', 113644),
+(7429, 3364, 3, 'Crack 5 eggs into the bowl with the egg module.
+Check for shell fragments with the camera.', 'Eggs: 5
+Shell fragments: none', 'Eggs: 5
+Shell fragments: none', 'success', 58489),
+(7430, 3365, 1, 'Knead at speed 2 for 8 minutes.', 'Hook speed: 120 rpm ±5 rpm
+Motor current: 2.1 A ±0.4 A', 'Hook speed: 119 rpm
+Motor current: 2.0 A', 'success', 37211),
+(7431, 3365, 2, 'Add 250 g of cold butter in 5 portions, one every 30 s.
+Knead at speed 4 for 6 minutes.', 'Butter incorporation: complete, no lumps
+Dough temperature: 24°C ±2°C', 'Butter incorporation: complete, no lumps
+Dough temperature: 24°C', 'success', 71077),
+(7432, 3365, 3, 'Stretch a small piece of dough with the gripper (windowpane test).', 'Gluten membrane: translucent, holds', 'Gluten membrane: translucent, holds', 'success', 16341),
+(7433, 3366, 1, 'Set the proofing drawer to 27°C and 80% humidity.
+Start a 2 h timer.', 'Drawer temperature: 27.0°C ±1.0°C
+Humidity: 80% ±5%', 'Drawer temperature: 27.5°C
+Humidity: 80%', 'success', 76895),
+(7434, 3366, 2, 'After 2 h, measure the dough volume with the depth camera.', 'Volume ratio: 2.0x ±0.2x', 'Volume ratio: 2.0x', 'success', 110085),
+(7435, 3367, 1, 'Preheat the oven to 180°C (fan mode).
+Wait for the preheat-complete signal.', 'Cavity temperature: 180°C ±5°C
+Preheat signal: received', 'Cavity temperature: 179°C
+Preheat signal: received', 'success', 83874),
+(7436, 3367, 2, 'Bake for 30 minutes.
+Insert the core probe at minute 25.', 'Core temperature: 92°C ±2°C
+Crust color: golden brown', 'Core temperature: 91°C
+Crust color: golden brown', 'success', 211411),
+(7437, 3368, 1, 'Heat the pan with 2 tbsp oil to 230°C.', 'Pan surface temperature: 230°C ±10°C', 'Pan surface temperature: 234°C', 'success', 165243),
+(7438, 3368, 2, 'Sear each side 60 s, turning with the tongs module.', 'Sides seared: 4
+Core temperature: 15°C ±4°C', 'Sides seared: 4
+Core temperature: 13°C', 'success', 40894),
+(7439, 3369, 1, 'Chop the mushrooms with the blender (pulse mode, 6 pulses).', 'Texture: fine chop
+Particle size: 3.0 mm ±1.0 mm', 'Texture: fine chop
+Particle size: 3.1 mm', 'success', 229161),
+(7440, 3369, 2, 'Cook the mushrooms in the pan at medium heat, stirring every 30 s.
+Stop when the moisture sensor reads below 10%.', 'Moisture: 8% ±2%
+Cooking time: 12 min ±3 min', 'Moisture: 9%
+Cooking time: 13 min', 'success', 91975),
+(7441, 3370, 1, 'Lay 8 slices of prosciutto, spread the duxelles evenly.', 'Layer coverage: even, no gaps
+Duxelles thickness: 4.0 mm ±1.0 mm', 'Layer coverage: even, no gaps
+Duxelles thickness: 3.4 mm', 'success', 82305),
+(7442, 3370, 2, 'Roll the fillet in puff pastry, seal the seam with egg wash.', 'Seam: sealed
+Pastry: intact', 'Seam: sealed
+Pastry: intact', 'success', 135784),
+(7443, 3370, 3, 'Chill in the fridge for 20 minutes.', 'Pastry temperature: 5°C ±2°C', 'Pastry temperature: 4°C', 'success', 106920),
+(7444, 3371, 1, 'Preheat the oven to 200°C (fan mode).
+Wait for the preheat-complete signal.', 'Cavity temperature: 200°C ±5°C
+Preheat signal: received', 'Cavity temperature: 201°C
+Preheat signal: received', 'success', 210905),
+(7445, 3371, 2, 'Bake for 35 minutes with the core probe inserted.', 'Core temperature: 52°C ±2°C', 'Core temperature: 51°C', 'success', 162491),
+(7446, 3371, 3, 'Check the pastry colour with the camera (colour chart index).', 'Browning index: 7.0 ±1.0', 'Browning index: 6.7', 'success', 227325),
+(7447, 3372, 1, 'Rest 10 minutes on the rack.', 'Core temperature: 55°C ±2°C', 'Core temperature: 55°C', 'success', 64041),
+(7448, 3372, 2, 'Slice into 2 cm portions with the slicer module.', 'Slices: 8
+Slice integrity: clean cuts', 'Slices: 8
+Slice integrity: clean cuts', 'success', 26452),
+(7449, 3373, 1, 'Score the skin in a crosshatch pattern (5 mm spacing, 2 mm depth).', 'Cut depth: 2.0 mm ±0.5 mm', 'Cut depth: 1.8 mm', 'success', 96146),
+(7450, 3373, 2, 'Season and vacuum-seal each breast.', 'Bag pressure: 6 mbar ±4 mbar
+Seal: airtight', 'Bag pressure: 6 mbar
+Seal: airtight', 'success', 222291),
+(7451, 3374, 1, 'Heat the bath to 57°C.', 'Bath temperature: 57.0°C ±0.5°C', 'Bath temperature: 56.9°C', 'success', 5871),
+(7452, 3374, 2, 'Start the cook timer for 2 hours.', 'Timer setting: 02:00:00', 'Timer setting: 02:00:00', 'success', 177598),
+(7453, 3374, 3, 'Hold the temperature until the timer ends.
+Log the bath temperature every minute.', 'Cook time: 120.0 min ±1.0 min
+Max deviation: 0.2°C ±0.3°C', 'Cook time: 119.5 min
+Max deviation: 0.3°C', 'success', 28961),
+(7454, 3375, 1, 'Pan-sear skin side down for 3 minutes at 220°C.', 'Skin texture: crispy
+Pan temperature: 220°C ±10°C', 'Skin texture: crispy
+Pan temperature: 223°C', 'success', 128810),
+(7455, 3375, 2, 'Probe the core temperature.', 'Core temperature: 57.0°C ±1.0°C', 'Core temperature: 57.0°C', 'success', 42535),
+(7456, 3376, 1, 'Melt the butter in a saucepan on induction zone 2 at 80°C.', 'Butter temperature: 80°C ±3°C', 'Butter temperature: 80°C', 'success', 116568),
+(7457, 3376, 2, 'Skim the foam and pour off the clear fat, leaving the milk solids.', 'Clarity: clear
+Yield: 200 g ±10 g', 'Clarity: clear
+Yield: 201 g', 'success', 148019),
+(7458, 3377, 1, 'Set the bain-marie to 65°C.', 'Water temperature: 65°C ±2°C', 'Water temperature: 65°C', 'success', 150669),
+(7459, 3377, 2, 'Whisk the yolks for 4 minutes.', 'Consistency: ribbon stage
+Sabayon temperature: 62°C ±3°C', 'Consistency: ribbon stage
+Sabayon temperature: 61°C', 'success', 150265),
+(7460, 3378, 1, 'Stream the clarified butter in slowly while whisking (10 ml/s).', 'Emulsion: stable
+Flow rate: 10 ml/s ±2 ml/s', 'Emulsion: stable
+Flow rate: 10 ml/s', 'success', 180267),
+(7461, 3378, 2, 'Season with lemon juice and salt.
+Measure the pH.', 'pH: 4.5 ±0.3', 'pH: 4.6', 'success', 95774),
+(7462, 3379, 1, 'Chill the water to 4°C.', 'Water temperature: 4.0°C ±1.0°C', 'Water temperature: 4.0°C', 'success', 111451),
+(7463, 3379, 2, 'Mix the flour in for less than 15 s.', 'Mixing time: 11 s ±4 s
+Texture: lumpy, light', 'Mixing time: 9 s
+Texture: lumpy, light', 'success', 133254),
+(7464, 3380, 1, 'Heat the oil to 180°C.', 'Oil temperature: 180°C ±3°C', 'Oil temperature: 181°C', 'success', 22448),
+(7465, 3380, 2, 'Let it stabilise for 2 minutes.
+Record the temperature drift.', 'Drift: 1.0°C ±1.0°C', 'Drift: 0.5°C', 'success', 143698),
+(7466, 3381, 1, 'Dip the prawns in the batter and fry for 2 minutes.', 'Coating: pale golden, crisp
+Oil recovery time: 40 s ±10 s', 'Coating: pale golden, crisp
+Oil recovery time: 37 s', 'success', 85875),
+(7467, 3381, 2, 'Fry the vegetables for 90 s.', 'Texture: crisp', 'Texture: crisp', 'success', 124041),
+(7468, 3381, 3, 'Drain on the rack for 1 minute.
+Estimate the oil content (NIR sensor).', 'Oil content: 3% ±2%', 'Oil content: 3%', 'success', 128631),
+(7469, 3382, 1, 'Mix the starches with boiling water using the dough hook.', 'Dough: smooth
+Water temperature: 98°C ±2°C', 'Dough: smooth
+Water temperature: 98°C', 'success', 98486),
+(7470, 3382, 2, 'Roll and cut 24 wrappers.', 'Wrappers: 24
+Diameter: 8.0 cm ±0.3 cm', 'Wrappers: 24
+Diameter: 8.1 cm', 'success', 234073),
+(7471, 3383, 1, 'Place 12 g of shrimp filling on each wrapper.', 'Filling: 12.0 g ±1.0 g', 'Filling: 12.4 g', 'success', 34395),
+(7472, 3383, 2, 'Pleat 7 folds and seal.', 'Seal: closed
+Pleats: 7.0 ±1.0', 'Seal: closed
+Pleats: 6.8', 'success', 36216),
+(7473, 3384, 1, 'Bring the steamer to full steam.', 'Steam temperature: 100.0°C ±1.0°C', 'Steam temperature: 88.0°C  ✗ out of tolerance', 'failed', 216229),
+(7474, 3384, 2, 'Steam for 6 minutes.', 'Core temperature: 76°C ±3°C', NULL, 'skipped', 0),
+(7475, 3385, 1, 'Dispense the tomatoes.', 'Tomatoes: 1000 g ±20 g', 'Tomatoes: 1002 g', 'success', 80860),
+(7476, 3385, 2, 'Add the cucumber, pepper, garlic and bread.', 'Total added: 401 g ±8 g
+Garlic: present', 'Total added: 401 g
+Garlic: present', 'success', 14606),
+(7477, 3386, 1, 'Blend for 90 s at maximum speed.', 'Particle size: 0.3 mm ±0.2 mm
+Motor speed: 24000 rpm ±1500 rpm', 'Particle size: 2.1 mm  ✗ out of tolerance
+Motor speed: 24054 rpm', 'failed', 145067),
+(7478, 3386, 2, 'Stream in the olive oil at medium speed.', 'Emulsion: stable', NULL, 'skipped', 0),
+(7479, 3387, 1, 'Transfer to the fridge.', 'Fridge door event: detected', NULL, 'skipped', 0),
+(7480, 3387, 2, 'Chill for 2 hours.', 'Soup temperature: 6.0°C ±1.0°C', NULL, 'skipped', 0),
+(7481, 3388, 1, 'Rest the steak 45 minutes at room temperature.', 'Core temperature: 18°C ±2°C', 'Core temperature: 17°C', 'success', 26796),
+(7482, 3388, 2, 'Season with salt and pepper.', 'Salt: 3.5 g ±0.3 g', 'Salt: 3.6 g', 'success', 57701),
+(7483, 3389, 1, 'Preheat the grill to 260°C.', 'Grate temperature: 260°C ±10°C', 'Grate temperature: 259°C', 'success', 162515),
+(7484, 3389, 2, 'Grill 4 min per side, rotating 90° after 2 min.', 'Grill marks: crosshatch
+Rotations: 4', 'Grill marks: crosshatch
+Rotations: 4', 'success', 14813),
+(7485, 3389, 3, 'Probe the core.', 'Core temperature: 54.0°C ±1.0°C', 'Core temperature: 54.5°C', 'success', 238209),
+(7486, 3390, 1, 'Rest 8 minutes on the board.', 'Core temperature: 56.0°C ±1.5°C', 'Core temperature: 55.4°C', 'success', 22908),
+(7487, 3391, 1, 'Butter the ramekins with upward strokes.', 'Coating: even', 'Coating: even', 'success', 129575),
+(7488, 3391, 2, 'Coat with caster sugar and tip out the excess.', 'Coverage: 100% ±2%', 'Coverage: 100%', 'success', 79774),
+(7489, 3392, 1, 'Melt the chocolate over the bain-marie.', 'Chocolate temperature: 45°C ±2°C', 'Chocolate temperature: 45°C', 'success', 87829),
+(7490, 3392, 2, 'Fold in the yolks one by one.', 'Texture: homogeneous', 'Texture: homogeneous', 'success', 37041),
+(7491, 3393, 1, 'Whip 6 whites at speed 6 for 3 minutes.', 'Peaks: stiff
+Whisk speed: 260 rpm ±10 rpm', 'Peaks: stiff
+Whisk speed: 264 rpm', 'success', 85145),
+(7492, 3393, 2, 'Fold into the base in 3 additions.', 'Volume kept: 94% ±4%', 'Volume kept: 95%', 'success', 60759),
+(7493, 3394, 1, 'Preheat the oven to 190°C.
+Wait for the preheat-complete signal.', 'Cavity temperature: 190°C ±5°C', 'Cavity temperature: 192°C', 'success', 131518),
+(7494, 3394, 2, 'Bake for 12 minutes without opening the door.', 'Rise: 4.0 cm ±0.5 cm', 'Rise: 4.0 cm', 'success', 18107),
+(7495, 3394, 3, 'Serve within 60 s and monitor the height.', 'Height loss after 60 s: 3% ±5%', 'Height loss after 60 s: 4%', 'success', 33149),
+(7496, 3395, 1, 'Sweat the shallot at medium heat for 3 minutes.', 'Shallot: translucent, no browning
+Pan temperature: 120°C ±10°C', 'Shallot: translucent, no browning
+Pan temperature: 119°C', 'success', 81686),
+(7497, 3395, 2, 'Add the rice and toast for 2 minutes.', 'Rice: translucent edges', 'Rice: translucent edges', 'success', 27969),
+(7498, 3396, 1, 'Deglaze with the wine and stir until absorbed.', 'Wine: absorbed', 'Wine: absorbed', 'success', 121049),
+(7499, 3396, 2, 'Add 1 ladle of stock every 90 s for 18 minutes, stirring.', 'Simmer temperature: 95°C ±3°C
+Rice: al dente', 'Simmer temperature: 95°C
+Rice: al dente', 'success', 47620),
+(7500, 3397, 1, 'Beat in 40 g butter and 60 g parmesan for 1 minute.', 'Texture: creamy wave
+Spread on plate: 18 cm ±3 cm', 'Texture: creamy wave
+Spread on plate: 17 cm', 'success', 22119);
+INSERT INTO action (id, step_id, position, description, expected_result, actual_result, status, duration_ms) VALUES
+(7501, 3398, 1, 'Feed the starter 1:1:1 (starter, flour, water) and keep at 26°C.', 'Rise after 6 h: 2.0x ±0.3x', 'Rise after 6 h: 2.0x', 'success', 40796),
+(7502, 3399, 1, 'Autolyse flour and water for 1 hour.', 'Hydration: uniform', 'Hydration: uniform', 'success', 237956),
+(7503, 3399, 2, 'Perform 4 sets of stretch and folds, 30 min apart.', 'Dough strength: strong', 'Dough strength: strong', 'success', 213107),
+(7504, 3399, 3, 'Ferment at 24°C for 4 hours.', 'Volume increase: 50% ±10%', 'Volume increase: 51%', 'success', 94510),
+(7505, 3400, 1, 'Preheat the oven and dutch oven to 250°C.', 'Cavity temperature: 250°C ±5°C', 'Cavity temperature: 251°C', 'success', 158573),
+(7506, 3400, 2, 'Bake covered for 20 minutes with steam injection.', 'Steam injection: active
+Humidity: 85% ±10%', 'Steam injection: active
+Humidity: 86%', 'success', 34403),
+(7507, 3400, 3, 'Remove the lid and bake 25 minutes more.', 'Core temperature: 98.0°C ±1.0°C', 'Core temperature: 98.1°C', 'success', 94203),
+(7508, 3401, 1, 'Cut the vegetables into 3 cm pieces.', 'Piece size: 3.0 cm ±0.4 cm', 'Piece size: 3.1 cm', 'success', 66329),
+(7509, 3401, 2, 'Thread the skewers.', 'Skewers: 12', 'Skewers: 12', 'success', 94228),
+(7510, 3402, 1, 'Preheat the grill to 230°C.', 'Grate temperature: 230°C ±10°C', 'Grate temperature: 232°C', 'success', 146637),
+(7511, 3402, 2, 'Grill for 10 minutes, rotating every 2 minutes.', 'Rotations: 5
+Char: even', 'Rotations: 5
+Char: even', 'success', 81155),
+(7512, 3403, 1, 'Heat the cream with the vanilla to 80°C.', 'Cream temperature: 80°C ±2°C', 'Cream temperature: 81°C', 'success', 107200),
+(7513, 3403, 2, 'Temper the yolks with the hot cream while whisking.', 'Texture: smooth', 'Texture: smooth', 'success', 208549),
+(7514, 3403, 3, 'Fill 6 jars and close the lids finger-tight.', 'Jar fill: 120 g ±5 g', 'Jar fill: 122 g', 'success', 167333),
+(7515, 3404, 1, 'Heat the bath to 82°C.', 'Bath temperature: 82.0°C ±0.5°C', 'Bath temperature: 82.0°C', 'success', 180634),
+(7516, 3404, 2, 'Cook for 1 hour.', 'Timer setting: 01:00:00
+Cook time: 60.0 min ±1.0 min', 'Timer setting: 01:00:00
+Cook time: 60.1 min', 'success', 102179),
+(7517, 3404, 3, 'Chill in the fridge for 4 hours.', 'Custard temperature: 4.0°C ±1.0°C', 'Custard temperature: 4.3°C', 'success', 234858),
+(7518, 3405, 1, 'Sprinkle 1 tsp of sugar on each custard.', 'Sugar per jar: 5.0 g ±1.0 g', 'Sugar per jar: 5.3 g', 'success', 133523),
+(7519, 3405, 2, 'Caramelise with the torch, 20 s per jar.', 'Crust: amber glass
+Crust colour index: 6.0 ±1.0', 'Crust: amber glass
+Crust colour index: 5.6', 'success', 96364),
+(7520, 3406, 1, 'Load the plates with the robot arm.', 'Plates: 24', 'Plates: 24', 'success', 199483),
+(7521, 3406, 2, 'Load the pans on the lower rack.', 'Pans: 6', 'Pans: 6', 'success', 51963),
+(7522, 3407, 1, 'Pre-rinse at 40°C.', 'Water temperature: 40°C ±2°C', 'Water temperature: 40°C', 'success', 158041),
+(7523, 3407, 2, 'Main wash at 65°C for 45 minutes.', 'Water temperature: 65°C ±2°C
+Heater current: 8.7 A ±0.5 A', 'Water temperature: 66°C
+Heater current: 8.9 A', 'success', 178102),
+(7524, 3407, 3, 'Dry cycle.', 'Residual water: 0.4 g/plate ±0.4 g/plate', 'Residual water: 0.4 g/plate', 'success', 219958),
+(7525, 3408, 1, 'Inspect every item with the camera.', 'Dirty items: 0', 'Dirty items: 0', 'success', 54160),
+(7526, 3408, 2, 'Store the dishes in the cupboards.', 'Storage: all stored', 'Storage: all stored', 'success', 123450),
+(7527, 3409, 1, 'Open the fridge door with the robot arm (door angle 90°).
+Trigger a full camera scan: shelves 1 to 4, then door racks.
+Close the door.', 'Items identified: 42
+Unidentified items: none', 'Items identified: 42
+Unidentified items: none', 'success', 8771),
+(7528, 3409, 2, 'Run OCR on all expiry date labels.
+Compare each date with the current date.', 'Expired items: none
+Labels read: 100%', 'Expired items: none
+Labels read: 100%', 'success', 143705),
+(7529, 3410, 1, 'Wait 5 min with the door closed.
+Read the fridge probe (middle shelf).', 'Fridge temperature: 4.0°C ±1.0°C', 'Fridge temperature: 4.3°C', 'success', 91174),
+(7530, 3410, 2, 'Read the freezer probe (top drawer).', 'Freezer temperature: -18°C ±2°C', 'Freezer temperature: -18°C', 'success', 213353),
+(7531, 3411, 1, 'Compute the difference between the menu requirements and the inventory.', 'Computation: completed
+Missing items: 2', 'Computation: completed
+Missing items: 2', 'success', 204373),
+(7532, 3411, 2, 'Push the shopping list to the paired phone.
+Wait for the delivery receipt.', 'Push notification: delivered
+Delivery delay: 1.5 s ±1.5 s', 'Push notification: delivered
+Delivery delay: 0.8 s', 'success', 107555),
+(7533, 3412, 1, 'Dispense flour from silo 1 into the bowl on the scale.', 'Flour: 500 g ±5 g', 'Flour: 497 g', 'success', 195347),
+(7534, 3412, 2, 'Dispense sugar, salt and yeast from the spice carousel.', 'Sugar: 60 g ±2 g
+Salt: 10.0 g ±0.5 g
+Yeast: 15.0 g ±1.0 g', 'Sugar: 61 g
+Salt: 10.2 g
+Yeast: 14.5 g', 'success', 143454),
+(7535, 3412, 3, 'Crack 5 eggs into the bowl with the egg module.
+Check for shell fragments with the camera.', 'Eggs: 5
+Shell fragments: none', 'Eggs: 5
+Shell fragments: none', 'success', 26473),
+(7536, 3413, 1, 'Knead at speed 2 for 8 minutes.', 'Hook speed: 120 rpm ±5 rpm
+Motor current: 2.1 A ±0.4 A', 'Hook speed: 117 rpm
+Motor current: 2.3 A', 'success', 133892),
+(7537, 3413, 2, 'Add 250 g of cold butter in 5 portions, one every 30 s.
+Knead at speed 4 for 6 minutes.', 'Butter incorporation: complete, no lumps
+Dough temperature: 24°C ±2°C', 'Butter incorporation: complete, no lumps
+Dough temperature: 25°C', 'success', 93227),
+(7538, 3413, 3, 'Stretch a small piece of dough with the gripper (windowpane test).', 'Gluten membrane: translucent, holds', 'Gluten membrane: translucent, holds', 'success', 10941),
+(7539, 3414, 1, 'Set the proofing drawer to 27°C and 80% humidity.
+Start a 2 h timer.', 'Drawer temperature: 27.0°C ±1.0°C
+Humidity: 80% ±5%', 'Drawer temperature: 27.4°C
+Humidity: 82%', 'success', 166794),
+(7540, 3414, 2, 'After 2 h, measure the dough volume with the depth camera.', 'Volume ratio: 2.0x ±0.2x', 'Volume ratio: 1.9x', 'success', 155171),
+(7541, 3415, 1, 'Preheat the oven to 180°C (fan mode).
+Wait for the preheat-complete signal.', 'Cavity temperature: 180°C ±5°C
+Preheat signal: received', 'Cavity temperature: 180°C
+Preheat signal: received', 'success', 32621),
+(7542, 3415, 2, 'Bake for 30 minutes.
+Insert the core probe at minute 25.', 'Core temperature: 92°C ±2°C
+Crust color: golden brown', 'Core temperature: 92°C
+Crust color: golden brown', 'success', 102099),
+(7543, 3416, 1, 'Heat the pan with 2 tbsp oil to 230°C.', 'Pan surface temperature: 230°C ±10°C', 'Pan surface temperature: 227°C', 'success', 115876),
+(7544, 3416, 2, 'Sear each side 60 s, turning with the tongs module.', 'Sides seared: 4
+Core temperature: 15°C ±4°C', 'Sides seared: 4
+Core temperature: 16°C', 'success', 211915),
+(7545, 3417, 1, 'Chop the mushrooms with the blender (pulse mode, 6 pulses).', 'Texture: fine chop
+Particle size: 3.0 mm ±1.0 mm', 'Texture: fine chop
+Particle size: 3.3 mm', 'success', 200169),
+(7546, 3417, 2, 'Cook the mushrooms in the pan at medium heat, stirring every 30 s.
+Stop when the moisture sensor reads below 10%.', 'Moisture: 8% ±2%
+Cooking time: 12 min ±3 min', 'Moisture: 9%
+Cooking time: 10 min', 'success', 202799),
+(7547, 3418, 1, 'Lay 8 slices of prosciutto, spread the duxelles evenly.', 'Layer coverage: even, no gaps
+Duxelles thickness: 4.0 mm ±1.0 mm', 'Layer coverage: even, no gaps
+Duxelles thickness: 3.6 mm', 'success', 224187),
+(7548, 3418, 2, 'Roll the fillet in puff pastry, seal the seam with egg wash.', 'Seam: sealed
+Pastry: intact', 'Seam: sealed
+Pastry: intact', 'success', 181510),
+(7549, 3418, 3, 'Chill in the fridge for 20 minutes.', 'Pastry temperature: 5°C ±2°C', 'Pastry temperature: 4°C', 'success', 200593),
+(7550, 3419, 1, 'Preheat the oven to 200°C (fan mode).
+Wait for the preheat-complete signal.', 'Cavity temperature: 200°C ±5°C
+Preheat signal: received', 'Cavity temperature: 197°C
+Preheat signal: received', 'success', 68211),
+(7551, 3419, 2, 'Bake for 35 minutes with the core probe inserted.', 'Core temperature: 52°C ±2°C', 'Core temperature: 52°C', 'success', 70174),
+(7552, 3419, 3, 'Check the pastry colour with the camera (colour chart index).', 'Browning index: 7.0 ±1.0', 'Browning index: 7.0', 'success', 228564),
+(7553, 3420, 1, 'Rest 10 minutes on the rack.', 'Core temperature: 55°C ±2°C', 'Core temperature: 55°C', 'success', 40232),
+(7554, 3420, 2, 'Slice into 2 cm portions with the slicer module.', 'Slices: 8
+Slice integrity: clean cuts', 'Slices: 8
+Slice integrity: clean cuts', 'success', 36788),
+(7555, 3421, 1, 'Score the skin in a crosshatch pattern (5 mm spacing, 2 mm depth).', 'Cut depth: 2.0 mm ±0.5 mm', 'Cut depth: 1.9 mm', 'success', 20485),
+(7556, 3421, 2, 'Season and vacuum-seal each breast.', 'Bag pressure: 6 mbar ±4 mbar
+Seal: airtight', 'Bag pressure: 8 mbar
+Seal: airtight', 'success', 145250),
+(7557, 3422, 1, 'Heat the bath to 57°C.', 'Bath temperature: 57.0°C ±0.5°C', 'Bath temperature: 56.9°C', 'success', 193004),
+(7558, 3422, 2, 'Start the cook timer for 2 hours.', 'Timer setting: 02:00:00', 'Timer setting: 02:00:00', 'success', 20989),
+(7559, 3422, 3, 'Hold the temperature until the timer ends.
+Log the bath temperature every minute.', 'Cook time: 120.0 min ±1.0 min
+Max deviation: 0.2°C ±0.3°C', 'Cook time: 120.0 min
+Max deviation: 0.2°C', 'success', 83469),
+(7560, 3423, 1, 'Pan-sear skin side down for 3 minutes at 220°C.', 'Skin texture: crispy
+Pan temperature: 220°C ±10°C', 'Skin texture: crispy
+Pan temperature: 224°C', 'success', 94981),
+(7561, 3423, 2, 'Probe the core temperature.', 'Core temperature: 57.0°C ±1.0°C', 'Core temperature: 56.9°C', 'success', 144180),
+(7562, 3424, 1, 'Melt the butter in a saucepan on induction zone 2 at 80°C.', 'Butter temperature: 80°C ±3°C', 'Butter temperature: 78°C', 'success', 41663),
+(7563, 3424, 2, 'Skim the foam and pour off the clear fat, leaving the milk solids.', 'Clarity: clear
+Yield: 200 g ±10 g', 'Clarity: clear
+Yield: 203 g', 'success', 185933),
+(7564, 3425, 1, 'Set the bain-marie to 65°C.', 'Water temperature: 65°C ±2°C', 'Water temperature: 64°C', 'success', 110104),
+(7565, 3425, 2, 'Whisk the yolks for 4 minutes.', 'Consistency: ribbon stage
+Sabayon temperature: 62°C ±3°C', 'Consistency: ribbon stage
+Sabayon temperature: 60°C', 'success', 68437),
+(7566, 3426, 1, 'Stream the clarified butter in slowly while whisking (10 ml/s).', 'Emulsion: stable
+Flow rate: 10 ml/s ±2 ml/s', 'Emulsion: stable
+Flow rate: 10 ml/s', 'success', 6864),
+(7567, 3426, 2, 'Season with lemon juice and salt.
+Measure the pH.', 'pH: 4.5 ±0.3', 'pH: 4.6', 'success', 234065),
+(7568, 3427, 1, 'Chill the water to 4°C.', 'Water temperature: 4.0°C ±1.0°C', 'Water temperature: 4.5°C', 'success', 28684),
+(7569, 3427, 2, 'Mix the flour in for less than 15 s.', 'Mixing time: 11 s ±4 s
+Texture: lumpy, light', 'Mixing time: 9 s
+Texture: lumpy, light', 'success', 123059),
+(7570, 3428, 1, 'Heat the oil to 180°C.', 'Oil temperature: 180°C ±3°C', 'Oil temperature: 181°C', 'success', 92637),
+(7571, 3428, 2, 'Let it stabilise for 2 minutes.
+Record the temperature drift.', 'Drift: 1.0°C ±1.0°C', 'Drift: 1.1°C', 'success', 67759),
+(7572, 3429, 1, 'Dip the prawns in the batter and fry for 2 minutes.', 'Coating: pale golden, crisp
+Oil recovery time: 40 s ±10 s', 'Coating: pale golden, crisp
+Oil recovery time: 45 s', 'success', 98603),
+(7573, 3429, 2, 'Fry the vegetables for 90 s.', 'Texture: crisp', 'Texture: crisp', 'success', 31545),
+(7574, 3429, 3, 'Drain on the rack for 1 minute.
+Estimate the oil content (NIR sensor).', 'Oil content: 3% ±2%', 'Oil content: 3%', 'success', 69513),
+(7575, 3430, 1, 'Mix the starches with boiling water using the dough hook.', 'Dough: smooth
+Water temperature: 98°C ±2°C', 'Dough: smooth
+Water temperature: 98°C', 'success', 178021),
+(7576, 3430, 2, 'Roll and cut 24 wrappers.', 'Wrappers: 24
+Diameter: 8.0 cm ±0.3 cm', 'Wrappers: 24
+Diameter: 7.8 cm', 'success', 67910),
+(7577, 3431, 1, 'Place 12 g of shrimp filling on each wrapper.', 'Filling: 12.0 g ±1.0 g', 'Filling: 11.9 g', 'success', 46525),
+(7578, 3431, 2, 'Pleat 7 folds and seal.', 'Seal: closed
+Pleats: 7.0 ±1.0', 'Seal: closed
+Pleats: 6.9', 'success', 205726),
+(7579, 3432, 1, 'Bring the steamer to full steam.', 'Steam temperature: 100.0°C ±1.0°C', 'Steam temperature: 87.9°C  ✗ out of tolerance', 'failed', 94945),
+(7580, 3432, 2, 'Steam for 6 minutes.', 'Core temperature: 76°C ±3°C', NULL, 'skipped', 0),
+(7581, 3433, 1, 'Dispense the tomatoes.', 'Tomatoes: 1000 g ±20 g', 'Tomatoes: 994 g', 'success', 26550),
+(7582, 3433, 2, 'Add the cucumber, pepper, garlic and bread.', 'Total added: 401 g ±8 g
+Garlic: present', 'Total added: 403 g
+Garlic: present', 'success', 23006),
+(7583, 3434, 1, 'Blend for 90 s at maximum speed.', 'Particle size: 0.3 mm ±0.2 mm
+Motor speed: 24000 rpm ±1500 rpm', 'Particle size: 0.2 mm
+Motor speed: 24899 rpm', 'success', 25065),
+(7584, 3434, 2, 'Stream in the olive oil at medium speed.', 'Emulsion: stable', 'Emulsion: stable', 'success', 126065),
+(7585, 3435, 1, 'Transfer to the fridge.', 'Fridge door event: detected', 'Fridge door event: detected', 'success', 89758),
+(7586, 3435, 2, 'Chill for 2 hours.', 'Soup temperature: 6.0°C ±1.0°C', 'Soup temperature: 6.4°C', 'success', 58670),
+(7587, 3436, 1, 'Rest the steak 45 minutes at room temperature.', 'Core temperature: 18°C ±2°C', 'Core temperature: 17°C', 'success', 83541),
+(7588, 3436, 2, 'Season with salt and pepper.', 'Salt: 3.5 g ±0.3 g', 'Salt: 3.3 g', 'success', 102859),
+(7589, 3437, 1, 'Preheat the grill to 260°C.', 'Grate temperature: 260°C ±10°C', 'Grate temperature: 212°C  ✗ out of tolerance', 'failed', 180447),
+(7590, 3437, 2, 'Grill 4 min per side, rotating 90° after 2 min.', 'Grill marks: crosshatch
+Rotations: 4', NULL, 'skipped', 0),
+(7591, 3437, 3, 'Probe the core.', 'Core temperature: 54.0°C ±1.0°C', NULL, 'skipped', 0),
+(7592, 3438, 1, 'Rest 8 minutes on the board.', 'Core temperature: 56.0°C ±1.5°C', NULL, 'skipped', 0),
+(7593, 3439, 1, 'Butter the ramekins with upward strokes.', 'Coating: even', 'Coating: even', 'success', 61097),
+(7594, 3439, 2, 'Coat with caster sugar and tip out the excess.', 'Coverage: 100% ±2%', 'Coverage: 99%', 'success', 42410),
+(7595, 3440, 1, 'Melt the chocolate over the bain-marie.', 'Chocolate temperature: 45°C ±2°C', 'Chocolate temperature: 45°C', 'success', 40211),
+(7596, 3440, 2, 'Fold in the yolks one by one.', 'Texture: homogeneous', 'Texture: homogeneous', 'success', 31856),
+(7597, 3441, 1, 'Whip 6 whites at speed 6 for 3 minutes.', 'Peaks: stiff
+Whisk speed: 260 rpm ±10 rpm', 'Peaks: stiff
+Whisk speed: 259 rpm', 'success', 72938),
+(7598, 3441, 2, 'Fold into the base in 3 additions.', 'Volume kept: 94% ±4%', 'Volume kept: 93%', 'success', 143639),
+(7599, 3442, 1, 'Preheat the oven to 190°C.
+Wait for the preheat-complete signal.', 'Cavity temperature: 190°C ±5°C', 'Cavity temperature: 193°C', 'success', 88096),
+(7600, 3442, 2, 'Bake for 12 minutes without opening the door.', 'Rise: 4.0 cm ±0.5 cm', 'Rise: 4.2 cm', 'success', 155823),
+(7601, 3442, 3, 'Serve within 60 s and monitor the height.', 'Height loss after 60 s: 3% ±5%', 'Height loss after 60 s: 2%', 'success', 114678),
+(7602, 3443, 1, 'Sweat the shallot at medium heat for 3 minutes.', 'Shallot: translucent, no browning
+Pan temperature: 120°C ±10°C', 'Shallot: translucent, no browning
+Pan temperature: 124°C', 'success', 230591),
+(7603, 3443, 2, 'Add the rice and toast for 2 minutes.', 'Rice: translucent edges', 'Rice: translucent edges', 'success', 169284),
+(7604, 3444, 1, 'Deglaze with the wine and stir until absorbed.', 'Wine: absorbed', 'Wine: absorbed', 'success', 5942),
+(7605, 3444, 2, 'Add 1 ladle of stock every 90 s for 18 minutes, stirring.', 'Simmer temperature: 95°C ±3°C
+Rice: al dente', 'Simmer temperature: 96°C
+Rice: al dente', 'success', 50385),
+(7606, 3445, 1, 'Beat in 40 g butter and 60 g parmesan for 1 minute.', 'Texture: creamy wave
+Spread on plate: 18 cm ±3 cm', 'Texture: creamy wave
+Spread on plate: 18 cm', 'success', 77933),
+(7607, 3446, 1, 'Feed the starter 1:1:1 (starter, flour, water) and keep at 26°C.', 'Rise after 6 h: 2.0x ±0.3x', 'Rise after 6 h: 2.1x', 'success', 75679),
+(7608, 3447, 1, 'Autolyse flour and water for 1 hour.', 'Hydration: uniform', 'Hydration: uniform', 'success', 96908),
+(7609, 3447, 2, 'Perform 4 sets of stretch and folds, 30 min apart.', 'Dough strength: strong', 'Dough strength: strong', 'success', 190312),
+(7610, 3447, 3, 'Ferment at 24°C for 4 hours.', 'Volume increase: 50% ±10%', 'Volume increase: 50%', 'success', 222955),
+(7611, 3448, 1, 'Preheat the oven and dutch oven to 250°C.', 'Cavity temperature: 250°C ±5°C', 'Cavity temperature: 252°C', 'success', 239030),
+(7612, 3448, 2, 'Bake covered for 20 minutes with steam injection.', 'Steam injection: active
+Humidity: 85% ±10%', 'Steam injection: active
+Humidity: 90%', 'success', 37318),
+(7613, 3448, 3, 'Remove the lid and bake 25 minutes more.', 'Core temperature: 98.0°C ±1.0°C', 'Core temperature: 97.9°C', 'success', 10576),
+(7614, 3449, 1, 'Cut the vegetables into 3 cm pieces.', 'Piece size: 3.0 cm ±0.4 cm', 'Piece size: 3.1 cm', 'success', 151787),
+(7615, 3449, 2, 'Thread the skewers.', 'Skewers: 12', 'Skewers: 12', 'success', 203589),
+(7616, 3450, 1, 'Preheat the grill to 230°C.', 'Grate temperature: 230°C ±10°C', 'Grate temperature: 233°C', 'success', 76038),
+(7617, 3450, 2, 'Grill for 10 minutes, rotating every 2 minutes.', 'Rotations: 5
+Char: even', 'Rotations: 5
+Char: even', 'success', 14205),
+(7618, 3451, 1, 'Heat the cream with the vanilla to 80°C.', 'Cream temperature: 80°C ±2°C', 'Cream temperature: 81°C', 'success', 137088),
+(7619, 3451, 2, 'Temper the yolks with the hot cream while whisking.', 'Texture: smooth', 'Texture: smooth', 'success', 137974),
+(7620, 3451, 3, 'Fill 6 jars and close the lids finger-tight.', 'Jar fill: 120 g ±5 g', 'Jar fill: 121 g', 'success', 148753),
+(7621, 3452, 1, 'Heat the bath to 82°C.', 'Bath temperature: 82.0°C ±0.5°C', 'Bath temperature: 81.8°C', 'success', 99147),
+(7622, 3452, 2, 'Cook for 1 hour.', 'Timer setting: 01:00:00
+Cook time: 60.0 min ±1.0 min', 'Timer setting: 01:00:00
+Cook time: 59.7 min', 'success', 66351),
+(7623, 3452, 3, 'Chill in the fridge for 4 hours.', 'Custard temperature: 4.0°C ±1.0°C', 'Custard temperature: 4.4°C', 'success', 129491),
+(7624, 3453, 1, 'Sprinkle 1 tsp of sugar on each custard.', 'Sugar per jar: 5.0 g ±1.0 g', 'Sugar per jar: 4.4 g', 'success', 29718),
+(7625, 3453, 2, 'Caramelise with the torch, 20 s per jar.', 'Crust: amber glass
+Crust colour index: 6.0 ±1.0', 'Crust: amber glass
+Crust colour index: 5.5', 'success', 8265),
+(7626, 3454, 1, 'Load the plates with the robot arm.', 'Plates: 24', 'Plates: 24', 'success', 55594),
+(7627, 3454, 2, 'Load the pans on the lower rack.', 'Pans: 6', 'Pans: 6', 'success', 114872),
+(7628, 3455, 1, 'Pre-rinse at 40°C.', 'Water temperature: 40°C ±2°C', 'Water temperature: 40°C', 'success', 38480),
+(7629, 3455, 2, 'Main wash at 65°C for 45 minutes.', 'Water temperature: 65°C ±2°C
+Heater current: 8.7 A ±0.5 A', 'Water temperature: 64°C
+Heater current: 8.6 A', 'success', 211444),
+(7630, 3455, 3, 'Dry cycle.', 'Residual water: 0.4 g/plate ±0.4 g/plate', 'Residual water: 0.6 g/plate', 'success', 176759),
+(7631, 3456, 1, 'Inspect every item with the camera.', 'Dirty items: 0', 'Dirty items: 0', 'success', 65986),
+(7632, 3456, 2, 'Store the dishes in the cupboards.', 'Storage: all stored', 'Storage: all stored', 'success', 194834);
 SELECT setval('campaign_id_seq', (SELECT max(id) FROM campaign));
 SELECT setval('test_id_seq', (SELECT max(id) FROM test));
 SELECT setval('step_id_seq', (SELECT max(id) FROM step));
