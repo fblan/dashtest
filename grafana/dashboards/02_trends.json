@@ -27,38 +27,16 @@
         "definition": "SELECT code || ' — ' || name AS __text, code AS __value FROM platform ORDER BY code",
         "refresh": 1,
         "multi": true,
-        "includeAll": true,
+        "includeAll": false,
         "sort": 0,
         "current": {
           "text": [
-            "All"
+            "IN — InHouse kitchen",
+            "OUT — Outdoor kitchen"
           ],
           "value": [
-            "$__all"
-          ]
-        },
-        "options": []
-      },
-      {
-        "type": "query",
-        "name": "tests",
-        "label": "Tests",
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "kitchen-pg"
-        },
-        "query": "SELECT DISTINCT name FROM test ORDER BY 1",
-        "definition": "SELECT DISTINCT name FROM test ORDER BY 1",
-        "refresh": 1,
-        "multi": true,
-        "includeAll": true,
-        "sort": 0,
-        "current": {
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
+            "IN",
+            "OUT"
           ]
         },
         "options": []
@@ -78,46 +56,6 @@
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
-      },
-      {
-        "name": "KMS releases",
-        "enable": true,
-        "iconColor": "blue",
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "kitchen-pg"
-        },
-        "target": {
-          "refId": "Anno",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT min(started_at) AS time, 'KMS ' || kms_version AS text, 'KMS' AS tags FROM campaign WHERE platform IN ($platform) GROUP BY kms_version"
-        }
-      },
-      {
-        "name": "Other component releases (KES, KTRS, Gateway, TestCampaign)",
-        "enable": true,
-        "iconColor": "purple",
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "kitchen-pg"
-        },
-        "target": {
-          "refId": "Anno2",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT min(started_at) AS time, 'KES ' || kes_version AS text, 'KES' AS tags FROM campaign WHERE platform IN ($platform) GROUP BY kes_version HAVING min(started_at) > (SELECT min(started_at) FROM campaign)\nUNION ALL\nSELECT min(started_at) AS time, 'KTRS ' || ktrs_version AS text, 'KTRS' AS tags FROM campaign WHERE platform IN ($platform) GROUP BY ktrs_version HAVING min(started_at) > (SELECT min(started_at) FROM campaign)\nUNION ALL\nSELECT min(started_at) AS time, 'Gateway ' || gateway_version AS text, 'Gateway' AS tags FROM campaign WHERE platform IN ($platform) GROUP BY gateway_version HAVING min(started_at) > (SELECT min(started_at) FROM campaign)\nUNION ALL\nSELECT min(started_at) AS time, 'TestCampaign ' || testcampaign_version AS text, 'TestCampaign' AS tags FROM campaign WHERE platform IN ($platform) GROUP BY testcampaign_version HAVING min(started_at) > (SELECT min(started_at) FROM campaign)"
-        }
       }
     ]
   },
@@ -136,109 +74,8 @@
   "panels": [
     {
       "type": "timeseries",
-      "title": "Pass rate per campaign, per platform",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "time_series",
-          "rawSql": "SELECT c.started_at AS time, c.platform AS metric,\n       round(100.0 * count(*) FILTER (WHERE t.status = 'success') / count(*), 1) AS value\nFROM campaign c JOIN test t ON t.campaign_id = c.id\nWHERE $__timeFilter(c.started_at) AND t.name IN ($tests) AND c.platform IN ($platform)\nGROUP BY c.id ORDER BY 1"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "showPoints": "always",
-            "pointSize": 7,
-            "fillOpacity": 0,
-            "spanNulls": true,
-            "thresholdsStyle": {
-              "mode": "line+area"
-            }
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "transparent",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 90
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "IN"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "purple"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "OUT"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#2f9e8f"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "id": 1,
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 24,
-        "h": 8
-      }
-    },
-    {
-      "type": "barchart",
-      "title": "Test results per campaign",
-      "description": "",
+      "title": "Test results per campaign — $platform",
+      "description": "Number of tests of each campaign on the platform, by status.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "kitchen-pg"
@@ -253,17 +90,53 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT c.platform || ' ' || c.kms_version || ' ' || to_char(c.started_at, 'MM-DD') AS campaign,\n       count(*) FILTER (WHERE t.status = 'success') AS success,\n       count(*) FILTER (WHERE t.status = 'skipped') AS skipped,\n       count(*) FILTER (WHERE t.status = 'failed') AS failed\nFROM campaign c JOIN test t ON t.campaign_id = c.id\nWHERE $__timeFilter(c.started_at) AND t.name IN ($tests) AND c.platform IN ($platform)\nGROUP BY c.id ORDER BY c.started_at"
+          "rawSql": "SELECT s.started_at AS time, s.n_tests AS total, s.n_success AS success, s.n_skipped AS skipped,\n       s.n_failed AS failed, c.id AS campaign_id, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "min": 0,
           "custom": {
-            "fillOpacity": 85,
-            "lineWidth": 0
-          }
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "always",
+            "pointSize": 8,
+            "fillOpacity": 0,
+            "spanNulls": true
+          },
+          "links": [
+            {
+              "title": "Open campaign overview",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 4
+              }
+            ]
+          },
           {
             "matcher": {
               "id": "byName",
@@ -308,35 +181,210 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "campaign_id"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": true,
+                  "tooltip": true
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(KMS|KES|KTRS|Gateway|TestCampaign|changed)$"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": false,
+                  "legend": true,
+                  "tooltip": false
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 0
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
           }
         ]
       },
       "options": {
-        "xField": "campaign",
-        "stacking": "normal",
-        "orientation": "vertical",
-        "xTickLabelRotation": -60,
-        "xTickLabelSpacing": 0,
-        "showValue": "never",
-        "barWidth": 0.8,
         "legend": {
           "showLegend": true,
           "displayMode": "list",
           "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
         }
       },
-      "id": 2,
+      "repeat": "platform",
+      "repeatDirection": "h",
+      "maxPerRow": 2,
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "KMS",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.0.0",
+                    "1.1.0",
+                    "1.2.0",
+                    "1.3.0",
+                    "1.4.0",
+                    "1.4.1",
+                    "1.5.0",
+                    "2.0.0",
+                    "2.1.0",
+                    "2.1.1",
+                    "2.2.0",
+                    "2.3.0",
+                    "2.4.0",
+                    "2.4.1",
+                    "2.5.0"
+                  ]
+                }
+              },
+              {
+                "targetField": "KES",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "3.0.0",
+                    "3.1.0",
+                    "3.2.0",
+                    "3.2.1"
+                  ]
+                }
+              },
+              {
+                "targetField": "KTRS",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "5.4.2",
+                    "5.5.0",
+                    "5.5.1"
+                  ]
+                }
+              },
+              {
+                "targetField": "Gateway",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.8.3",
+                    "2.0.0",
+                    "2.0.1"
+                  ]
+                }
+              },
+              {
+                "targetField": "TestCampaign",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "TC-2026.1",
+                    "TC-2026.2",
+                    "TC-2026.3"
+                  ]
+                }
+              },
+              {
+                "targetField": "changed",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "no change",
+                    "first campaign on IN",
+                    "first campaign on OUT",
+                    "KMS",
+                    "KES",
+                    "KTRS",
+                    "Gateway",
+                    "TestCampaign",
+                    "KMS, KES",
+                    "KMS, KTRS",
+                    "KMS, Gateway",
+                    "KMS, TestCampaign",
+                    "KES, KTRS",
+                    "KES, Gateway",
+                    "KES, TestCampaign",
+                    "KTRS, Gateway",
+                    "KTRS, TestCampaign",
+                    "Gateway, TestCampaign",
+                    "KMS, KES, KTRS",
+                    "KMS, KES, Gateway",
+                    "KMS, KES, TestCampaign",
+                    "KMS, KTRS, Gateway",
+                    "KMS, KTRS, TestCampaign",
+                    "KMS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway",
+                    "KES, KTRS, TestCampaign",
+                    "KES, Gateway, TestCampaign",
+                    "KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway",
+                    "KMS, KES, KTRS, TestCampaign",
+                    "KMS, KES, Gateway, TestCampaign",
+                    "KMS, KTRS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway, TestCampaign"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "id": 1,
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 0,
         "w": 24,
-        "h": 11
+        "h": 10
       }
     },
     {
-      "type": "table",
-      "title": "Pass rate per test, platform and KMS version",
-      "description": "Share of successful runs of each test on each KMS version, per platform.",
+      "type": "timeseries",
+      "title": "Tests with regressions / fixes per campaign — $platform",
+      "description": "Compared with the previous campaign on the platform, action by action (skipped and failed count as not passing). With regressions: at least one action passed before and does not pass now. With fixes: at least one action did not pass before and passes now.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "kitchen-pg"
@@ -351,223 +399,523 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT platform || ' · ' || name AS test, kms_version AS \"KMS\",\n       round(100.0 * count(*) FILTER (WHERE status = 'success') / count(*)) AS pass_rate\nFROM v_test_result\nWHERE $__timeFilter(campaign_started_at) AND name IN ($tests) AND platform IN ($platform)\nGROUP BY platform, name, kms_version, kms_version_order\nORDER BY kms_version_order, platform, name"
+          "rawSql": "SELECT c.started_at AS time, count(*) AS total,\n       count(*) FILTER (WHERE d.actions_regressed > 0) AS \"with regressions\",\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS \"with fixes\", c.id AS campaign_id, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign c\nJOIN test t ON t.campaign_id = c.id\nLEFT JOIN v_test_diff d ON d.test_id = t.id\nWHERE $__timeFilter(c.started_at) AND c.platform IN (${platform:sqlstring})\nGROUP BY c.id, c.started_at, c.kms_version, c.kes_version, c.ktrs_version, c.gateway_version,\n         c.testcampaign_version, c.changes\nORDER BY 1"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "min": 0,
           "custom": {
-            "align": "center",
-            "cellOptions": {
-              "type": "color-background"
-            },
-            "filterable": false,
-            "minWidth": 60
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "always",
+            "pointSize": 8,
+            "fillOpacity": 0,
+            "spanNulls": true
           },
-          "unit": "percent",
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 50
-              },
-              {
-                "color": "green",
-                "value": 100
-              }
-            ]
-          }
+          "links": [
+            {
+              "title": "Open campaign overview",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "test\\KMS"
+              "options": "total"
             },
             "properties": [
               {
-                "id": "custom.cellOptions",
+                "id": "color",
                 "value": {
-                  "type": "auto"
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
                 }
               },
               {
-                "id": "custom.width",
-                "value": 260
+                "id": "custom.lineWidth",
+                "value": 1
               },
               {
-                "id": "custom.align",
-                "value": "left"
+                "id": "custom.pointSize",
+                "value": 4
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "with regressions"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "with fixes"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "campaign_id"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": true,
+                  "tooltip": true
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(KMS|KES|KTRS|Gateway|TestCampaign|changed)$"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": false,
+                  "legend": true,
+                  "tooltip": false
+                }
               },
               {
-                "id": "unit",
-                "value": "string"
+                "id": "custom.lineWidth",
+                "value": 0
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 0
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
               }
             ]
           }
         ]
       },
       "options": {
-        "showHeader": true,
-        "cellHeight": "sm"
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
+      "repeat": "platform",
+      "repeatDirection": "h",
+      "maxPerRow": 2,
       "transformations": [
         {
-          "id": "groupingToMatrix",
+          "id": "convertFieldType",
           "options": {
-            "columnField": "KMS",
-            "rowField": "test",
-            "valueField": "pass_rate",
-            "emptyValue": "null"
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "KMS",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.0.0",
+                    "1.1.0",
+                    "1.2.0",
+                    "1.3.0",
+                    "1.4.0",
+                    "1.4.1",
+                    "1.5.0",
+                    "2.0.0",
+                    "2.1.0",
+                    "2.1.1",
+                    "2.2.0",
+                    "2.3.0",
+                    "2.4.0",
+                    "2.4.1",
+                    "2.5.0"
+                  ]
+                }
+              },
+              {
+                "targetField": "KES",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "3.0.0",
+                    "3.1.0",
+                    "3.2.0",
+                    "3.2.1"
+                  ]
+                }
+              },
+              {
+                "targetField": "KTRS",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "5.4.2",
+                    "5.5.0",
+                    "5.5.1"
+                  ]
+                }
+              },
+              {
+                "targetField": "Gateway",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.8.3",
+                    "2.0.0",
+                    "2.0.1"
+                  ]
+                }
+              },
+              {
+                "targetField": "TestCampaign",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "TC-2026.1",
+                    "TC-2026.2",
+                    "TC-2026.3"
+                  ]
+                }
+              },
+              {
+                "targetField": "changed",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "no change",
+                    "first campaign on IN",
+                    "first campaign on OUT",
+                    "KMS",
+                    "KES",
+                    "KTRS",
+                    "Gateway",
+                    "TestCampaign",
+                    "KMS, KES",
+                    "KMS, KTRS",
+                    "KMS, Gateway",
+                    "KMS, TestCampaign",
+                    "KES, KTRS",
+                    "KES, Gateway",
+                    "KES, TestCampaign",
+                    "KTRS, Gateway",
+                    "KTRS, TestCampaign",
+                    "Gateway, TestCampaign",
+                    "KMS, KES, KTRS",
+                    "KMS, KES, Gateway",
+                    "KMS, KES, TestCampaign",
+                    "KMS, KTRS, Gateway",
+                    "KMS, KTRS, TestCampaign",
+                    "KMS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway",
+                    "KES, KTRS, TestCampaign",
+                    "KES, Gateway, TestCampaign",
+                    "KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway",
+                    "KMS, KES, KTRS, TestCampaign",
+                    "KMS, KES, Gateway, TestCampaign",
+                    "KMS, KTRS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway, TestCampaign"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "id": 2,
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 10
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Campaign duration — $platform",
+      "description": "Duration of each campaign on the platform (first test start to last test end).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "kitchen-pg"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "kitchen-pg"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT s.started_at AS time, s.duration_s / 3600.0 AS duration, c.id AS campaign_id, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "decimals": 1,
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "always",
+            "pointSize": 8,
+            "fillOpacity": 0,
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "links": [
+            {
+              "title": "Open campaign overview",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform}&${__url_time_range}"
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "campaign_id"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": true,
+                  "tooltip": true
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(KMS|KES|KTRS|Gateway|TestCampaign|changed)$"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": false,
+                  "legend": true,
+                  "tooltip": false
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 0
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "repeat": "platform",
+      "repeatDirection": "h",
+      "maxPerRow": 2,
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "KMS",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.0.0",
+                    "1.1.0",
+                    "1.2.0",
+                    "1.3.0",
+                    "1.4.0",
+                    "1.4.1",
+                    "1.5.0",
+                    "2.0.0",
+                    "2.1.0",
+                    "2.1.1",
+                    "2.2.0",
+                    "2.3.0",
+                    "2.4.0",
+                    "2.4.1",
+                    "2.5.0"
+                  ]
+                }
+              },
+              {
+                "targetField": "KES",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "3.0.0",
+                    "3.1.0",
+                    "3.2.0",
+                    "3.2.1"
+                  ]
+                }
+              },
+              {
+                "targetField": "KTRS",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "5.4.2",
+                    "5.5.0",
+                    "5.5.1"
+                  ]
+                }
+              },
+              {
+                "targetField": "Gateway",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "1.8.3",
+                    "2.0.0",
+                    "2.0.1"
+                  ]
+                }
+              },
+              {
+                "targetField": "TestCampaign",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "TC-2026.1",
+                    "TC-2026.2",
+                    "TC-2026.3"
+                  ]
+                }
+              },
+              {
+                "targetField": "changed",
+                "destinationType": "enum",
+                "enumConfig": {
+                  "text": [
+                    "no change",
+                    "first campaign on IN",
+                    "first campaign on OUT",
+                    "KMS",
+                    "KES",
+                    "KTRS",
+                    "Gateway",
+                    "TestCampaign",
+                    "KMS, KES",
+                    "KMS, KTRS",
+                    "KMS, Gateway",
+                    "KMS, TestCampaign",
+                    "KES, KTRS",
+                    "KES, Gateway",
+                    "KES, TestCampaign",
+                    "KTRS, Gateway",
+                    "KTRS, TestCampaign",
+                    "Gateway, TestCampaign",
+                    "KMS, KES, KTRS",
+                    "KMS, KES, Gateway",
+                    "KMS, KES, TestCampaign",
+                    "KMS, KTRS, Gateway",
+                    "KMS, KTRS, TestCampaign",
+                    "KMS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway",
+                    "KES, KTRS, TestCampaign",
+                    "KES, Gateway, TestCampaign",
+                    "KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway",
+                    "KMS, KES, KTRS, TestCampaign",
+                    "KMS, KES, Gateway, TestCampaign",
+                    "KMS, KTRS, Gateway, TestCampaign",
+                    "KES, KTRS, Gateway, TestCampaign",
+                    "KMS, KES, KTRS, Gateway, TestCampaign"
+                  ]
+                }
+              }
+            ]
           }
         }
       ],
       "id": 3,
       "gridPos": {
         "x": 0,
-        "y": 19,
+        "y": 20,
         "w": 24,
-        "h": 24
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Campaign duration",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "time_series",
-          "rawSql": "SELECT started_at AS time, platform AS metric, duration_s / 60.0 AS value\nFROM v_campaign_summary WHERE $__timeFilter(started_at) AND platform IN ($platform) ORDER BY 1"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "m",
-          "custom": {
-            "drawStyle": "line",
-            "showPoints": "always",
-            "pointSize": 6
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "IN"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "purple"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "OUT"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#2f9e8f"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "placement": "bottom"
-        }
-      },
-      "id": 4,
-      "gridPos": {
-        "x": 0,
-        "y": 43,
-        "w": 12,
-        "h": 10
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Test duration",
-      "description": "",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "kitchen-pg"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "kitchen-pg"
-          },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "time_series",
-          "rawSql": "SELECT campaign_started_at AS time, platform || ' · ' || name AS metric, duration_s / 60.0 AS value\nFROM v_test_result WHERE $__timeFilter(campaign_started_at) AND name IN ($tests) AND platform IN ($platform) ORDER BY 1"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "m",
-          "custom": {
-            "drawStyle": "line",
-            "showPoints": "always",
-            "pointSize": 4
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "table",
-          "placement": "right",
-          "calcs": [
-            "mean",
-            "max"
-          ]
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "id": 5,
-      "gridPos": {
-        "x": 12,
-        "y": 43,
-        "w": 12,
-        "h": 10
+        "h": 8
       }
     }
   ]
