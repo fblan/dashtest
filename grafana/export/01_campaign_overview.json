@@ -81,6 +81,23 @@
         "options": []
       },
       {
+        "type": "query",
+        "name": "compare",
+        "label": "Compare with",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "${DS_KITCHEN}"
+        },
+        "query": "SELECT __text, __value FROM (\n    SELECT 0 AS ord, NULL::timestamptz AS started_at, 0 AS __value,\n           'previous on this platform: ' || coalesce(p.label || '  (' || p.status || ')', 'none') AS __text\n    FROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id WHERE c.id = $campaign\n    UNION ALL\n    SELECT 1, o.started_at, o.id, o.label || '  (' || o.status || ')'\n    FROM v_campaign c JOIN v_campaign o ON o.platform = c.platform AND o.id <> c.id WHERE c.id = $campaign\n) x ORDER BY ord, started_at DESC",
+        "definition": "SELECT __text, __value FROM (\n    SELECT 0 AS ord, NULL::timestamptz AS started_at, 0 AS __value,\n           'previous on this platform: ' || coalesce(p.label || '  (' || p.status || ')', 'none') AS __text\n    FROM v_campaign c LEFT JOIN v_campaign p ON p.id = c.prev_campaign_id WHERE c.id = $campaign\n    UNION ALL\n    SELECT 1, o.started_at, o.id, o.label || '  (' || o.status || ')'\n    FROM v_campaign c JOIN v_campaign o ON o.platform = c.platform AND o.id <> c.id WHERE c.id = $campaign\n) x ORDER BY ord, started_at DESC",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 0,
+        "current": {},
+        "options": []
+      },
+      {
         "type": "custom",
         "name": "test_status",
         "label": "Test status",
@@ -115,6 +132,34 @@
           {
             "text": "failed",
             "value": "failed",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "type": "custom",
+        "name": "change",
+        "label": "Change vs previous run",
+        "hide": 2,
+        "query": "all tests : all, with regressions : regression, with fixes : fix",
+        "current": {
+          "text": "all tests",
+          "value": "all"
+        },
+        "options": [
+          {
+            "text": "all tests",
+            "value": "all",
+            "selected": true
+          },
+          {
+            "text": "with regressions",
+            "value": "regression",
+            "selected": false
+          },
+          {
+            "text": "with fixes",
+            "value": "fix",
             "selected": false
           }
         ]
@@ -389,7 +434,7 @@
                 "value": [
                   {
                     "title": "Show all tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&var-test_status=%24__all&${platform:queryparam}&${__url_time_range}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-change=all"
                   }
                 ]
               }
@@ -413,7 +458,7 @@
                 "value": [
                   {
                     "title": "Show success tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&var-test_status=success&${platform:queryparam}&${__url_time_range}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=success&var-change=all"
                   }
                 ]
               }
@@ -437,7 +482,7 @@
                 "value": [
                   {
                     "title": "Show skipped tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&var-test_status=skipped&${platform:queryparam}&${__url_time_range}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=skipped&var-change=all"
                   }
                 ]
               }
@@ -461,7 +506,7 @@
                 "value": [
                   {
                     "title": "Show failed tests",
-                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&var-test_status=failed&${platform:queryparam}&${__url_time_range}"
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=failed&var-change=all"
                   }
                 ]
               }
@@ -679,9 +724,22 @@
       }
     },
     {
-      "type": "table",
-      "title": "Tests: ${test_status:text} (click a name to drill down)",
-      "description": "transition = compared with the previous campaign on the same platform",
+      "type": "row",
+      "title": "Comparison with: ${compare:text}",
+      "collapsed": false,
+      "panels": [],
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Compared with (click to open it)",
+      "description": "",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "${DS_KITCHEN}"
@@ -696,7 +754,294 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT t.id, t.name, t.status::text AS status, r.transition,\n       s.ok AS \"steps ok\", s.skip AS \"steps skip\", s.fail AS \"steps fail\",\n       a.ok AS \"actions ok\", a.skip AS \"actions skip\", a.fail AS \"actions fail\",\n       r.duration_s / 60.0 AS duration\nFROM test t\nJOIN v_test_result r ON r.test_id = t.id\nCROSS JOIN LATERAL (\n    SELECT count(*) FILTER (WHERE status = 'success') AS ok,\n           count(*) FILTER (WHERE status = 'skipped') AS skip,\n           count(*) FILTER (WHERE status = 'failed')  AS fail\n    FROM step WHERE test_id = t.id) s\nCROSS JOIN LATERAL (\n    SELECT count(*) FILTER (WHERE a.status = 'success') AS ok,\n           count(*) FILTER (WHERE a.status = 'skipped') AS skip,\n           count(*) FILTER (WHERE a.status = 'failed')  AS fail\n    FROM action a JOIN step st ON st.id = a.step_id WHERE st.test_id = t.id) a\nWHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)\nORDER BY t.rank"
+          "rawSql": "SELECT coalesce(p.label || '  (' || p.status || ')', 'none: first campaign on this platform') AS compared,\n       p.id AS base_id\nFROM (SELECT coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AS id) b LEFT JOIN v_campaign p ON p.id = b.id"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Open the compared campaign",
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.base_id}&var-compare=0&${platform:queryparam}&${__url_time_range}"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^compared$/"
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "text": {
+          "valueSize": 20
+        }
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 9,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Pass rate: compared campaign / change",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_KITCHEN}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_KITCHEN}"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT p.pass_rate AS compared,\n       CASE WHEN c.pass_rate = p.pass_rate THEN '±0.0 pts'\n            ELSE to_char(c.pass_rate - p.pass_rate, 'FMSG990.0') || ' pts' END AS change\nFROM v_campaign_summary c\nJOIN v_campaign_summary p ON p.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign))\nWHERE c.campaign_id = $campaign"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "compared"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "change"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^\\+.*",
+                      "result": {
+                        "color": "green"
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^-.*",
+                      "result": {
+                        "color": "red"
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": ".*",
+                      "result": {
+                        "color": "text"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center"
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 9,
+        "y": 9,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Tests with regressions / fixes (click to list them)",
+      "description": "Compared action by action with the same test in the compared campaign (matched by step and action position); skipped and failed count as not passing. Regression: at least one action passed before and does not pass now. Fix: at least one action did not pass before and passes now.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_KITCHEN}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_KITCHEN}"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT count(*) FILTER (WHERE d.actions_regressed > 0) AS regressions,\n       count(*) FILTER (WHERE d.actions_fixed > 0) AS fixes\nFROM test t LEFT JOIN test bt ON bt.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AND bt.name = t.name\nLEFT JOIN LATERAL test_diff(t.id, bt.id) d ON true\nWHERE t.campaign_id = $campaign"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "regressions"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show only the tests with regressions",
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-change=regression"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fixes"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show only the tests with fixes",
+                    "url": "/d/kitchen-overview/campaign-overview?var-campaign=${campaign}&${compare:queryparam}&${platform:queryparam}&${__url_time_range}&var-test_status=%24__all&var-change=fix"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center"
+      },
+      "id": 11,
+      "gridPos": {
+        "x": 15,
+        "y": 9,
+        "w": 9,
+        "h": 4
+      }
+    },
+    {
+      "type": "table",
+      "title": "Tests: ${test_status:text}, ${change:text} (click a name to drill down)",
+      "description": "steps with regressions / fixes: steps containing at least one action that passed in the compared campaign and does not pass now / did not pass and passes now. Empty = no compared campaign, or the test is not in it.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_KITCHEN}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_KITCHEN}"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT t.id, t.name, t.status::text AS status,\n       (SELECT count(*) FROM step WHERE test_id = t.id) AS steps,\n       d.steps_regressed AS \"steps with regressions\", d.steps_fixed AS \"steps with fixes\",\n       extract(epoch FROM t.ended_at - t.started_at) / 60 AS duration\nFROM test t LEFT JOIN test bt ON bt.campaign_id = coalesce(nullif($compare, 0), (SELECT prev_campaign_id FROM v_campaign WHERE id = $campaign)) AND bt.name = t.name\nLEFT JOIN LATERAL test_diff(t.id, bt.id) d ON true\nWHERE t.campaign_id = $campaign AND t.status::text IN ($test_status)\n  AND CASE '$change' WHEN 'regression' THEN d.actions_regressed > 0\n                     WHEN 'fix'        THEN d.actions_fixed > 0\n                     ELSE true END\nORDER BY t.rank"
         }
       ],
       "fieldConfig": {
@@ -752,60 +1097,6 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "transition"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "regression": {
-                        "color": "red",
-                        "text": "▼ regression",
-                        "index": 0
-                      },
-                      "fixed": {
-                        "color": "green",
-                        "text": "▲ fixed",
-                        "index": 1
-                      },
-                      "still_failing": {
-                        "color": "dark-red",
-                        "text": "still failing",
-                        "index": 2
-                      },
-                      "stable_ok": {
-                        "color": "transparent",
-                        "text": "ok",
-                        "index": 3
-                      },
-                      "new": {
-                        "color": "blue",
-                        "text": "new",
-                        "index": 4
-                      },
-                      "skipped": {
-                        "color": "orange",
-                        "text": "skipped",
-                        "index": 5
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
               "options": "id"
             },
             "properties": [
@@ -835,36 +1126,28 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "name"
-            },
-            "properties": [
-              {
-                "id": "custom.minWidth",
-                "value": 240
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
               "options": "status"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 85
+                "value": 100
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "transition"
+              "options": "steps"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 115
+                "value": 80
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
               }
             ]
           },
@@ -884,115 +1167,19 @@
               },
               {
                 "id": "custom.width",
-                "value": 90
+                "value": 100
               }
             ]
           },
           {
             "matcher": {
-              "id": "byRegexp",
-              "options": "(steps|actions) ok"
+              "id": "byName",
+              "options": "steps with regressions"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 96
-              },
-              {
-                "id": "custom.align",
-                "value": "center"
-              },
-              {
-                "id": "custom.filterable",
-                "value": false
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "transparent",
-                      "value": null
-                    },
-                    {
-                      "color": "green",
-                      "value": 1
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "(steps|actions) skip"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 96
-              },
-              {
-                "id": "custom.align",
-                "value": "center"
-              },
-              {
-                "id": "custom.filterable",
-                "value": false
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "transparent",
-                      "value": null
-                    },
-                    {
-                      "color": "orange",
-                      "value": 1
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "(steps|actions) fail"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 96
+                "value": 170
               },
               {
                 "id": "custom.align",
@@ -1031,6 +1218,54 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "steps with fixes"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "custom.filterable",
+                "value": false
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
           }
         ]
       },
@@ -1038,10 +1273,10 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 8,
+      "id": 12,
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 13,
         "w": 24,
         "h": 17
       }

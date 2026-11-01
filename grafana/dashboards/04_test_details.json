@@ -492,7 +492,7 @@
     {
       "type": "table",
       "title": "Steps",
-      "description": "",
+      "description": "previous run = status in the previous run of this test on the same platform, shown only when it differs (matched by step / action position). Empty everywhere = no change, or first run.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "kitchen-pg"
@@ -507,7 +507,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT position AS \"#\", description, expected_result AS expected, actual_result AS actual,\n       status::text AS status\nFROM step WHERE test_id = $test ORDER BY position"
+          "rawSql": "SELECT s.position AS \"#\", s.description, s.expected_result AS expected, s.actual_result AS actual,\n       s.status::text AS status,\n       CASE WHEN ps.status IS DISTINCT FROM s.status THEN ps.status::text END AS \"previous run\"\nFROM step s\nLEFT JOIN step ps ON ps.test_id = (SELECT prev_test_id FROM v_test_result WHERE test_id = $test) AND ps.position = s.position\nWHERE s.test_id = $test ORDER BY s.position"
         }
       ],
       "fieldConfig": {
@@ -525,6 +525,45 @@
             "matcher": {
               "id": "byName",
               "options": "status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "success": {
+                        "color": "green",
+                        "text": "success",
+                        "index": 0
+                      },
+                      "skipped": {
+                        "color": "orange",
+                        "text": "skipped",
+                        "index": 1
+                      },
+                      "failed": {
+                        "color": "red",
+                        "text": "failed",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "previous run"
             },
             "properties": [
               {
@@ -586,6 +625,18 @@
           },
           {
             "matcher": {
+              "id": "byName",
+              "options": "previous run"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
               "id": "byRegexp",
               "options": "^(description|expected|actual)$"
             },
@@ -613,7 +664,7 @@
     {
       "type": "table",
       "title": "Actions",
-      "description": "",
+      "description": "previous run = status in the previous run of this test on the same platform, shown only when it differs (matched by step / action position). Empty everywhere = no change, or first run.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "kitchen-pg"
@@ -628,7 +679,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT s.position || '.' || a.position AS \"#\", split_part(s.description, E'\\n', 1) AS step, a.description AS action,\n       a.expected_result AS expected, a.actual_result AS actual, a.status::text AS status,\n       a.duration_ms / 1000.0 AS \"duration (s)\"\nFROM action a JOIN step s ON s.id = a.step_id\nWHERE s.test_id = $test ORDER BY s.position, a.position"
+          "rawSql": "SELECT s.position || '.' || a.position AS \"#\", split_part(s.description, E'\\n', 1) AS step, a.description AS action,\n       a.expected_result AS expected, a.actual_result AS actual, a.status::text AS status,\n       CASE WHEN pa.status IS DISTINCT FROM a.status THEN pa.status::text END AS \"previous run\",\n       a.duration_ms / 1000.0 AS \"duration (s)\"\nFROM action a JOIN step s ON s.id = a.step_id\nLEFT JOIN step ps ON ps.test_id = (SELECT prev_test_id FROM v_test_result WHERE test_id = $test) AND ps.position = s.position\nLEFT JOIN action pa ON pa.step_id = ps.id AND pa.position = a.position\nWHERE s.test_id = $test ORDER BY s.position, a.position"
         }
       ],
       "fieldConfig": {
@@ -646,6 +697,45 @@
             "matcher": {
               "id": "byName",
               "options": "status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "success": {
+                        "color": "green",
+                        "text": "success",
+                        "index": 0
+                      },
+                      "skipped": {
+                        "color": "orange",
+                        "text": "skipped",
+                        "index": 1
+                      },
+                      "failed": {
+                        "color": "red",
+                        "text": "failed",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "previous run"
             },
             "properties": [
               {
@@ -714,6 +804,18 @@
               {
                 "id": "custom.width",
                 "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "previous run"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
               }
             ]
           },

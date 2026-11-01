@@ -25,7 +25,9 @@ Rules:
 
 Useful views: `v_campaign` (label + versions changed since the previous campaign on the platform),
 `v_test_result` (with `transition`: regression/fixed/… and `changes`), `v_first_failure` (root cause),
-`v_campaign_summary`, `v_flakiness`, `check_cascade` (must be empty).
+`v_campaign_summary`, `v_flakiness`, `test_diff(test, base_test)` (action by action vs a base run of the test:
+actions changed, regressed = passed before and not now, fixed = the reverse, and the steps containing them),
+`v_test_diff` (`test_diff` vs the previous run of the test on the platform), `check_cascade` (must be empty).
 
 ## Simulated story
 Apr → Oct 2026: 40 campaigns on IN (around 22:00) and 28 on OUT (around 10:00), KMS 1.0.0 → 2.4.0.
@@ -62,11 +64,18 @@ make reset     # regenerate data + dashboards, wipe volumes, restart
 ```
 Grafana 12.4.14 (pinned): http://localhost:3000 — anonymous read-only access (role set by `GRAFANA_ANONYMOUS_ROLE`,
 default `Viewer`); sign in as admin / admin to edit. Folder **Kitchen QA**:
-1. **Campaign overview** – pick a campaign; per test: status, regression marker, step and action
-   counts (ok / skip / fail) and root cause. Click a test name to open its details.
+1. **Campaign overview** – pick a campaign; per test: status, number of steps, steps with regressions and with
+   fixes, duration. Click a test name to open its details. **Compare with** (top of the page) picks the campaign
+   to compare with: by default the previous campaign on the same platform, or any other campaign of the platform.
+   The comparison row shows that campaign (click to open it), the pass-rate change, and the number of tests with
+   regressions and with fixes (click a number to list only those tests). Regression = at least one action passed
+   in the compared campaign and does not pass now (skipped and failed both count as not passing); fix = the
+   reverse.
 2. **Trends over time** – pass rate, results per campaign, pass rate per test and version, durations; release annotations.
 3. **Regressions** – regressions/fixes per version, status history of each test, version-to-version comparison, flaky tests.
 4. **Test details** – one test run: steps, actions (expected vs actual) and the history of that test across campaigns.
+   The "previous run" column shows the status of each step / action in the previous run on the platform
+   when it changed.
 
 Postgres (local only): `localhost:5432`, db `kitchen`, user `kitchen`/`kitchen` (Grafana uses the read-only role `grafana_ro`, password `GRAFANA_RO_PASSWORD`).
 
@@ -117,5 +126,8 @@ and is only used through `COMPOSE_FILE` in your local `.env`.)
 Notes:
 - The database is created and filled only on the first deploy (empty `pgdata` volume). To reload it,
   delete the volume in Dokploy and redeploy.
+- Views and functions (`db/init/02_functions_views.sql`) are re-applied on every deploy by the one-shot
+  `migrate` service (Grafana starts after it succeeds), so view changes reach the existing database
+  without touching the data.
 - `GRAFANA_ADMIN_PASSWORD` is only applied when the Grafana volume is created; later, change it in Grafana.
 - Dashboards come from the image: edit `grafana/build_dashboards.py`, run `make dashboards`, push, redeploy.
