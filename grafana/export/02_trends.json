@@ -234,7 +234,7 @@
                 "id": "color",
                 "value": {
                   "mode": "fixed",
-                  "fixedColor": "transparent"
+                  "fixedColor": "#8e8e8e"
                 }
               }
             ]
@@ -281,23 +281,6 @@
                     "2.4.0",
                     "2.4.1",
                     "2.5.0"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -310,12 +293,6 @@
                     "3.1.0",
                     "3.2.0",
                     "3.2.1"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -327,11 +304,6 @@
                     "5.4.2",
                     "5.5.0",
                     "5.5.1"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -343,11 +315,6 @@
                     "1.8.3",
                     "2.0.0",
                     "2.0.1"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -359,11 +326,6 @@
                     "TC-2026.1",
                     "TC-2026.2",
                     "TC-2026.3"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -406,42 +368,6 @@
                     "KMS, KTRS, Gateway, TestCampaign",
                     "KES, KTRS, Gateway, TestCampaign",
                     "KMS, KES, KTRS, Gateway, TestCampaign"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               }
@@ -580,7 +506,7 @@
                 "id": "color",
                 "value": {
                   "mode": "fixed",
-                  "fixedColor": "transparent"
+                  "fixedColor": "#8e8e8e"
                 }
               }
             ]
@@ -627,23 +553,6 @@
                     "2.4.0",
                     "2.4.1",
                     "2.5.0"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -656,12 +565,6 @@
                     "3.1.0",
                     "3.2.0",
                     "3.2.1"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -673,11 +576,6 @@
                     "5.4.2",
                     "5.5.0",
                     "5.5.1"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -689,11 +587,6 @@
                     "1.8.3",
                     "2.0.0",
                     "2.0.1"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -705,11 +598,6 @@
                     "TC-2026.1",
                     "TC-2026.2",
                     "TC-2026.3"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -752,42 +640,6 @@
                     "KMS, KTRS, Gateway, TestCampaign",
                     "KES, KTRS, Gateway, TestCampaign",
                     "KMS, KES, KTRS, Gateway, TestCampaign"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               }
@@ -821,12 +673,12 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT s.started_at AS time, s.duration_s AS duration, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT s.started_at AS time, s.duration_s / 3600.0 AS duration, c.kms_version AS \"KMS\", c.kes_version AS \"KES\", c.ktrs_version AS \"KTRS\",\n       c.gateway_version AS \"Gateway\", c.testcampaign_version AS \"TestCampaign\",\n       regexp_replace(c.changes, ' [^ ,]+ → [^ ,]+', '', 'g') AS changed\nFROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id\nWHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})\nORDER BY 1"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
+          "unit": "h",
           "decimals": 1,
           "min": 0,
           "custom": {
@@ -877,7 +729,7 @@
                 "id": "color",
                 "value": {
                   "mode": "fixed",
-                  "fixedColor": "transparent"
+                  "fixedColor": "#8e8e8e"
                 }
               }
             ]
@@ -922,23 +774,6 @@
                     "2.4.0",
                     "2.4.1",
                     "2.5.0"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -951,12 +786,6 @@
                     "3.1.0",
                     "3.2.0",
                     "3.2.1"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -968,11 +797,6 @@
                     "5.4.2",
                     "5.5.0",
                     "5.5.1"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -984,11 +808,6 @@
                     "1.8.3",
                     "2.0.0",
                     "2.0.1"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -1000,11 +819,6 @@
                     "TC-2026.1",
                     "TC-2026.2",
                     "TC-2026.3"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               },
@@ -1047,42 +861,6 @@
                     "KMS, KTRS, Gateway, TestCampaign",
                     "KES, KTRS, Gateway, TestCampaign",
                     "KMS, KES, KTRS, Gateway, TestCampaign"
-                  ],
-                  "color": [
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent",
-                    "transparent"
                   ]
                 }
               }

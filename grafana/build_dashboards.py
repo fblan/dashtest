@@ -333,7 +333,7 @@ def trends():
                      ("custom.lineWidth", 1), ("custom.pointSize", 4))
 
     # versions of the campaign, shown in the tooltip only: text fields converted to enum (a time series panel
-    # only keeps graphable fields), drawn invisible (no line, no point, no axis) and hidden from the legend.
+    # only keeps graphable fields), drawn invisible (no line, no point, no axis), gray in the tooltip and hidden from the legend.
     # hideFrom.viz is not used: Grafana then also drops them from the tooltip.
     # An enum conversion needs the list of possible values (Grafana leaves the field as text otherwise): the
     # versions come from the generator's release lists, "changed" lists the components that changed.
@@ -353,15 +353,13 @@ def trends():
     tooltip_only = override("^(" + "|".join(version_fields) + ")$",
                             ("custom.hideFrom", {"viz": False, "legend": True, "tooltip": False}),
                             ("custom.lineWidth", 0), ("custom.showPoints", "never"), ("custom.pointSize", 0),
-                            ("custom.axisPlacement", "hidden"), ("color", {"mode": "fixed", "fixedColor": "transparent"}),
+                            ("custom.axisPlacement", "hidden"), ("color", {"mode": "fixed", "fixedColor": "#8e8e8e"}),
                             regex=True)
 
     def per_platform(p):
         p.update({"repeat": "platform", "repeatDirection": "h", "maxPerRow": 2})
         p["transformations"] = [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [
-            # transparent enum colors: no colored marker next to the versions in the tooltip
-            {"targetField": f, "destinationType": "enum",
-             "enumConfig": {"text": values, "color": ["transparent"] * len(values)}}
+            {"targetField": f, "destinationType": "enum", "enumConfig": {"text": values}}
             for f, values in enum_values.items()]}}]
         p["fieldConfig"]["overrides"].append(tooltip_only)
         return p
@@ -396,11 +394,11 @@ ORDER BY 1""" % versions,
              "With fixes: at least one action did not pass before and passes now.")), 24), h=10)
     L.row((per_platform(panel(
         "timeseries", "Campaign duration — $platform",
-        """SELECT s.started_at AS time, s.duration_s AS duration, %s
+        """SELECT s.started_at AS time, s.duration_s / 3600.0 AS duration, %s
 FROM v_campaign_summary s JOIN v_campaign c ON c.id = s.campaign_id
 WHERE $__timeFilter(s.started_at) AND s.platform IN (${platform:sqlstring})
 ORDER BY 1""" % versions,
-        defaults={"unit": "s", "decimals": 1, "min": 0, "custom": line,
+        defaults={"unit": "h", "decimals": 1, "min": 0, "custom": line,
                   "color": {"mode": "fixed", "fixedColor": "blue"}},
         options={**legend, "legend": {"showLegend": False}},
         desc="Duration of each campaign on the platform (first test start to last test end).")), 24), h=8)
