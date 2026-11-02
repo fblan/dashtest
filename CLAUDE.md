@@ -42,6 +42,11 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   Services: postgres (built from `db/`), migrate (one-shot `db/migrate.sh`), grafana (built from `grafana/`,
   waits for migrate). `docker-compose.local.yml` only adds ports (used locally through `COMPOSE_FILE`).
 - `tools/check_panels.py` remote query checker (above).
+- `tools/adapt_dashboards.py`: adapts the dashboards to another database through a mapping file (compatibility
+  views `campaign/test/step/action` in their own schema + 02 on top; dashboard SQL unchanged, Grafana role's
+  search_path). Keep its `MODEL` in sync with `01_schema.sql` when columns change; it removes
+  `recompute_status()` and the grant block from 02 by regex. Test it read-only on staging with
+  `--grafana https://dash.app.staging.dev.asymetrik.org --datasource kitchen-pg` (subquery `from` can fake renamed tables).
 
 ## Domain rules
 - status `success | skipped | failed`; after a failed/skipped action, every later action of the test is skipped.

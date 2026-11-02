@@ -138,6 +138,35 @@ To change a dashboard: edit `grafana/build_dashboards.py`, run `python3 grafana/
 no dependency; it reads the version lists of `generator/scenarios.py` for the Trends tooltip), then import the
 regenerated file again (same uid: Grafana asks to overwrite).
 
+## Adapt the dashboards to a database with other table / column names
+`tools/adapt_dashboards.py` (Python 3.9+, no dependency) maps your tables onto the dashboards' model without
+touching the dashboard SQL: it creates, in a schema of its own (default `kitchen`), 4 views `campaign`, `test`,
+`step`, `action` that read your tables with the expected names and types, then the functions and views of
+`02_functions_views.sql` on top of them.
+
+1. Write the mapping: `python3 tools/adapt_dashboards.py template > mapping.json` lists every column (with
+   its type and whether it is required). For each one give your column name (exact, case included), an SQL
+   expression `{"sql": "... src.<column> ..."}`, or `null` when it can be left out:
+   - statuses of campaign / test / step are derived from the actions (failed > skipped > success),
+     positions from the ids, test rank from the start times, campaign start / end from its tests;
+   - `status_values` translates your status values (e.g. `"failed": ["FAIL", "ERROR"]`);
+   - `from` is `schema.table`, or a subquery `"(SELECT ... )"` when one table is not enough (joins).
+2. Check it against the database (read-only queries):
+   `python3 tools/adapt_dashboards.py check mapping.json --psql "postgresql://user@host/db"`
+   (or `--grafana <url> --datasource <uid>` to query through Grafana). It reports unknown tables / columns with
+   suggestions (typos, case), incompatible types (e.g. epoch numbers for dates, uuid ids), status values not
+   translated, then runs the views on your data (nothing is created) and checks NULLs, duplicate ids, orphans,
+   duplicate positions or test names (runs are matched by test name, steps / actions by position), dates.
+3. Generate: `python3 tools/adapt_dashboards.py build mapping.json --psql "..." --out adapted/` writes
+   `adapted/install.sql` (idempotent, one transaction) and `adapted/dashboards/*.json` (the export files, with
+   the Trends tooltip values taken from your data).
+4. Run `psql "..." -f adapted/install.sql` as a user allowed to create the schema; it grants read access to
+   `grafana_role` and sets its `search_path` to the schema (use a dedicated read-only role for Grafana).
+   Import the dashboards as described above.
+
+Large databases: derived statuses are computed on every query; map real status columns when you have them,
+and index the foreign keys (test → campaign, step → test, action → step).
+
 ## Deploy on Dokploy
 `docker-compose.yml` is the production file: no published ports, Grafana is served through the
 Dokploy domain, Postgres is only reachable by Grafana. (`docker-compose.local.yml` adds the local ports
