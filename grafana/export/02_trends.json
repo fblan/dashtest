@@ -47,20 +47,20 @@
           "type": "grafana-postgresql-datasource",
           "uid": "${DS_KITCHEN}"
         },
-        "query": "SELECT code || ' — ' || name AS __text, code AS __value FROM platform ORDER BY code",
-        "definition": "SELECT code || ' — ' || name AS __text, code AS __value FROM platform ORDER BY code",
+        "query": "SELECT DISTINCT platform FROM campaign ORDER BY 1",
+        "definition": "SELECT DISTINCT platform FROM campaign ORDER BY 1",
         "refresh": 1,
         "multi": true,
         "includeAll": false,
         "sort": 0,
         "current": {
           "text": [
-            "IN — InHouse kitchen",
-            "OUT — Outdoor kitchen"
+            "InHouse kitchen",
+            "Outdoor kitchen"
           ],
           "value": [
-            "IN",
-            "OUT"
+            "InHouse kitchen",
+            "Outdoor kitchen"
           ]
         },
         "options": []
@@ -133,7 +133,7 @@
           "links": [
             {
               "title": "Open campaign overview",
-              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform}&${__url_time_range}"
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform:percentencode}&${__url_time_range}"
             }
           ]
         },
@@ -357,8 +357,8 @@
                 "enumConfig": {
                   "text": [
                     "no change",
-                    "first campaign on IN",
-                    "first campaign on OUT",
+                    "first campaign on InHouse kitchen",
+                    "first campaign on Outdoor kitchen",
                     "KMS",
                     "KES",
                     "KTRS",
@@ -442,7 +442,7 @@
           "links": [
             {
               "title": "Open campaign overview",
-              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform}&${__url_time_range}"
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform:percentencode}&${__url_time_range}"
             }
           ]
         },
@@ -651,8 +651,8 @@
                 "enumConfig": {
                   "text": [
                     "no change",
-                    "first campaign on IN",
-                    "first campaign on OUT",
+                    "first campaign on InHouse kitchen",
+                    "first campaign on Outdoor kitchen",
                     "KMS",
                     "KES",
                     "KTRS",
@@ -740,7 +740,7 @@
           "links": [
             {
               "title": "Open campaign overview",
-              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform}&${__url_time_range}"
+              "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}&var-platform=${platform:percentencode}&${__url_time_range}"
             }
           ]
         },
@@ -894,8 +894,8 @@
                 "enumConfig": {
                   "text": [
                     "no change",
-                    "first campaign on IN",
-                    "first campaign on OUT",
+                    "first campaign on InHouse kitchen",
+                    "first campaign on Outdoor kitchen",
                     "KMS",
                     "KES",
                     "KTRS",
