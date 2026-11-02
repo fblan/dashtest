@@ -47,8 +47,8 @@
           "type": "grafana-postgresql-datasource",
           "uid": "${DS_KITCHEN}"
         },
-        "query": "SELECT code || ' — ' || name AS __text, code AS __value FROM platform ORDER BY code",
-        "definition": "SELECT code || ' — ' || name AS __text, code AS __value FROM platform ORDER BY code",
+        "query": "SELECT DISTINCT platform FROM campaign ORDER BY 1",
+        "definition": "SELECT DISTINCT platform FROM campaign ORDER BY 1",
         "refresh": 1,
         "multi": true,
         "includeAll": true,
