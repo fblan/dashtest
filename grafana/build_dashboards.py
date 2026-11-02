@@ -100,11 +100,10 @@ def query_var(name, label, sql, multi=False, include_all=False, refresh=1):
 def platform_var(include_all=True):
     """Platform filter shared by all dashboards (multi-select, all platforms by default). Without include_all
     there is no "All" option: the platforms are selected one by one (both by default)."""
-    v = query_var("platform", "Platform",
-                  "SELECT code || ' — ' || name AS __text, code AS __value FROM platform ORDER BY code",
+    v = query_var("platform", "Platform", "SELECT DISTINCT platform FROM campaign ORDER BY 1",
                   multi=True, include_all=include_all)
     v["current"] = ({"text": ["All"], "value": ["$__all"]} if include_all else
-                    {"text": [f"{code} — {name}" for code, name in PLATFORMS.items()], "value": list(PLATFORMS)})
+                    {"text": list(PLATFORMS.values()), "value": list(PLATFORMS.values())})
     return v
 
 
@@ -236,7 +235,7 @@ def campaign_overview():
     L = Layout()
     L.row(
         (info_stat("Platform and versions", "$campaign",
-                   lead="c.platform || ' · ' || (SELECT name FROM platform WHERE code = c.platform) AS \"Platform\""),
+                   lead="c.platform AS \"Platform\""),
          14),
         (status_stat("SELECT status::text AS status FROM campaign WHERE id = $campaign"), 3),
         (stat("Pass rate", "SELECT pass_rate AS \"pass rate\" FROM v_campaign_summary WHERE campaign_id = $campaign",
@@ -330,7 +329,7 @@ def trends():
     enum_values = {
         "KMS": list(dict.fromkeys([v for v, *_ in KMS_VERSIONS] + [v for _, _, v in LATEST_CAMPAIGNS])),
         **{name: [v for _, v in COMPONENT_RELEASES[name.lower()]] for name in components[1:]},
-        "changed": ["no change"] + [f"first campaign on {code}" for code in PLATFORMS]
+        "changed": ["no change"] + [f"first campaign on {name}" for name in PLATFORMS.values()]
                    + [", ".join(c) for n in range(1, 6) for c in combinations(components, n)],
     }
     # "KMS 2.4.1 → 2.5.0, KES 3.2.0 → 3.2.1" -> "KMS, KES"
@@ -347,7 +346,7 @@ def trends():
     # clicking a campaign offers to open it in the overview (campaign_id: hidden field of the clicked row)
     open_campaign = [{"title": "Open campaign overview",
                       "url": "/d/kitchen-overview/campaign-overview?var-campaign=${__data.fields.campaign_id}"
-                             "&var-platform=${platform}&${__url_time_range}"}]
+                             "&var-platform=${platform:percentencode}&${__url_time_range}"}]
     hidden = override("campaign_id", ("custom.hideFrom", {"viz": True, "legend": True, "tooltip": True}))
 
     def per_platform(p):
