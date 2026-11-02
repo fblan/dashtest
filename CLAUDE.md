@@ -25,14 +25,15 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
 - It checks SQL only, not the layout: ask the user to look at the page.
 
 ## Layout
-- `db/init/01_schema.sql` tables (platform, campaign, test, step, action), enum `exec_status`.
+- `db/init/01_schema.sql` tables (campaign, test, step, action), enum `exec_status`.
 - `db/init/02_functions_views.sql` functions + views. **Must stay idempotent** (`DROP VIEW IF EXISTS … CASCADE`
   at the top listing every view, `DROP FUNCTION IF EXISTS` for functions returning a table, `CREATE OR REPLACE FUNCTION`, `GRANT SELECT … TO grafana_ro` at the end):
   the `migrate` service re-applies it on every deploy. Add any new view to the DROP list.
 - `db/init/03_seed.sql` is generated (1.7 MB) by `generator/generate.py` from `generator/scenarios.py`.
   Init scripts 00/01/03 only run on an empty volume. On later deploys `db/migrate.sh` reloads 03 when its
   sha256 differs from `seed_info` (TRUNCATE + load in one transaction), so data changes deploy by themselves.
-  Schema (table) changes on an existing DB need the volume deleted or an explicit migration — none exists yet.
+  Schema (table) changes on an existing DB need an idempotent migration at the top of `db/migrate.sh` (runs
+  before 02 in the same transaction), e.g. `DROP TABLE IF EXISTS platform CASCADE`.
   History must stay reproducible: new campaigns go in `LATEST_CAMPAIGNS` (fixed dates, no random noise),
   appended after the generated schedule so the earlier campaigns are unchanged.
 - `grafana/build_dashboards.py` generates `grafana/dashboards/*.json` (provisioned) and `grafana/export/*.json`
@@ -41,11 +42,18 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   Services: postgres (built from `db/`), migrate (one-shot `db/migrate.sh`), grafana (built from `grafana/`,
   waits for migrate). `docker-compose.local.yml` only adds ports (used locally through `COMPOSE_FILE`).
 - `tools/check_panels.py` remote query checker (above).
+- `tools/adapt_dashboards.py`: adapts the dashboards to another database through a mapping file (compatibility
+  views `campaign/test/step/action` in their own schema + 02 on top; dashboard SQL unchanged, Grafana role's
+  search_path). Keep its `MODEL` in sync with `01_schema.sql` when columns change; it removes
+  `recompute_status()` and the grant block from 02 by regex. Test it read-only on staging with
+  `--grafana https://dash.app.staging.dev.asymetrik.org --datasource kitchen-pg` (subquery `from` can fake renamed tables).
 
 ## Domain rules
 - status `success | skipped | failed`; after a failed/skipped action, every later action of the test is skipped.
 - parent status: failed > skipped > success, computed by `recompute_status()`.
-- Platforms IN (InHouse kitchen) / OUT (Outdoor kitchen). Every comparison (previous campaign, transitions,
+- No platform table (removed on request): `campaign.platform` holds the platform name ("InHouse kitchen",
+  "Outdoor kitchen"); the platform variable lists `SELECT DISTINCT platform FROM campaign`. The generator keeps
+  the codes IN / OUT internally (`PLATFORMS` maps them to names). Every comparison (previous campaign, transitions,
   diffs, history, flakiness) is **per platform**: window `PARTITION BY [name,] platform ORDER BY started_at`.
 - 5 versions per campaign: KMS (system under test), KES, KTRS, Gateway, TestCampaign — shown on all views.
 - Test names `NN_<scenario>`; no subsystem concept (removed on request).
@@ -70,7 +78,7 @@ simulated story, run, export, Dokploy deploy): read it first, this file only add
   Hidden filters `action_status` / `change` set by the actions count tile and the regressions / fixes tile
   (helpers `status_filters`, `change_filter`, `filter_vars`, shared with the overview).
   Header, step text, actions table (evolution = `status_change()`, status, expected, actual | compared status, expected, actual), step history.
-- `kitchen-trends` Trends over time: var platform without "All" (user's choice; IN and OUT selected by default); 3 panels repeated per platform (horizontal): tests per campaign
+- `kitchen-trends` Trends over time: var platform without "All" (user's choice; both platforms selected by default); 3 panels repeated per platform (horizontal): tests per campaign
   (total, success, skipped, failed), tests with regressions / fixes vs previous campaign (`v_test_diff`), campaign duration.
   Versions + changed components in the tooltip only: string fields → enum (convertFieldType needs
   `enumConfig.text`, taken from generator/scenarios.py releases: rebuild dashboards when they change), drawn invisible

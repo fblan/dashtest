@@ -334,6 +334,7 @@ SCENARIOS = [
     ]),
 ]
 
+# code used in this file -> platform name stored in campaign.platform
 PLATFORMS = {"IN": "InHouse kitchen", "OUT": "Outdoor kitchen"}
 
 # KMS (system under test) releases: (version, campaigns on IN, campaigns on OUT)

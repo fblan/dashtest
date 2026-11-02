@@ -3,18 +3,9 @@
 
 CREATE TYPE exec_status AS ENUM ('success', 'skipped', 'failed');
 
--- Kitchen platforms the campaigns run on
-CREATE TABLE platform (
-    code text PRIMARY KEY,
-    name text NOT NULL
-);
-INSERT INTO platform (code, name) VALUES
-    ('IN',  'InHouse kitchen'),
-    ('OUT', 'Outdoor kitchen');
-
 CREATE TABLE campaign (
     id                   serial PRIMARY KEY,
-    platform             text        NOT NULL REFERENCES platform (code),
+    platform             text        NOT NULL,      -- name of the kitchen platform the campaign runs on
     -- versions of the 5 software components used by the campaign
     kms_version          text        NOT NULL,      -- Kitchen Management System (system under test)
     kms_version_order    int         NOT NULL,      -- numeric ordering of KMS versions (1.2.0 < 1.10.0)

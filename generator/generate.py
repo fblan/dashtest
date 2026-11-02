@@ -175,7 +175,7 @@ def write_sql(path, campaigns, tests, steps, actions):
         batched_insert(f, "campaign", ["id", "platform", "kms_version", "kms_version_order", "kes_version",
                                        "ktrs_version", "gateway_version", "testcampaign_version",
                                        "started_at", "ended_at"], campaigns,
-                       lambda r: f"({r[0]}, {q(r[1])}, {q(r[2]['kms'])}, {order[r[2]['kms']]}, {q(r[2]['kes'])}, "
+                       lambda r: f"({r[0]}, {q(PLATFORMS[r[1]])}, {q(r[2]['kms'])}, {order[r[2]['kms']]}, {q(r[2]['kes'])}, "
                                  f"{q(r[2]['ktrs'])}, {q(r[2]['gateway'])}, {q(r[2]['testcampaign'])}, "
                                  f"{ts(r[3])}, {ts(r[4])})")
         batched_insert(f, "test", ["id", "campaign_id", "rank", "name", "started_at", "ended_at"], tests,

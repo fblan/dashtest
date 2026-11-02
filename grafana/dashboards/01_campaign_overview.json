@@ -23,8 +23,8 @@
           "type": "grafana-postgresql-datasource",
           "uid": "kitchen-pg"
         },
-        "query": "SELECT code || ' — ' || name AS __text, code AS __value FROM platform ORDER BY code",
-        "definition": "SELECT code || ' — ' || name AS __text, code AS __value FROM platform ORDER BY code",
+        "query": "SELECT DISTINCT platform FROM campaign ORDER BY 1",
+        "definition": "SELECT DISTINCT platform FROM campaign ORDER BY 1",
         "refresh": 1,
         "multi": true,
         "includeAll": true,
@@ -189,7 +189,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT c.platform || ' · ' || (SELECT name FROM platform WHERE code = c.platform) AS \"Platform\",\n       c.kms_version || CASE WHEN c.kms_version <> prev.kms_version THEN ' ▲' ELSE '' END AS \"KMS (under test)\",\n       c.kes_version || CASE WHEN c.kes_version <> prev.kes_version THEN ' ▲' ELSE '' END AS \"KES\",\n       c.ktrs_version || CASE WHEN c.ktrs_version <> prev.ktrs_version THEN ' ▲' ELSE '' END AS \"KTRS\",\n       c.gateway_version || CASE WHEN c.gateway_version <> prev.gateway_version THEN ' ▲' ELSE '' END AS \"Gateway\",\n       c.testcampaign_version || CASE WHEN c.testcampaign_version <> prev.testcampaign_version THEN ' ▲' ELSE '' END AS \"TestCampaign\"\nFROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id\nWHERE c.id = $campaign"
+          "rawSql": "SELECT c.platform AS \"Platform\",\n       c.kms_version || CASE WHEN c.kms_version <> prev.kms_version THEN ' ▲' ELSE '' END AS \"KMS (under test)\",\n       c.kes_version || CASE WHEN c.kes_version <> prev.kes_version THEN ' ▲' ELSE '' END AS \"KES\",\n       c.ktrs_version || CASE WHEN c.ktrs_version <> prev.ktrs_version THEN ' ▲' ELSE '' END AS \"KTRS\",\n       c.gateway_version || CASE WHEN c.gateway_version <> prev.gateway_version THEN ' ▲' ELSE '' END AS \"Gateway\",\n       c.testcampaign_version || CASE WHEN c.testcampaign_version <> prev.testcampaign_version THEN ' ▲' ELSE '' END AS \"TestCampaign\"\nFROM v_campaign c LEFT JOIN v_campaign prev ON prev.id = c.prev_campaign_id\nWHERE c.id = $campaign"
         }
       ],
       "fieldConfig": {
